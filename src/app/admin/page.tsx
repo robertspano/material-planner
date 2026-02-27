@@ -21,50 +21,52 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="max-w-6xl space-y-6">
-      {/* Stats cards + Planner link */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div className="grid grid-cols-3 gap-3 flex-1">
-          <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-              <Package className="w-5 h-5 text-blue-400" />
+    <div className="max-w-6xl space-y-10">
+      {/* Overview section */}
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-slate-900">{company?.name || "Yfirlit"}</h1>
+          <a
+            href={`/?company=${companySlug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: brandColor }}
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Planner
+          </a>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+              <Package className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-900">{stats?.totalProducts || 0}</p>
-              <p className="text-xs text-slate-500">Vörur</p>
+              <p className="text-2xl font-bold text-slate-900">{stats?.totalProducts || 0}</p>
+              <p className="text-xs text-slate-400 mt-0.5">Vörur</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-              <Layers className="w-5 h-5 text-emerald-400" />
+          <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+              <Layers className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-900">{stats?.generationsUsed || 0}</p>
-              <p className="text-xs text-slate-500">Generates</p>
+              <p className="text-2xl font-bold text-slate-900">{stats?.generationsUsed || 0}</p>
+              <p className="text-xs text-slate-400 mt-0.5">Generates</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-              <ImageIcon className="w-5 h-5 text-orange-400" />
+          <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-orange-500/15 flex items-center justify-center flex-shrink-0">
+              <ImageIcon className="w-5 h-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-900">{stats?.totalGenerations || 0}</p>
-              <p className="text-xs text-slate-500">Myndir</p>
+              <p className="text-2xl font-bold text-slate-900">{stats?.totalGenerations || 0}</p>
+              <p className="text-xs text-slate-400 mt-0.5">Myndir</p>
             </div>
           </div>
         </div>
-
-        {/* Planner link */}
-        <a
-          href={`/?company=${companySlug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90 whitespace-nowrap"
-          style={{ backgroundColor: brandColor }}
-        >
-          <ExternalLink className="w-4 h-4" />
-          Planner
-        </a>
       </div>
 
       {/* Products section */}

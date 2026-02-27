@@ -254,10 +254,10 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="max-w-6xl space-y-4 lg:space-y-6">
+    <div className="max-w-6xl space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-xl lg:text-2xl font-bold text-slate-900">Vörur</h1>
-        <div className="flex gap-3 flex-wrap">
+        <h2 className="text-base font-semibold text-slate-900">Vörur</h2>
+        <div className="flex gap-2.5 flex-wrap">
           <div className="relative flex-1 sm:w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input placeholder="Leita..." className="pl-9 h-9 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -294,7 +294,7 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
           <p className="">Engar vörur fundust</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
           {filtered.map((p) => (
             <ProductCard
               key={p.id}
