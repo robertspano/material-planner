@@ -57,13 +57,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2.5">
           {company?.logoUrl ? (
-            <img src={company.logoUrl} alt={company.name} className="h-7 w-auto" />
+            <img src={company.logoUrl} alt={company.name} className="h-8 w-auto max-w-[140px] object-contain" />
           ) : (
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: brandColor }}>
-              <span className="text-white font-bold text-xs">{company?.name?.charAt(0) || "A"}</span>
-            </div>
+            <span className="font-bold text-sm" style={{ color: brandColor }}>{company?.name}</span>
           )}
-          <span className="text-slate-900 font-semibold text-sm">{company?.name || "Admin"}</span>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100">
           {sidebarOpen ? <X className="w-5 h-5 text-slate-600" /> : <Menu className="w-5 h-5 text-slate-600" />}
@@ -72,16 +69,13 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-56 flex flex-col bg-white border-r border-slate-200 transition-transform duration-300 lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        {/* Logo */}
-        <div className="h-14 hidden lg:flex items-center gap-2.5 px-4 border-b border-slate-100">
+        {/* Company logo */}
+        <div className="h-14 hidden lg:flex items-center px-5 border-b border-slate-100">
           {company?.logoUrl ? (
-            <img src={company.logoUrl} alt={company.name} className="h-7 w-auto" />
+            <img src={company.logoUrl} alt={company.name} className="h-8 w-auto max-w-[160px] object-contain" />
           ) : (
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: brandColor }}>
-              <span className="text-white font-bold text-xs">{company?.name?.charAt(0) || "A"}</span>
-            </div>
+            <span className="font-bold text-lg" style={{ color: brandColor }}>{company?.name}</span>
           )}
-          <span className="text-slate-900 font-semibold text-sm">{company?.name || "Admin"}</span>
           {isSuperAdmin && (
             <span className="text-[9px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded font-medium ml-auto">SA</span>
           )}
