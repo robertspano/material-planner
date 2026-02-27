@@ -83,19 +83,19 @@ export default function LandingPage() {
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
           Velkomin til Snið
         </h1>
-        <p className="mt-6 text-base sm:text-lg font-normal text-slate-900 text-center max-w-md leading-relaxed tracking-[-0.01em]">
-          Gervigreindarverkfæri sem sýnir viðskiptavinum þínum efnisval í raunverulegu rými.
+        <p className="mt-6 text-base sm:text-lg font-normal text-slate-900 text-center max-w-lg tracking-[-0.01em]">
+          Nýttu gervigreind til að sýna viðskiptavinum þínum efnisval á gólf og veggi í eigin rýmum.
         </p>
         <a
           href="mailto:info@snid.is"
-          className="mt-8 text-sm font-normal text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
+          className="mt-8 text-sm font-medium text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
         >
-          Contact us
+          Hafðu samband
         </a>
       </div>
 
-      {/* Treysta okkur - near bottom */}
-      <div className="flex flex-col items-center gap-5 pb-16">
+      {/* Treysta okkur */}
+      <div className="flex flex-col items-center gap-6 pb-12 -mt-16">
         <p className="text-[11px] text-slate-900 uppercase tracking-[0.25em] font-medium">
           Treysta okkur
         </p>
@@ -103,8 +103,8 @@ export default function LandingPage() {
           <Image
             src="https://res.cloudinary.com/dgrig52h7/image/upload/v1772054190/company-logos/mxjcs8hikmbee0qoefle.svg"
             alt="Álfaborg"
-            width={160}
-            height={50}
+            width={180}
+            height={56}
             className="brightness-0"
           />
         </div>
