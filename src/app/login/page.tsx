@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Paintbrush } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,17 +48,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-blue-50 to-sky-100 p-4">
       <div className="w-full max-w-sm">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center">
-            <Paintbrush className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center">
+            <span className="text-white font-bold text-xs">S</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Material Planner</h1>
+          <span className="text-lg font-medium tracking-tight text-slate-900">snið</span>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-lg">
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">Innskráning</h2>
-          <p className="text-sm text-slate-500 mb-6">Skráðu þig inn til að stjórna vörulistanum</p>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Netfang</Label>
