@@ -4,10 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
  * Multi-tenant subdomain routing middleware.
  *
  * Production (snid.is):
- *   alfaborg.snid.is   → slug = "alfaborg" (company planner)
- *   byko.snid.is       → slug = "byko"
- *   admin.snid.is      → super admin mode
- *   snid.is            → landing page (no company slug)
+ *   alfaborg.snid.is        → slug = "alfaborg" (company planner)
+ *   alfaborg.snid.is/admin  → Álfaborg company admin
+ *   byko.snid.is            → slug = "byko"
+ *   snid.is                 → landing page
+ *   snid.is/login           → login page
+ *   snid.is/super           → super admin (after login)
+ *   snid.is/admin           → redirects to /super
  *
  * Vercel preview:
  *   material-planner.vercel.app?company=alfaborg → slug = "alfaborg"
@@ -90,20 +93,42 @@ export function middleware(request: NextRequest) {
       response.headers.set("x-company-slug", subdomain);
     }
   } else {
-    // No subdomain: snid.is → show landing page
-    // Unless ?company= is specified (for direct access)
-    if (companyParam) {
-      if (companyParam === "admin") {
-        response.headers.set("x-is-super-admin", "true");
-      } else {
+    // No subdomain: snid.is
+    // snid.is/admin → redirect to /super (super admin)
+    if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+      response.headers.set("x-is-super-admin", "true");
+      return NextResponse.redirect(new URL(pathname.replace("/admin", "/super"), request.url));
+    }
+
+    // snid.is/super → super admin mode
+    if (pathname.startsWith("/super") || pathname === "/login") {
+      response.headers.set("x-is-super-admin", "true");
+      if (companyParam) {
         response.headers.set("x-company-slug", companyParam);
       }
-    } else {
-      // Root domain with no params → rewrite to landing page
+      return response;
+    }
+
+    // snid.is/api/* → allow API calls through (for super admin)
+    if (pathname.startsWith("/api/")) {
+      if (companyParam) {
+        response.headers.set("x-company-slug", companyParam);
+      }
+      response.headers.set("x-is-super-admin", "true");
+      return response;
+    }
+
+    // snid.is (root) → landing page
+    if (pathname === "/") {
       response.headers.set("x-is-landing", "true");
       return NextResponse.rewrite(new URL("/landing", request.url), {
         headers: response.headers,
       });
+    }
+
+    // Fallback for any other path on root domain
+    if (companyParam) {
+      response.headers.set("x-company-slug", companyParam);
     }
   }
 
