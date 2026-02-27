@@ -95,8 +95,8 @@ export default function LandingPage() {
       </div>
 
       {/* Treysta okkur */}
-      <div className="flex flex-col items-center gap-6 pb-12 -mt-24">
-        <p className="text-[11px] text-slate-900 uppercase tracking-[0.25em] font-medium">
+      <div className="flex flex-col items-center gap-6 pb-12 -mt-32">
+        <p className="text-[11px] text-slate-900 uppercase tracking-[0.25em] font-bold">
           Treysta okkur
         </p>
         <div className="flex items-center gap-12">
