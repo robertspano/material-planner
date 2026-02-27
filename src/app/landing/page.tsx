@@ -78,8 +78,8 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Main content - centered */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8">
+      {/* Main content - centered, nudged up */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-20">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
           Velkomin til Snið
         </h1>
@@ -88,7 +88,7 @@ export default function LandingPage() {
         </p>
         <a
           href="mailto:info@snid.is"
-          className="mt-8 text-sm font-medium text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
+          className="mt-8 text-base font-bold text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
         >
           Hafðu samband
         </a>
