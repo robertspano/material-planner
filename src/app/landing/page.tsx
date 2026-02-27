@@ -22,8 +22,8 @@ export default function LandingPage() {
       </div>
 
       {/* Main content - centered */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-4">
-        <h1 className="text-4xl sm:text-5xl md:text-[64px] font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
+      <div className="flex-1 flex flex-col items-center justify-center px-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
           Velkomin til Snið
         </h1>
         <p className="mt-6 text-base sm:text-lg font-normal text-slate-900 text-center max-w-md leading-relaxed tracking-[-0.01em]">
@@ -35,21 +35,21 @@ export default function LandingPage() {
         >
           Contact us
         </a>
+      </div>
 
-        {/* Trusted by */}
-        <div className="flex flex-col items-center gap-5 mt-16">
-          <p className="text-[11px] text-slate-400 uppercase tracking-[0.25em] font-medium">
-            Trusted by
-          </p>
-          <div className="flex items-center gap-12">
-            <Image
-              src="https://res.cloudinary.com/dgrig52h7/image/upload/v1772054190/company-logos/mxjcs8hikmbee0qoefle.svg"
-              alt="Álfaborg"
-              width={160}
-              height={50}
-              className="brightness-0"
-            />
-          </div>
+      {/* Treysta okkur - near bottom */}
+      <div className="flex flex-col items-center gap-5 pb-16">
+        <p className="text-[11px] text-slate-900 uppercase tracking-[0.25em] font-medium">
+          Treysta okkur
+        </p>
+        <div className="flex items-center gap-12">
+          <Image
+            src="https://res.cloudinary.com/dgrig52h7/image/upload/v1772054190/company-logos/mxjcs8hikmbee0qoefle.svg"
+            alt="Álfaborg"
+            width={160}
+            height={50}
+            className="brightness-0"
+          />
         </div>
       </div>
     </div>
