@@ -84,7 +84,7 @@ export default function LandingPage() {
           Velkomin til Snið
         </h1>
         <p className="mt-6 text-lg sm:text-xl font-normal text-slate-900 text-center max-w-3xl whitespace-nowrap tracking-[-0.01em]">
-          Sýndu viðskiptavinum þínum hvernig efni líta út á gólfi og veggjum í þeirra eigin rýmum.
+          Sjónræn lausn sem gerir viðskiptavinum kleift að sjá efnisval á gólfi og veggjum í eigin rýmum.
         </p>
         <a
           href="mailto:info@snid.is"
