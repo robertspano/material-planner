@@ -261,24 +261,18 @@ export default function ProductsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input placeholder="Leita..." className="pl-9 h-9 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <div className="flex gap-1.5">
-            <Select value={filterCat} onValueChange={setFilterCat}>
-              <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Allir flokkar" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Allir flokkar</SelectItem>
-                {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <button
-              onClick={() => setShowCreateCat(true)}
-              className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors flex-shrink-0"
-              title="Nýr flokkur"
-            >
-              <FolderPlus className="w-4 h-4" />
-            </button>
-          </div>
+          <Select value={filterCat} onValueChange={setFilterCat}>
+            <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Allir flokkar" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Allir flokkar</SelectItem>
+              {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={() => setShowCreateCat(true)} className="h-9 text-sm border-dashed">
+            <FolderPlus className="w-4 h-4 mr-1.5" /> Nýr flokkur
+          </Button>
           <Button onClick={() => { resetForm(); setShowCreate(true); }} className="text-white hover:opacity-90" style={{ backgroundColor: brandColor }}>
-            <Plus className="w-4 h-4 mr-2" /> Bæta við
+            <Plus className="w-4 h-4 mr-1.5" /> Ný vara
           </Button>
         </div>
       </div>
