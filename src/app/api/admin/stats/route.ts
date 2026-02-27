@@ -47,7 +47,7 @@ export async function GET() {
       generationsUsed: Number(generateResult[0]?.cnt || 0),
     });
 
-    res.headers.set("Cache-Control", "private, s-maxage=30, stale-while-revalidate=60");
+    res.headers.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
     return res;
   } catch (error) {
     if (error instanceof Response) return error;

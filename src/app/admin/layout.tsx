@@ -2,9 +2,11 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { LayoutDashboard, Settings, LogOut, Menu, X } from "lucide-react";
 import { AdminCompanyProvider, useAdminCompany } from "@/components/admin/admin-company-context";
+import { queryClient } from "@/lib/queryClient";
 import type { CompanyBranding } from "@/types";
 
 const navItems = [
@@ -18,7 +20,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const { companySlug, isSuperAdmin, admin, isLoading: authLoading } = useAdminCompany();
+  const { companySlug, isSuperAdmin, admin, isLoading: authLoading, adminApiUrl } = useAdminCompany();
 
   // Auth guard — redirect only when we KNOW user is not logged in
   useEffect(() => {
@@ -26,6 +28,16 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       router.replace("/login");
     }
   }, [authLoading, admin, router]);
+
+  // Prefetch all admin data as soon as auth is ready — so pages render instantly
+  useEffect(() => {
+    if (admin && companySlug) {
+      queryClient.prefetchQuery({ queryKey: [`/api/planner/company?company=${companySlug}`] });
+      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/stats")] });
+      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/products")] });
+      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/categories")] });
+    }
+  }, [admin, companySlug, adminApiUrl]);
 
   const companyParam = searchParams.get("company");
   const queryString = companyParam ? `?company=${companyParam}` : "";
@@ -93,9 +105,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             const Icon = item.icon;
             const isActive = pathname === item.href;
             return (
-              <button
+              <Link
                 key={item.href}
-                onClick={() => { router.push(`${item.href}${queryString}`); setSidebarOpen(false); }}
+                href={`${item.href}${queryString}`}
+                prefetch={true}
+                onClick={() => setSidebarOpen(false)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   isActive
                     ? "font-semibold text-white shadow-sm"
@@ -105,7 +119,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               >
                 <Icon className="w-4.5 h-4.5" />
                 <span>{item.label}</span>
-              </button>
+              </Link>
             );
           })}
         </nav>

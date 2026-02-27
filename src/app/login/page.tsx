@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { queryClient } from "@/lib/queryClient";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,6 +34,10 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
+
+      // Seed auth cache — admin layout won't need to re-fetch /api/auth/me
+      queryClient.setQueryData(["/api/auth/me"], data);
+
       if (data.admin.role === "super_admin") {
         router.push("/super");
       } else {

@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         role: admin.role,
         companyId: admin.companyId,
         companyName: admin.company?.name || null,
+        companySlug: admin.company?.slug || null,
       },
     });
 
