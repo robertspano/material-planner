@@ -83,7 +83,7 @@ export default function LandingPage() {
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
           Velkomin til Snið
         </h1>
-        <p className="mt-6 text-base sm:text-lg font-normal text-slate-900 text-center max-w-3xl whitespace-nowrap tracking-[-0.01em]">
+        <p className="mt-6 text-lg sm:text-xl font-normal text-slate-900 text-center max-w-3xl whitespace-nowrap tracking-[-0.01em]">
           Nýttu gervigreind til að sýna viðskiptavinum þínum efnisval á gólf og veggi í eigin rýmum.
         </p>
         <a
