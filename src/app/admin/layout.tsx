@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Settings, LogOut, Menu, X, Loader2 } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, Menu, X } from "lucide-react";
 import { AdminCompanyProvider, useAdminCompany } from "@/components/admin/admin-company-context";
 import type { CompanyBranding } from "@/types";
 
@@ -20,7 +20,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   const { companySlug, isSuperAdmin, admin, isLoading: authLoading } = useAdminCompany();
 
-  // Auth guard
+  // Auth guard — redirect only when we KNOW user is not logged in
   useEffect(() => {
     if (!authLoading && !admin) {
       router.replace("/login");
@@ -42,13 +42,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   const brandColor = company?.primaryColor || "#2e7cff";
 
-  if (authLoading || !admin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-      </div>
-    );
-  }
+  // Show layout skeleton during auth load — NOT a blank spinner
+  const showContent = !authLoading && !!admin;
 
   return (
     <div
@@ -62,8 +57,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             <div className="h-8 px-4 rounded-lg flex items-center" style={{ backgroundColor: brandColor }}>
               <img src={company.logoUrl} alt={company.name} className="h-5 w-auto max-w-[120px] object-contain brightness-0 invert" />
             </div>
+          ) : company?.name ? (
+            <span className="font-bold text-sm" style={{ color: brandColor }}>{company.name}</span>
           ) : (
-            <span className="font-bold text-sm" style={{ color: brandColor }}>{company?.name}</span>
+            <div className="h-4 w-24 bg-slate-100 rounded animate-pulse" />
           )}
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100">
@@ -80,8 +77,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         >
           {company?.logoUrl ? (
             <img src={company.logoUrl} alt={company.name} className="h-6 w-auto max-w-[140px] object-contain brightness-0 invert" />
+          ) : company?.name ? (
+            <span className="font-bold text-lg" style={{ color: brandColor }}>{company.name}</span>
           ) : (
-            <span className="font-bold text-lg" style={{ color: brandColor }}>{company?.name}</span>
+            <div className="h-5 w-28 bg-slate-100 rounded animate-pulse" />
           )}
           {isSuperAdmin && (
             <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded font-medium ml-auto">SA</span>
@@ -114,8 +113,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Bottom */}
         <div className="p-3 border-t border-slate-100">
           <div className="px-3 py-2 mb-2">
-            <p className="text-xs font-medium text-slate-900 truncate">{admin?.name}</p>
-            <p className="text-[11px] text-slate-400 truncate">{admin?.email}</p>
+            {admin ? (
+              <>
+                <p className="text-xs font-medium text-slate-900 truncate">{admin.name}</p>
+                <p className="text-[11px] text-slate-400 truncate">{admin.email}</p>
+              </>
+            ) : (
+              <>
+                <div className="h-3 w-24 bg-slate-100 rounded animate-pulse mb-1.5" />
+                <div className="h-2.5 w-32 bg-slate-100 rounded animate-pulse" />
+              </>
+            )}
           </div>
           <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
             <LogOut className="w-4 h-4" />
@@ -127,7 +135,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       {sidebarOpen && <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <main className="flex-1 overflow-auto p-4 lg:p-8 mt-14 lg:mt-0">
-        {children}
+        {showContent ? children : null}
       </main>
     </div>
   );

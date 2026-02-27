@@ -1,24 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Package, ImageIcon, Layers, Loader2, ExternalLink } from "lucide-react";
+import { Package, ImageIcon, Layers, ExternalLink } from "lucide-react";
 import { useAdminCompany } from "@/components/admin/admin-company-context";
 import type { CompanyStats, CompanyBranding } from "@/types";
 import ProductsPage from "./products/page";
 
 export default function AdminDashboard() {
   const { adminApiUrl, companySlug } = useAdminCompany();
-  const { data: stats, isLoading } = useQuery<CompanyStats>({ queryKey: [adminApiUrl("/api/admin/stats")] });
+  const { data: stats } = useQuery<CompanyStats>({ queryKey: [adminApiUrl("/api/admin/stats")] });
   const { data: company } = useQuery<CompanyBranding>({
     queryKey: [`/api/planner/company?company=${companySlug}`],
     enabled: !!companySlug,
   });
 
   const brandColor = company?.primaryColor || "#2e7cff";
-
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin" /></div>;
-  }
 
   return (
     <div className="max-w-6xl space-y-10">
@@ -39,38 +35,44 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-              <Package className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900">{stats?.totalProducts || 0}</p>
-              <p className="text-xs text-slate-400 mt-0.5">Vörur</p>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-              <Layers className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900">{stats?.generationsUsed || 0}</p>
-              <p className="text-xs text-slate-400 mt-0.5">Generates</p>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-orange-500/15 flex items-center justify-center flex-shrink-0">
-              <ImageIcon className="w-5 h-5 text-orange-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900">{stats?.totalGenerations || 0}</p>
-              <p className="text-xs text-slate-400 mt-0.5">Myndir</p>
-            </div>
-          </div>
+          <StatCard icon={Package} color="blue" value={stats?.totalProducts} label="Vörur" />
+          <StatCard icon={Layers} color="emerald" value={stats?.generationsUsed} label="Generates" />
+          <StatCard icon={ImageIcon} color="orange" value={stats?.totalGenerations} label="Myndir" />
         </div>
       </div>
 
       {/* Products section */}
       <ProductsPage brandColor={brandColor} />
+    </div>
+  );
+}
+
+const colorMap = {
+  blue: { bg: "bg-blue-500/15", text: "text-blue-500" },
+  emerald: { bg: "bg-emerald-500/15", text: "text-emerald-500" },
+  orange: { bg: "bg-orange-500/15", text: "text-orange-500" },
+};
+
+function StatCard({ icon: Icon, color, value, label }: {
+  icon: React.ComponentType<{ className?: string }>;
+  color: "blue" | "emerald" | "orange";
+  value: number | undefined;
+  label: string;
+}) {
+  const c = colorMap[color];
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
+      <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-5 h-5 ${c.text}`} />
+      </div>
+      <div>
+        {value !== undefined ? (
+          <p className="text-2xl font-bold text-slate-900">{value}</p>
+        ) : (
+          <div className="h-7 w-10 bg-slate-100 rounded animate-pulse" />
+        )}
+        <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+      </div>
     </div>
   );
 }
