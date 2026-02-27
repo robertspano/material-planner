@@ -3,13 +3,12 @@
 import { Suspense, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Package, Settings, LogOut, Menu, X, Loader2 } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, Menu, X, Loader2 } from "lucide-react";
 import { AdminCompanyProvider, useAdminCompany } from "@/components/admin/admin-company-context";
 import type { CompanyBranding } from "@/types";
 
 const navItems = [
   { href: "/admin", label: "Yfirlit", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Vörur", icon: Package },
   { href: "/admin/settings", label: "Stillingar", icon: Settings },
 ];
 
