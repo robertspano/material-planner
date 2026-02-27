@@ -91,8 +91,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Main content — full width */}
-      <main className="px-4 lg:px-8 py-6">
+      {/* Main content — centered */}
+      <main className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
         {showContent ? children : null}
       </main>
     </div>
