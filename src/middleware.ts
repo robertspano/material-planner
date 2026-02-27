@@ -32,6 +32,22 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
+  // Vercel preview/hosting domains should use query param, not subdomain
+  const isVercelDomain = hostname.includes("vercel.app") || hostname.includes("vercel.sh");
+
+  if (isVercelDomain) {
+    const slug = companyParam || "demo";
+    if (slug === "admin") {
+      response.headers.set("x-is-super-admin", "true");
+      if (companyParam) {
+        response.headers.set("x-company-slug", companyParam);
+      }
+    } else {
+      response.headers.set("x-company-slug", slug);
+    }
+    return response;
+  }
+
   // Production: extract subdomain
   // hostname = "byko.planner.is" → parts = ["byko", "planner", "is"]
   const parts = hostname.split(".");
