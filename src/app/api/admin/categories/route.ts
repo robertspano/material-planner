@@ -19,7 +19,9 @@ export async function GET() {
       orderBy: { sortOrder: "asc" },
     });
 
-    return NextResponse.json(categories);
+    const res = NextResponse.json(categories);
+    res.headers.set("Cache-Control", "private, max-age=10, stale-while-revalidate=30");
+    return res;
   } catch (error) {
     if (error instanceof Response) return error;
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

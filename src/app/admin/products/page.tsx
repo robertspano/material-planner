@@ -33,13 +33,14 @@ interface ProductEntry {
 
 interface CategoryEntry { id: string; name: string; surfaceType: string; }
 
-export default function ProductsPage() {
+export default function ProductsPage({ brandColor: brandColorProp }: { brandColor?: string }) {
   const { adminApiUrl, companySlug } = useAdminCompany();
+  // Only fetch company branding if not passed as prop (avoids duplicate query)
   const { data: company } = useQuery<{ primaryColor: string }>({
     queryKey: [`/api/planner/company?company=${companySlug}`],
-    enabled: !!companySlug,
+    enabled: !!companySlug && !brandColorProp,
   });
-  const brandColor = company?.primaryColor || "#2e7cff";
+  const brandColor = brandColorProp || company?.primaryColor || "#2e7cff";
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
@@ -514,7 +515,7 @@ function ProductCard({
     <div className={`bg-white rounded-xl border border-slate-200 overflow-hidden transition-all hover:shadow-lg group ${!p.isActive ? "opacity-50" : ""}`}>
       <div className="aspect-square bg-slate-100 relative">
         {p.imageUrl && p.imageUrl !== "/placeholder-product.jpg" && p.imageUrl !== "" ? (
-          <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+          <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-10 h-10 text-slate-300" /></div>
         )}

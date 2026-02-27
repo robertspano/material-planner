@@ -13,39 +13,48 @@ export async function GET() {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
-    const companyData = await prisma.company.findUnique({ where: { id: companyId } });
+    // Single query: all counts + generates in one DB round trip
+    const [countsResult, companyData] = await Promise.all([
+      prisma.$queryRaw<{
+        totalProducts: bigint;
+        totalCategories: bigint;
+        totalGenerations: bigint;
+        generationsThisMonth: bigint;
+        generatesCount: bigint;
+      }[]>`
+        SELECT
+          (SELECT COUNT(*) FROM "Product" WHERE "companyId" = ${companyId}) as "totalProducts",
+          (SELECT COUNT(*) FROM "Category" WHERE "companyId" = ${companyId}) as "totalCategories",
+          (SELECT COUNT(*) FROM "Generation" WHERE "companyId" = ${companyId}) as "totalGenerations",
+          (SELECT COUNT(*) FROM "Generation" WHERE "companyId" = ${companyId} AND "createdAt" >= ${startOfMonth}) as "generationsThisMonth",
+          (SELECT COUNT(*) FROM (
+            SELECT DISTINCT "batchId" AS grp FROM "Generation" WHERE "batchId" IS NOT NULL AND "companyId" = ${companyId}
+            UNION ALL
+            SELECT DISTINCT "sessionId" AS grp FROM "Generation" WHERE "batchId" IS NULL AND "companyId" = ${companyId}
+          ) sub) as "generatesCount"
+      `,
+      prisma.company.findUnique({
+        where: { id: companyId },
+        select: { monthlyGenerationLimit: true },
+      }),
+    ]);
 
-    const [totalProducts, totalCategories, totalGenerations, generationsThisMonth] =
-      await Promise.all([
-        prisma.product.count({ where: { companyId } }),
-        prisma.category.count({ where: { companyId } }),
-        prisma.generation.count({ where: { companyId } }),
-        prisma.generation.count({ where: { companyId, createdAt: { gte: startOfMonth } } }),
-      ]);
+    const c = countsResult[0];
 
-    // Count distinct "generates" (button presses) — same logic as super admin
-    // New records: each unique batchId = one generate
-    // Old records (no batchId): group by sessionId — all images from same session = one generate
-    const generateResult = await prisma.$queryRaw<{ generateCount: bigint }[]>`
-      SELECT COUNT(*) as "generateCount" FROM (
-        SELECT DISTINCT "batchId" AS grp FROM "Generation" WHERE "batchId" IS NOT NULL AND "companyId" = ${companyId}
-        UNION ALL
-        SELECT DISTINCT "sessionId" AS grp FROM "Generation" WHERE "batchId" IS NULL AND "companyId" = ${companyId}
-      ) sub
-    `;
-    const generationsUsed = Number(generateResult[0]?.generateCount || 0);
-
-    return NextResponse.json({
-      totalProducts,
-      totalCategories,
-      totalGenerations,
-      generationsThisMonth,
+    const res = NextResponse.json({
+      totalProducts: Number(c?.totalProducts || 0),
+      totalCategories: Number(c?.totalCategories || 0),
+      totalGenerations: Number(c?.totalGenerations || 0),
+      generationsThisMonth: Number(c?.generationsThisMonth || 0),
       generationLimit: companyData?.monthlyGenerationLimit || 500,
-      generationsUsed,
+      generationsUsed: Number(c?.generatesCount || 0),
     });
+
+    // Cache for 30s, serve stale for 60s while revalidating
+    res.headers.set("Cache-Control", "private, s-maxage=30, stale-while-revalidate=60");
+    return res;
   } catch (error) {
     if (error instanceof Response) return error;
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

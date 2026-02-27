@@ -68,7 +68,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Products section */}
-      <ProductsPage />
+      <ProductsPage brandColor={brandColor} />
     </div>
   );
 }

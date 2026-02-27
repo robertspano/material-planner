@@ -13,12 +13,10 @@ export async function getCompanyFromRequest(): Promise<Company | null> {
   if (!slug) return null;
 
   const company = await prisma.company.findUnique({
-    where: { slug },
+    where: { slug, isActive: true },
   });
 
-  if (!company || !company.isActive) return null;
-
-  return company;
+  return company || null;
 }
 
 /**
