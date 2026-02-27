@@ -78,7 +78,7 @@ export default function PlannerPage() {
     queryKey: [`/api/planner/company?company=${companySlug}`],
     enabled: !!companySlug,
     placeholderData: cachedCompany,
-    staleTime: 0,
+    staleTime: 3600000,
     retry: 1,
   });
 

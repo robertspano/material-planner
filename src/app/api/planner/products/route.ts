@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
       orderBy: { sortOrder: "asc" },
     });
 
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" },
+    });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
