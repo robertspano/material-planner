@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                     String         @id @default(cuid())
+  name                   String
+  slug                   String         @unique
+  logoUrl                String?
+  primaryColor           String         @default("#2e7cff")
+  secondaryColor         String         @default("#1e293b")
+  isActive               Boolean        @default(true)
+  plan                   String         @default("basic")
+  monthlyGenerationLimit Int            @default(500)
+  generationsUsed        Int            @default(0)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  kennitala              String?
+  logoIsLight            Boolean        @default(false)
+  pricePerGeneration     Float          @default(50)
+  categories             Category[]
+  admins                 CompanyAdmin[]
+  generations            Generation[]
+  products               Product[]
+}
+
+model CompanyAdmin {
+  id           String   @id @default(cuid())
+  companyId    String?
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  company      Company? @relation(fields: [companyId], references: [id])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  companyId   String
+  name        String
+  surfaceType String
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  company     Company   @relation(fields: [companyId], references: [id])
+  products    Product[]
+
+  @@index([companyId])
+}
+
+model Product {
+  id                 String              @id @default(cuid())
+  companyId          String
+  categoryId         String
+  name               String
+  description        String?
+  price              Float?
+  unit               String              @default("m2")
+  imageUrl           String
+  swatchUrl          String?
+  surfaceTypes       String[]            @default(["floor"])
+  isActive           Boolean             @default(true)
+  sortOrder          Int                 @default(0)
+  createdAt          DateTime            @default(now())
+  tileHeight         Float?
+  tileThickness      Float?
+  tileWidth          Float?
+  discountPercent    Float?
+  generationProducts GenerationProduct[]
+  category           Category            @relation(fields: [categoryId], references: [id])
+  company            Company             @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([categoryId])
+}
+
+model Generation {
+  id              String              @id @default(cuid())
+  companyId       String
+  sessionId       String
+  roomImageUrl    String
+  status          String              @default("pending")
+  maskData        Json?
+  errorMessage    String?
+  roomWidth       Float?
+  roomLength      Float?
+  roomHeight      Float?
+  createdAt       DateTime            @default(now())
+  floorArea       Float?
+  wallArea        Float?
+  rawRoomImageUrl String?
+  batchId         String?
+  company         Company             @relation(fields: [companyId], references: [id])
+  products        GenerationProduct[]
+  results         GenerationResult[]
+
+  @@index([companyId])
+  @@index([sessionId])
+  @@index([batchId])
+}
+
+model GenerationProduct {
+  id           String     @id @default(cuid())
+  generationId String
+  productId    String
+  surfaceType  String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id])
+
+  @@index([generationId])
+}
+
+model GenerationResult {
+  id           String     @id @default(cuid())
+  generationId String
+  imageUrl     String
+  createdAt    DateTime   @default(now())
+  surfaceType  String     @default("floor")
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@index([generationId])
+}

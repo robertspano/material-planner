@@ -1,0 +1,884 @@
+[
+  {
+    "productId": "alfa-cadenza-dark-brown-620",
+    "name": "CADENZA",
+    "description": "DARK BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/cadenza-dark-brown",
+    "href": "/voruflokkar/parket/hardparket/cadenza-dark-brown"
+  },
+  {
+    "productId": "alfa-the-room-gre-r06-12-rm-355",
+    "name": "THE ROOM",
+    "description": "GRE R06 12 RM",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/the-room-gre-r06-12-rm",
+    "href": "/voruflokkar/flisar/the-room-gre-r06-12-rm"
+  },
+  {
+    "productId": "alfa-bauhome-9-litir-og-18-mynstur-508",
+    "name": "BAUHOME",
+    "description": "9 litir og 18 mynstur",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/bauhome-9-litir-og-18-mynstur",
+    "href": "/voruflokkar/flisar/bauhome-9-litir-og-18-mynstur"
+  },
+  {
+    "productId": "alfa-caprice-5-litir-17-decor-510",
+    "name": "CAPRICE",
+    "description": "5 litir, 17 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/caprice-5-litirpoint-17-decor",
+    "href": "/voruflokkar/flisar/caprice-5-litirpoint-17-decor"
+  },
+  {
+    "productId": "alfa-coco-10-litir-513",
+    "name": "COCO",
+    "description": "10 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/coco-10-litir",
+    "href": "/voruflokkar/flisar/coco-10-litir"
+  },
+  {
+    "productId": "alfa-octagon-6-litir-527",
+    "name": "OCTAGON",
+    "description": "6 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/octagon-6-litir",
+    "href": "/voruflokkar/flisar/octagon-6-litir"
+  },
+  {
+    "productId": "alfa-rivoli-6-litir-17-decor-528",
+    "name": "RIVOLI",
+    "description": "6 litir, 17 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/rivoli-6-litirpoint-17-decor",
+    "href": "/voruflokkar/flisar/rivoli-6-litirpoint-17-decor"
+  },
+  {
+    "productId": "alfa-hexatile-cement-6-litir-4-decor-520",
+    "name": "HEXATILE CEMENT",
+    "description": "6 litir, 4 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/hexatile-cement-6-litirpoint-4-decor",
+    "href": "/voruflokkar/flisar/hexatile-cement-6-litirpoint-4-decor"
+  },
+  {
+    "productId": "alfa-wadi-10-litir-533",
+    "name": "WADI",
+    "description": "10 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/wadi-10-litir",
+    "href": "/voruflokkar/flisar/wadi-10-litir"
+  },
+  {
+    "productId": "alfa-cadenza-allegro-light-622",
+    "name": "CADENZA",
+    "description": "ALLEGRO LIGHT",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/cadenza-allegro-light",
+    "href": "/voruflokkar/parket/hardparket/cadenza-allegro-light"
+  },
+  {
+    "productId": "alfa-woodstock-xl-summit-oak-cream-ac5-4v-10m-640",
+    "name": "WOODSTOCK XL",
+    "description": "SUMMIT OAK CREAM AC5 4V 10M",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/woodstock-xl-summit-oak-cream-ac5-4v-10m",
+    "href": "/voruflokkar/parket/hardparket/woodstock-xl-summit-oak-cream-ac5-4v-10m"
+  },
+  {
+    "productId": "alfa-grace-oak-white-lace-tres-3-strip-658",
+    "name": "GRACE",
+    "description": "OAK WHITE LACE TRES (3-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-white-lace-tres-3-strip-",
+    "href": "/voruflokkar/parket/grace-oak-white-lace-tres-3-strip-"
+  },
+  {
+    "productId": "alfa-heritage-oak-hardvax-oil-14mm-660",
+    "name": "HERITAGE",
+    "description": "OAK HARDVAX OIL 14MM",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/heritage-oak-hardvax-oil-14mm-",
+    "href": "/voruflokkar/parket/heritage-oak-hardvax-oil-14mm-"
+  },
+  {
+    "productId": "alfa-spirit-xl-lvt-vnylparket-smellt-long-range-cl-689",
+    "name": "SPIRIT XL - LVT VÍNYLPARKET SMELLT",
+    "description": "LONG RANGE CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-long-range-cl",
+    "href": "/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-long-range-cl"
+  },
+  {
+    "productId": "alfa-shade-oak-cream-tres-13pn-685",
+    "name": "SHADE",
+    "description": "OAK CREAM TRES 13PN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/shade-oak-cream-tres-13pn",
+    "href": "/voruflokkar/parket/shade-oak-cream-tres-13pn"
+  },
+  {
+    "productId": "alfa-shade-ash-melange-13mm194-3-2-l-681",
+    "name": "SHADE",
+    "description": "ASH MELANGE 13MM194-3 2-L",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/shade-ash-melange-13mm194-3-2-l",
+    "href": "/voruflokkar/parket/shade-ash-melange-13mm194-3-2-l"
+  },
+  {
+    "productId": "alfa-shade-oak-cream-white-midiplank-684",
+    "name": "SHADE",
+    "description": "OAK CREAM WHITE MIDIPLANK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/shade-oak-cream-white-midiplank",
+    "href": "/voruflokkar/parket/shade-oak-cream-white-midiplank"
+  },
+  {
+    "productId": "alfa-spirit-xl-lvt-vnylparket-smellt-yosemite-cl-691",
+    "name": "SPIRIT XL - LVT VÍNYLPARKET SMELLT",
+    "description": "YOSEMITE CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-yosemite-cl-",
+    "href": "/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-yosemite-cl-"
+  },
+  {
+    "productId": "alfa-spirit-xl-lvt-vnylparket-smellt-sierra-high-cl-690",
+    "name": "SPIRIT XL - LVT VÍNYLPARKET SMELLT",
+    "description": "SIERRA HIGH CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-sierra-high-cl",
+    "href": "/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-sierra-high-cl"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-elite-sand-cl-695",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "ELITE SAND CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-sand-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-sand-cl-"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-sorrento-709",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "SORRENTO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-sorrento",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-sorrento"
+  },
+  {
+    "productId": "alfa-pure-lvt-vnylparket-smellt-classic-oak-brown-704",
+    "name": "PURE - LVT VÍNYLPARKET SMELLT",
+    "description": "CLASSIC OAK BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/pure--lvt-vinylparket-smellt-classic-oak-brown",
+    "href": "/voruflokkar/parket/pure--lvt-vinylparket-smellt-classic-oak-brown"
+  },
+  {
+    "productId": "alfa-vitral-12-litir-504",
+    "name": "VITRAL",
+    "description": "12 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/vitral-12-litir",
+    "href": "/voruflokkar/flisar/vitral-12-litir"
+  },
+  {
+    "productId": "alfa-costa-nova-15-litir-512",
+    "name": "COSTA NOVA",
+    "description": "15 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/costa-nova-15-litir",
+    "href": "/voruflokkar/flisar/costa-nova-15-litir"
+  },
+  {
+    "productId": "alfa-connect-xl8-xl8-gyant-brown-natural-629",
+    "name": "CONNECT+ XL8",
+    "description": "XL8 GYANT BROWN NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/connect-plus-xl8-xl8-gyant-brown-natural",
+    "href": "/voruflokkar/parket/hardparket/connect-plus-xl8-xl8-gyant-brown-natural"
+  },
+  {
+    "productId": "alfa-heritage-oak-lime-stone-2-lock-2200mm-662",
+    "name": "HERITAGE",
+    "description": "OAK LIME STONE 2-LOCK 2200mm",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/heritage-oak-lime-stone-2-lock-2200mm",
+    "href": "/voruflokkar/parket/heritage-oak-lime-stone-2-lock-2200mm"
+  },
+  {
+    "productId": "alfa-pure-eik-natur-162-2-lock-14mm-670",
+    "name": "PURE",
+    "description": "EIK NATUR 162 2-LOCK 14MM",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/pure--eik-natur-162-2-lock-14mm",
+    "href": "/voruflokkar/parket/pure--eik-natur-162-2-lock-14mm"
+  },
+  {
+    "productId": "alfa-pure-oak-natur-3ja-stafa-13mm-pn-673",
+    "name": "PURE",
+    "description": "OAK NATUR 3JA STAFA 13MM PN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/pure-oak-natur-3ja-stafa-13mm-pn",
+    "href": "/voruflokkar/parket/pure-oak-natur-3ja-stafa-13mm-pn"
+  },
+  {
+    "productId": "alfa-spirit-xl-lvt-vnylparket-smellt-kings-canyon-cl-687",
+    "name": "SPIRIT XL - LVT VÍNYLPARKET SMELLT",
+    "description": "KINGS CANYON CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-kings-canyon-cl",
+    "href": "/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-kings-canyon-cl"
+  },
+  {
+    "productId": "alfa-starfloor-cl-ultimate-lvt-vnylparket-smellt-bleached-oak-bro-735",
+    "name": "STARFLOOR CL ULTIMATE - LVT VÍNYLPARKET SMELLT",
+    "description": "BLEACHED OAK BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/starfloor-cl-ultimate--lvt-vinylparket-smellt-bleached-oak-brown",
+    "href": "/voruflokkar/parket/starfloor-cl-ultimate--lvt-vinylparket-smellt-bleached-oak-brown"
+  },
+  {
+    "productId": "alfa-art-nouveau-12-litir-22-decor-509",
+    "name": "ART NOUVEAU",
+    "description": "12 litir, 22 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/art-nouveau-12-litirpoint-22-decor",
+    "href": "/voruflokkar/flisar/art-nouveau-12-litirpoint-22-decor"
+  },
+  {
+    "productId": "alfa-heritage-8-litir-518",
+    "name": "HERITAGE",
+    "description": "8 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/heritage-8-litir-",
+    "href": "/voruflokkar/flisar/heritage-8-litir-"
+  },
+  {
+    "productId": "alfa-country-12-litir-1-decor-515",
+    "name": "COUNTRY",
+    "description": "12 litir, 1 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/country-12-litirpoint-1-decor",
+    "href": "/voruflokkar/flisar/country-12-litirpoint-1-decor"
+  },
+  {
+    "productId": "alfa-hexatile-4-litir-4-decor-519",
+    "name": "HEXATILE",
+    "description": "4 litir, 4 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/hexatile-4-litirpoint-4-decor",
+    "href": "/voruflokkar/flisar/hexatile-4-litirpoint-4-decor"
+  },
+  {
+    "productId": "alfa-magma-10-litir-522",
+    "name": "MAGMA",
+    "description": "10 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/magma-10-litir",
+    "href": "/voruflokkar/flisar/magma-10-litir"
+  },
+  {
+    "productId": "alfa-metro-11-litir-2-decor-525",
+    "name": "METRO",
+    "description": "11 litir, 2 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/metro-11-litirpoint-2-decor",
+    "href": "/voruflokkar/flisar/metro-11-litirpoint-2-decor"
+  },
+  {
+    "productId": "alfa-masia-11-litir-524",
+    "name": "MASIA",
+    "description": "11 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/masia-11-litir",
+    "href": "/voruflokkar/flisar/masia-11-litir"
+  },
+  {
+    "productId": "alfa-micro-7-litir-10-decor-526",
+    "name": "MICRO",
+    "description": "7 litir, 10 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/micro-7-litirpoint-10-decor",
+    "href": "/voruflokkar/flisar/micro-7-litirpoint-10-decor"
+  },
+  {
+    "productId": "alfa-vibe-10-litir-531",
+    "name": "VIBE",
+    "description": "10 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/vibe-10-litir",
+    "href": "/voruflokkar/flisar/vibe-10-litir"
+  },
+  {
+    "productId": "alfa-village-15-litir-532",
+    "name": "VILLAGE",
+    "description": "15 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/village-15-litir",
+    "href": "/voruflokkar/flisar/village-15-litir"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-gyant-light-sand-626",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 GYANT LIGHT SAND",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-light-sand",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-light-sand"
+  },
+  {
+    "productId": "alfa-prestige-oak-boardwalk-2-lock-668",
+    "name": "PRESTIGE",
+    "description": "OAK BOARDWALK 2-LOCK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/prestige-oak-boardwalk-2-lock",
+    "href": "/voruflokkar/parket/prestige-oak-boardwalk-2-lock"
+  },
+  {
+    "productId": "alfa-spirit-xl-lvt-vnylparket-smellt-fitz-roy-cl-688",
+    "name": "SPIRIT XL - LVT VÍNYLPARKET SMELLT",
+    "description": "FITZ ROY CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-fitz-roy-cl",
+    "href": "/voruflokkar/parket/spirit-xl--lvt-vinylparket-smellt-fitz-roy-cl"
+  },
+  {
+    "productId": "alfa-splendours-7-litir-506",
+    "name": "SPLENDOURS",
+    "description": "7 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/splendours-7-litir",
+    "href": "/voruflokkar/flisar/splendours-7-litir"
+  },
+  {
+    "productId": "alfa-argile-9-litir-505",
+    "name": "ARGILE",
+    "description": "9 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/argile-9-litir",
+    "href": "/voruflokkar/flisar/argile-9-litir"
+  },
+  {
+    "productId": "alfa-arrow-14-litir-507",
+    "name": "ARROW",
+    "description": "14 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/arrow-14-litir",
+    "href": "/voruflokkar/flisar/arrow-14-litir"
+  },
+  {
+    "productId": "alfa-evolution-8-litir-10-decor-516",
+    "name": "EVOLUTION",
+    "description": "8 litir, 10 Decor",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/evolution-8-litirpoint-10-decor",
+    "href": "/voruflokkar/flisar/evolution-8-litirpoint-10-decor"
+  },
+  {
+    "productId": "alfa-cadenza-allegro-natural-618",
+    "name": "CADENZA",
+    "description": "ALLEGRO NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/cadenza-allegro-natural",
+    "href": "/voruflokkar/parket/hardparket/cadenza-allegro-natural"
+  },
+  {
+    "productId": "alfa-cadenza-brown-619",
+    "name": "CADENZA",
+    "description": "BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/cadenza-brown",
+    "href": "/voruflokkar/parket/hardparket/cadenza-brown"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-gyant-sand-natural-625",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 GYANT SAND NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-sand-natural",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-sand-natural"
+  },
+  {
+    "productId": "alfa-heritage-oak-urban-grey-hardvax-oil-14mm-664",
+    "name": "HERITAGE",
+    "description": "OAK URBAN GREY HARDVAX OIL 14MM",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/heritage-oak-urban-grey-hardvax-oil-14mm",
+    "href": "/voruflokkar/parket/heritage-oak-urban-grey-hardvax-oil-14mm"
+  },
+  {
+    "productId": "alfa-pure-eik-natur-3st-2-lock-672",
+    "name": "PURE",
+    "description": "EIK NATUR 3st 2-LOCK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/pure-eik-natur-3st-2-lock",
+    "href": "/voruflokkar/parket/pure-eik-natur-3st-2-lock"
+  },
+  {
+    "productId": "alfa-altea-9-litir-503",
+    "name": "ALTEA",
+    "description": "9 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/altea-9-litir",
+    "href": "/voruflokkar/flisar/altea-9-litir"
+  },
+  {
+    "productId": "alfa-cottage-9-litir-514",
+    "name": "COTTAGE",
+    "description": "9 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/cottage-9-litir",
+    "href": "/voruflokkar/flisar/cottage-9-litir"
+  },
+  {
+    "productId": "alfa-cadenza-light-grey-621",
+    "name": "CADENZA",
+    "description": "LIGHT GREY",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/cadenza-light-grey",
+    "href": "/voruflokkar/parket/hardparket/cadenza-light-grey"
+  },
+  {
+    "productId": "alfa-grace-oak-nature-tres-3-strip-649",
+    "name": "GRACE",
+    "description": "OAK NATURE TRES (3-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-nature-tres-3-strip-",
+    "href": "/voruflokkar/parket/grace-oak-nature-tres-3-strip-"
+  },
+  {
+    "productId": "alfa-grace-oak-white-canvas-tres-3-strip-654",
+    "name": "GRACE",
+    "description": "OAK WHITE CANVAS TRES (3- strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-white-canvas-tres-3-strip-",
+    "href": "/voruflokkar/parket/grace-oak-white-canvas-tres-3-strip-"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-elite-taupe-cl-694",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "ELITE TAUPE CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-taupe-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-taupe-cl-"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-country-honey-699",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "COUNTRY HONEY",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-country-honey",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-country-honey"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-elite-greige-cl-693",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "ELITE GREIGE CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-greige-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-greige-cl-"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-country-mokka-cl-700",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "COUNTRY MOKKA CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-country-mokka-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-country-mokka-cl-"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-smoked-country-cl-702",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "SMOKED COUNTRY CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-smoked-country-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-smoked-country-cl-"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-faro-716",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "FARO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-faro",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-faro"
+  },
+  {
+    "productId": "alfa-click-solid-55-lvt-vnylparket-smellt-modern-oak-white-click-733",
+    "name": "CLICK SOLID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "MODERN OAK WHITE CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/click-solid-55--lvt-vinylparket-smellt-modern-oak-white-click",
+    "href": "/voruflokkar/parket/click-solid-55--lvt-vinylparket-smellt-modern-oak-white-click"
+  },
+  {
+    "productId": "alfa-elegance-rigid-55-lvt-vnylparket-smellt-delicate-oak-sugar-c-742",
+    "name": "ELEGANCE RIGID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "DELICATE OAK SUGAR CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-delicate-oak-sugar-click",
+    "href": "/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-delicate-oak-sugar-click"
+  },
+  {
+    "productId": "alfa-elegance-rigid-55-lvt-vnylparket-smellt-high-oak-taupe-click-741",
+    "name": "ELEGANCE RIGID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "HIGH OAK TAUPE CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-high-oak-taupe-click",
+    "href": "/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-high-oak-taupe-click"
+  },
+  {
+    "productId": "alfa-hanoi-9-litir-517",
+    "name": "HANOI",
+    "description": "9 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/hanoi-9-litir",
+    "href": "/voruflokkar/flisar/hanoi-9-litir"
+  },
+  {
+    "productId": "alfa-bali-10-litir-511",
+    "name": "BALI",
+    "description": "10 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/bali-10-litir",
+    "href": "/voruflokkar/flisar/bali-10-litir"
+  },
+  {
+    "productId": "alfa-manacor-10-litir-523",
+    "name": "MANACOR",
+    "description": "10 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/manacor-10-litir",
+    "href": "/voruflokkar/flisar/manacor-10-litir"
+  },
+  {
+    "productId": "alfa-stromboli-12-litir-529",
+    "name": "STROMBOLI",
+    "description": "12 litir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/stromboli-12-litir",
+    "href": "/voruflokkar/flisar/stromboli-12-litir"
+  },
+  {
+    "productId": "alfa-kasbah-21-litir-3-strir-521",
+    "name": "KASBAH",
+    "description": "21 litir, 3 stærðir",
+    "url": "https://www.alfaborg.is/voruflokkar/flisar/kasbah-21-litirpoint-3-staerdir",
+    "href": "/voruflokkar/flisar/kasbah-21-litirpoint-3-staerdir"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-bloom-silver-grey-624",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 BLOOM SILVER GREY",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-bloom-silver-grey",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-bloom-silver-grey"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-bloom-sand-natural-623",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 BLOOM SAND NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-bloom-sand-natural",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-bloom-sand-natural"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-gyant-warm-brown-628",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 GYANT WARM BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-warm-brown",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-warm-brown"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-gyant-warm-natural-627",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 GYANT WARM NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-warm-natural",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-gyant-warm-natural"
+  },
+  {
+    "productId": "alfa-connect-8-v4-bloom-natural-635",
+    "name": "CONNECT 8 V4",
+    "description": "BLOOM NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/connect-8-v4-bloom-natural",
+    "href": "/voruflokkar/parket/hardparket/connect-8-v4-bloom-natural"
+  },
+  {
+    "productId": "alfa-connect-xl8-xl8-ragnar-light-sand-632",
+    "name": "CONNECT+ XL8",
+    "description": "XL8 RAGNAR LIGHT SAND",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/connect-plus-xl8-xl8-ragnar-light-sand-",
+    "href": "/voruflokkar/parket/hardparket/connect-plus-xl8-xl8-ragnar-light-sand-"
+  },
+  {
+    "productId": "alfa-connect-xl8-bloom-sand-natural-630",
+    "name": "CONNECT XL8",
+    "description": "BLOOM SAND NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/connect-xl8-bloom-sand-natural",
+    "href": "/voruflokkar/parket/hardparket/connect-xl8-bloom-sand-natural"
+  },
+  {
+    "productId": "alfa-ocean-xl8-xl8-select-light-brown-633",
+    "name": "OCEAN+ XL8",
+    "description": "XL8 SELECT LIGHT BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-select-light-brown",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-xl8-select-light-brown"
+  },
+  {
+    "productId": "alfa-ocean-xl8-bloom-sand-natural-ac5-634",
+    "name": "OCEAN+ XL8",
+    "description": "BLOOM SAND NATURAL AC5",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-plus-xl8-bloom-sand-natural-ac5",
+    "href": "/voruflokkar/parket/hardparket/ocean-plus-xl8-bloom-sand-natural-ac5"
+  },
+  {
+    "productId": "alfa-woodstock-xl-summit-oak-titan-ac5-4v-10m-641",
+    "name": "WOODSTOCK XL",
+    "description": "SUMMIT OAK TITAN AC5 4V 10M",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/woodstock-xl-summit-oak-titan-ac5-4v-10m",
+    "href": "/voruflokkar/parket/hardparket/woodstock-xl-summit-oak-titan-ac5-4v-10m"
+  },
+  {
+    "productId": "alfa-grace-oak-beige-cashmere-plank-xt-1-strip-645",
+    "name": "GRACE",
+    "description": "OAK BEIGE CASHMERE PLANK XT (1-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-beige-cashmere-plank-xt-1-strip-",
+    "href": "/voruflokkar/parket/grace-oak-beige-cashmere-plank-xt-1-strip-"
+  },
+  {
+    "productId": "alfa-eik-pure-cashmere-plank-642",
+    "name": "EIK PURE",
+    "description": "CASHMERE PLANK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/eik-pure-cashmere-plank",
+    "href": "/voruflokkar/parket/eik-pure-cashmere-plank"
+  },
+  {
+    "productId": "alfa-connect-xl8-xl8-bloom-light-brown-631",
+    "name": "CONNECT+ XL8",
+    "description": "XL8 BLOOM LIGHT BROWN",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/connect-plus-xl8-xl8-bloom-light-brown",
+    "href": "/voruflokkar/parket/hardparket/connect-plus-xl8-xl8-bloom-light-brown"
+  },
+  {
+    "productId": "alfa-woodstock-xl-summit-oak-grey-ac5-4v-10mm-639",
+    "name": "WOODSTOCK XL",
+    "description": "SUMMIT OAK GREY AC5 4V 10MM",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/woodstock-xl-summit-oak-grey-ac5-4v-10mm",
+    "href": "/voruflokkar/parket/hardparket/woodstock-xl-summit-oak-grey-ac5-4v-10mm"
+  },
+  {
+    "productId": "alfa-ocean-v4-bloom-natural-636",
+    "name": "OCEAN V4",
+    "description": "BLOOM NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/hardparket/ocean-v4-bloom-natural",
+    "href": "/voruflokkar/parket/hardparket/ocean-v4-bloom-natural"
+  },
+  {
+    "productId": "alfa-grace-oak-era-basket-weave-647",
+    "name": "GRACE",
+    "description": "OAK ERA (Basket weave)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-era-basket-weave-",
+    "href": "/voruflokkar/parket/grace-oak-era-basket-weave-"
+  },
+  {
+    "productId": "alfa-grace-oak-grey-chiffon-plank-1-strip-648",
+    "name": "GRACE",
+    "description": "OAK GREY CHIFFON PLANK (1-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-grey-chiffon-plank-1-strip-",
+    "href": "/voruflokkar/parket/grace-oak-grey-chiffon-plank-1-strip-"
+  },
+  {
+    "productId": "alfa-grace-oak-white-canvas-plank-1-strip-653",
+    "name": "GRACE",
+    "description": "OAK WHITE CANVAS PLANK (1-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-white-canvas-plank-1-strip-",
+    "href": "/voruflokkar/parket/grace-oak-white-canvas-plank-1-strip-"
+  },
+  {
+    "productId": "alfa-heritage-oak-old-gray-14mm-1-strip-663",
+    "name": "HERITAGE",
+    "description": "OAK OLD GRAY 14MM 1 strip",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/heritage-oak-old-gray-14mm-1-strip",
+    "href": "/voruflokkar/parket/heritage-oak-old-gray-14mm-1-strip"
+  },
+  {
+    "productId": "alfa-grace-oak-century-basket-weave-646",
+    "name": "GRACE",
+    "description": "OAK CENTURY (Basket weave)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-century-basket-weave-",
+    "href": "/voruflokkar/parket/grace-oak-century-basket-weave-"
+  },
+  {
+    "productId": "alfa-grace-oak-soft-skin-tres-3-strip-652",
+    "name": "GRACE",
+    "description": "OAK SOFT SKIN TRES (3-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-soft-skin-tres-3-strip-",
+    "href": "/voruflokkar/parket/grace-oak-soft-skin-tres-3-strip-"
+  },
+  {
+    "productId": "alfa-prestige-oak-sand-14mm-2-loc-669",
+    "name": "PRESTIGE",
+    "description": "OAK SAND 14MM 2-LOC",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/prestige-oak-sand-14mm-2-loc",
+    "href": "/voruflokkar/parket/prestige-oak-sand-14mm-2-loc"
+  },
+  {
+    "productId": "alfa-eik-robust-eik-robust-matt-lakk-14mm-3-strip-643",
+    "name": "EIK ROBUST",
+    "description": "EIK ROBUST MATT LAKK 14MM 3 strip",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/eik-robust-eik-robust-matt-lakk-14mm-3-strip",
+    "href": "/voruflokkar/parket/eik-robust-eik-robust-matt-lakk-14mm-3-strip"
+  },
+  {
+    "productId": "alfa-eik-rumba-xt-1-strip-644",
+    "name": "EIK RUMBA",
+    "description": "XT (1-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/eik-rumba-xt-1-strip-",
+    "href": "/voruflokkar/parket/eik-rumba-xt-1-strip-"
+  },
+  {
+    "productId": "alfa-grace-oak-white-lace-plank-xt-1-strip-657",
+    "name": "GRACE",
+    "description": "OAK WHITE LACE PLANK XT (1- strip",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-white-lace-plank-xt-1-strip",
+    "href": "/voruflokkar/parket/grace-oak-white-lace-plank-xt-1-strip"
+  },
+  {
+    "productId": "alfa-grace-oak-soft-skin-plank-1-strip-651",
+    "name": "GRACE",
+    "description": "OAK SOFT SKIN PLANK (1-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-soft-skin-plank-1-strip-",
+    "href": "/voruflokkar/parket/grace-oak-soft-skin-plank-1-strip-"
+  },
+  {
+    "productId": "alfa-shade-oak-cream-white-190mm-2-lock-682",
+    "name": "SHADE",
+    "description": "OAK CREAM WHITE 190mm 2-LOCK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/shade-oak-cream-white-190mm-2-lock",
+    "href": "/voruflokkar/parket/shade-oak-cream-white-190mm-2-lock"
+  },
+  {
+    "productId": "alfa-shade-oak-robust-craem-14mm-162-2-lo-683",
+    "name": "SHADE",
+    "description": "OAK ROBUST CRAEM 14MM 162 2-LO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/shade--oak-robust-craem-14mm-162-2-lo",
+    "href": "/voruflokkar/parket/shade--oak-robust-craem-14mm-162-2-lo"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-elite-beige-cl-692",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "ELITE BEIGE CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-beige-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-beige-cl-"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-elite-natural-698",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "ELITE NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-natural",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-elite-natural"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-dark-brown-cl-696",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "DARK BROWN CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-dark-brown-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-dark-brown-cl-"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-brown-cl-697",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "BROWN CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-brown-cl",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-brown-cl"
+  },
+  {
+    "productId": "alfa-zenn-click-comfort-30-lvt-vnylparket-smellt-oslo-706",
+    "name": "ZENN CLICK COMFORT 30 - LVT VÍNYLPARKET SMELLT",
+    "description": "OSLO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-oslo",
+    "href": "/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-oslo"
+  },
+  {
+    "productId": "alfa-spirit-pro-lvt-vnylparket-smellt-country-beige-cl-701",
+    "name": "SPIRIT PRO - LVT VÍNYLPARKET SMELLT",
+    "description": "COUNTRY BEIGE CL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-country-beige-cl-",
+    "href": "/voruflokkar/parket/spirit-pro--lvt-vinylparket-smellt-country-beige-cl-"
+  },
+  {
+    "productId": "alfa-zenn-click-comfort-30-lvt-vnylparket-smellt-porto-707",
+    "name": "ZENN CLICK COMFORT 30 - LVT VÍNYLPARKET SMELLT",
+    "description": "PORTO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-porto",
+    "href": "/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-porto"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-porto-714",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "PORTO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-porto",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-porto"
+  },
+  {
+    "productId": "alfa-elegance-rigid-55-lvt-vnylparket-smellt-season-oak-beige-cli-738",
+    "name": "ELEGANCE RIGID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "SEASON OAK BEIGE CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-season-oak-beige-click",
+    "href": "/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-season-oak-beige-click"
+  },
+  {
+    "productId": "alfa-elegance-rigid-55-lvt-vnylparket-smellt-delicate-oak-brown-c-743",
+    "name": "ELEGANCE RIGID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "DELICATE OAK BROWN CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-delicate-oak-brown-click",
+    "href": "/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-delicate-oak-brown-click"
+  },
+  {
+    "productId": "alfa-grace-oak-rustic-plank-xt-1-strip-650",
+    "name": "GRACE",
+    "description": "OAK RUSTIC PLANK XT (1-strip)",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/grace-oak-rustic-plank-xt-1-strip-",
+    "href": "/voruflokkar/parket/grace-oak-rustic-plank-xt-1-strip-"
+  },
+  {
+    "productId": "alfa-pure-eik-robust-matt-lakk-14mm-2-lock-656",
+    "name": "PURE EIK ROBUST MATT LAKK",
+    "description": "14mm 2-lock",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/pure-eik-robust-matt-lakk-14mm-2-lock",
+    "href": "/voruflokkar/parket/pure-eik-robust-matt-lakk-14mm-2-lock"
+  },
+  {
+    "productId": "alfa-heritage-oak-hardvax-oil-14mm-2200mm-659",
+    "name": "HERITAGE",
+    "description": "OAK HARDVAX OIL 14MM 2200mm",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/heritage-oak-hardvax-oil-14mm-2200mm",
+    "href": "/voruflokkar/parket/heritage-oak-hardvax-oil-14mm-2200mm"
+  },
+  {
+    "productId": "alfa-shade-oak-evening-grey-midiplank-680",
+    "name": "SHADE",
+    "description": "OAK EVENING GREY MIDIPLANK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/shade-oak-evening-grey-midiplank",
+    "href": "/voruflokkar/parket/shade-oak-evening-grey-midiplank"
+  },
+  {
+    "productId": "alfa-elegance-rigid-55-lvt-vnylparket-smellt-limousin-oak-grege-c-739",
+    "name": "ELEGANCE RIGID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "LIMOUSIN OAK GREGE CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-limousin-oak-grege-click",
+    "href": "/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-limousin-oak-grege-click"
+  },
+  {
+    "productId": "alfa-zenn-click-comfort-30-lvt-vnylparket-smellt-orlando-705",
+    "name": "ZENN CLICK COMFORT 30 - LVT VÍNYLPARKET SMELLT",
+    "description": "ORLANDO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-orlando",
+    "href": "/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-orlando"
+  },
+  {
+    "productId": "alfa-zenn-click-comfort-30-lvt-vnylparket-smellt-cairo-708",
+    "name": "ZENN CLICK COMFORT 30 - LVT VÍNYLPARKET SMELLT",
+    "description": "CAIRO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-cairo",
+    "href": "/voruflokkar/parket/zenn-click-comfort-30--lvt-vinylparket-smellt-cairo"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-cairo-715",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "CAIRO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-cairo",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-cairo"
+  },
+  {
+    "productId": "alfa-pure-lvt-vnylparket-smellt-columbian-oak-946m-703",
+    "name": "PURE - LVT VÍNYLPARKET SMELLT",
+    "description": "COLUMBIAN OAK 946M",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/pure--lvt-vinylparket-smellt-columbian-oak-946m",
+    "href": "/voruflokkar/parket/pure--lvt-vinylparket-smellt-columbian-oak-946m"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-monsanto-710",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "MONSANTO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-monsanto",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-monsanto"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-oslo-712",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "OSLO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-oslo",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-oslo"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-palermo-713",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "PALERMO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-palermo",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-palermo"
+  },
+  {
+    "productId": "alfa-zenn-herringbone-lvt-vnylparket-smellt-orlando-711",
+    "name": "ZENN HERRINGBONE - LVT VÍNYLPARKET SMELLT",
+    "description": "ORLANDO",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-orlando",
+    "href": "/voruflokkar/parket/zenn-herringbone--lvt-vinylparket-smellt-orlando"
+  },
+  {
+    "productId": "alfa-click-solid-55-lvt-vnylparket-smellt-english-oak-natural-727",
+    "name": "CLICK SOLID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "ENGLISH OAK NATURAL",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/click-solid-55--lvt-vinylparket-smellt-english-oak-natural",
+    "href": "/voruflokkar/parket/click-solid-55--lvt-vinylparket-smellt-english-oak-natural"
+  },
+  {
+    "productId": "alfa-click-solid-55-lvt-vnylparket-smellt-antik-oak-dark-grey-726",
+    "name": "CLICK SOLID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "ANTIK OAK DARK GREY",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/click-solid-55--lvt-vinylparket-smellt-antik-oak-dark-grey",
+    "href": "/voruflokkar/parket/click-solid-55--lvt-vinylparket-smellt-antik-oak-dark-grey"
+  },
+  {
+    "productId": "alfa-starfloor-cl-ultimate-lvt-vnylparket-smellt-bleached-oak-gre-734",
+    "name": "STARFLOOR CL ULTIMATE - LVT VÍNYLPARKET SMELLT",
+    "description": "BLEACHED OAK GREGE",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/starfloor-cl-ultimate--lvt-vinylparket-smellt-bleached-oak-grege",
+    "href": "/voruflokkar/parket/starfloor-cl-ultimate--lvt-vinylparket-smellt-bleached-oak-grege"
+  },
+  {
+    "productId": "alfa-elegance-rigid-55-lvt-vnylparket-smellt-contemporary-oak-nat-740",
+    "name": "ELEGANCE RIGID 55 - LVT VÍNYLPARKET SMELLT",
+    "description": "CONTEMPORARY  OAK NATURAL CLICK",
+    "url": "https://www.alfaborg.is/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-contemporary-oak-natural-click",
+    "href": "/voruflokkar/parket/elegance-rigid-55--lvt-vinylparket-smellt-contemporary-oak-natural-click"
+  }
+]
