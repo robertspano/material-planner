@@ -576,42 +576,10 @@ export default function SuperDashboardPage() {
     <div className="max-w-5xl space-y-6">
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-purple-400" />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-slate-900">{stats?.totalCompanies || 0}</p>
-            <p className="text-xs text-slate-500">Fyrirtæki</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-            <Package className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-slate-900">{stats?.totalProducts || 0}</p>
-            <p className="text-xs text-slate-500">Vörur</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-            <Layers className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-slate-900">{stats?.totalGenerates || 0}</p>
-            <p className="text-xs text-slate-500">Generates</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-            <ImageIcon className="w-5 h-5 text-orange-400" />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-slate-900">{stats?.totalGenerations || 0}</p>
-            <p className="text-xs text-slate-500">Myndir</p>
-          </div>
-        </div>
+        <SuperStatCard icon={Building2} color="purple" value={stats?.totalCompanies} label="Fyrirtæki" />
+        <SuperStatCard icon={Package} color="blue" value={stats?.totalProducts} label="Vörur" />
+        <SuperStatCard icon={Layers} color="emerald" value={stats?.totalGenerates} label="Generates" />
+        <SuperStatCard icon={ImageIcon} color="orange" value={stats?.totalGenerations} label="Myndir" />
       </div>
 
       {/* Companies */}
@@ -819,6 +787,37 @@ export default function SuperDashboardPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const superColorMap: Record<string, { bg: string; text: string }> = {
+  purple: { bg: "bg-purple-500/20", text: "text-purple-400" },
+  blue: { bg: "bg-blue-500/20", text: "text-blue-400" },
+  emerald: { bg: "bg-emerald-500/20", text: "text-emerald-400" },
+  orange: { bg: "bg-orange-500/20", text: "text-orange-400" },
+};
+
+function SuperStatCard({ icon: Icon, color, value, label }: {
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  value: number | undefined;
+  label: string;
+}) {
+  const c = superColorMap[color] || superColorMap.blue;
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-xl ${c.bg} flex items-center justify-center`}>
+        <Icon className={`w-5 h-5 ${c.text}`} />
+      </div>
+      <div>
+        {value !== undefined ? (
+          <p className="text-xl font-bold text-slate-900">{value}</p>
+        ) : (
+          <div className="h-6 w-8 bg-slate-100 rounded animate-pulse" />
+        )}
+        <p className="text-xs text-slate-500">{label}</p>
+      </div>
     </div>
   );
 }

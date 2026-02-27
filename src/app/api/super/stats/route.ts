@@ -47,7 +47,7 @@ export async function GET() {
       generateCount: generatesByCompanyMap.get(c.id) || 0,
     }));
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       totalCompanies,
       activeCompanies,
       totalProducts,
@@ -56,6 +56,8 @@ export async function GET() {
       totalGenerates,
       generationsByCompany,
     });
+    res.headers.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
+    return res;
   } catch (error) {
     if (error instanceof Response) return error;
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
