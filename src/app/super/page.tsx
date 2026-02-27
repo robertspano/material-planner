@@ -193,12 +193,12 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
           </div>
           <p className="text-[10px] font-medium text-orange-500/70 uppercase tracking-wider">Myndir</p>
         </div>
-        <div className="rounded-xl bg-green-50/80 px-3 py-2.5 text-center">
+        <div className="rounded-xl bg-emerald-50/80 px-3 py-2.5 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-0.5">
-            <Users className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-2xl font-bold text-green-600 leading-none">{company._count.admins}</span>
+            <Layers className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="text-2xl font-bold text-emerald-600 leading-none">{company.generationsUsed}</span>
           </div>
-          <p className="text-[10px] font-medium text-green-500/70 uppercase tracking-wider">A&eth;gangar</p>
+          <p className="text-[10px] font-medium text-emerald-500/70 uppercase tracking-wider">Generates</p>
         </div>
       </div>
 
@@ -594,32 +594,6 @@ export default function SuperDashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Per-company breakdown */}
-      {stats?.generationsByCompany && stats.generationsByCompany.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">Sundurliðun eftir fyrirtæki</h3>
-          <div className="space-y-2">
-            {stats.generationsByCompany.map((c, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <span className="text-slate-700 truncate mr-4">{c.companyName}</span>
-                <div className="flex items-center gap-4 flex-shrink-0">
-                  <div className="flex items-center gap-1.5">
-                    <Layers className="w-3 h-3 text-emerald-500" />
-                    <span className="font-semibold text-emerald-600 tabular-nums">{c.generateCount}</span>
-                    <span className="text-[10px] text-slate-400">gen</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <ImageIcon className="w-3 h-3 text-orange-500" />
-                    <span className="font-semibold text-orange-600 tabular-nums">{c.imageCount}</span>
-                    <span className="text-[10px] text-slate-400">myndir</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Companies */}
       <div>
