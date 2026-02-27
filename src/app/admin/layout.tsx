@@ -3,15 +3,14 @@
 import { Suspense, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Package, FolderOpen, Settings, Paintbrush, LogOut, X, Loader2 } from "lucide-react";
+import { LayoutDashboard, Package, Settings, LogOut, Menu, X, Loader2 } from "lucide-react";
 import { AdminCompanyProvider, useAdminCompany } from "@/components/admin/admin-company-context";
 import type { CompanyBranding } from "@/types";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/categories", label: "Categories", icon: FolderOpen },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin", label: "Yfirlit", icon: LayoutDashboard },
+  { href: "/admin/products", label: "Vörur", icon: Package },
+  { href: "/admin/settings", label: "Stillingar", icon: Settings },
 ];
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
@@ -22,18 +21,16 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   const { companySlug, isSuperAdmin, admin, isLoading: authLoading } = useAdminCompany();
 
-  // Auth guard — redirect to login if not authenticated
+  // Auth guard
   useEffect(() => {
     if (!authLoading && !admin) {
       router.replace("/login");
     }
   }, [authLoading, admin, router]);
 
-  // Build query string to preserve company param in nav links
   const companyParam = searchParams.get("company");
   const queryString = companyParam ? `?company=${companyParam}` : "";
 
-  // Fetch company branding using the resolved company slug
   const { data: company } = useQuery<CompanyBranding>({
     queryKey: [`/api/planner/company?company=${companySlug}`],
     enabled: !!companySlug,
@@ -46,7 +43,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   const brandColor = company?.primaryColor || "#2e7cff";
 
-  // Show loading while checking auth
   if (authLoading || !admin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -56,45 +52,43 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex w-full h-screen overflow-hidden bg-gradient-to-b from-slate-100 via-slate-50 to-white">
+    <div className="flex w-full h-screen overflow-hidden bg-slate-50">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-5">
-        <div className="flex items-center gap-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 z-50 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2.5">
           {company?.logoUrl ? (
-            <img src={company.logoUrl} alt={company.name} className="h-8 w-auto" />
+            <img src={company.logoUrl} alt={company.name} className="h-7 w-auto" />
           ) : (
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${brandColor}, ${brandColor}cc)` }}>
-              <Paintbrush className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: brandColor }}>
+              <span className="text-white font-bold text-xs">{company?.name?.charAt(0) || "A"}</span>
             </div>
           )}
-          <span className="text-slate-900 font-bold">{company?.name || "Admin"}</span>
-          {isSuperAdmin && (
-            <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">Super Admin</span>
-          )}
+          <span className="text-slate-900 font-semibold text-sm">{company?.name || "Admin"}</span>
         </div>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-slate-600">
-          {sidebarOpen ? <X className="w-6 h-6" /> : <LayoutDashboard className="w-6 h-6" />}
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100">
+          {sidebarOpen ? <X className="w-5 h-5 text-slate-600" /> : <Menu className="w-5 h-5 text-slate-600" />}
         </button>
       </div>
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-white border-r border-slate-200 transition-transform duration-300 lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="h-16 hidden lg:flex items-center gap-3 px-5 border-b border-slate-200">
+      <aside className={`fixed inset-y-0 left-0 z-40 w-56 flex flex-col bg-white border-r border-slate-200 transition-transform duration-300 lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {/* Logo */}
+        <div className="h-14 hidden lg:flex items-center gap-2.5 px-4 border-b border-slate-100">
           {company?.logoUrl ? (
-            <img src={company.logoUrl} alt={company.name} className="h-8 w-auto" />
+            <img src={company.logoUrl} alt={company.name} className="h-7 w-auto" />
           ) : (
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${brandColor}, ${brandColor}cc)` }}>
-              <Paintbrush className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: brandColor }}>
+              <span className="text-white font-bold text-xs">{company?.name?.charAt(0) || "A"}</span>
             </div>
           )}
-          <div>
-            <span className="text-slate-900 font-bold text-lg block leading-tight">{company?.name || "Admin"}</span>
-            {isSuperAdmin && (
-              <span className="text-[10px] text-amber-400 font-medium">Super Admin</span>
-            )}
-          </div>
+          <span className="text-slate-900 font-semibold text-sm">{company?.name || "Admin"}</span>
+          {isSuperAdmin && (
+            <span className="text-[9px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded font-medium ml-auto">SA</span>
+          )}
         </div>
-        <nav className="flex-1 p-4 space-y-1 mt-16 lg:mt-0">
+
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-0.5 mt-14 lg:mt-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -102,28 +96,36 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               <button
                 key={item.href}
                 onClick={() => { router.push(`${item.href}${queryString}`); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive ? "bg-opacity-20" : "text-slate-600 hover:bg-slate-100"
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                  isActive
+                    ? "font-semibold text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                 }`}
-                style={isActive ? { backgroundColor: brandColor + "20", color: brandColor } : undefined}
+                style={isActive ? { backgroundColor: brandColor } : undefined}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <Icon className="w-4.5 h-4.5" />
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
-        <div className="p-4 border-t border-slate-200">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
+
+        {/* Bottom */}
+        <div className="p-3 border-t border-slate-100">
+          <div className="px-3 py-2 mb-2">
+            <p className="text-xs font-medium text-slate-900 truncate">{admin?.name}</p>
+            <p className="text-[11px] text-slate-400 truncate">{admin?.email}</p>
+          </div>
+          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
             <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">Logout</span>
+            <span>Útskrá</span>
           </button>
         </div>
       </aside>
 
-      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      <main className="flex-1 overflow-auto p-4 lg:p-8 mt-16 lg:mt-0">
+      <main className="flex-1 overflow-auto p-4 lg:p-8 mt-14 lg:mt-0">
         {children}
       </main>
     </div>

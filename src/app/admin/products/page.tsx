@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, X, Search, Loader2, Upload, ImageIcon, Pencil, Save, Percent, Trash2, Check } from "lucide-react";
-import { queryClient } from "@/lib/queryClient";
+import { Package, Plus, X, Search, Loader2, Upload, ImageIcon, Pencil, Save, Percent, Trash2, Check, FolderPlus } from "lucide-react";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAdminCompany } from "@/components/admin/admin-company-context";
 
 interface ProductEntry {
@@ -46,6 +46,11 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<ProductEntry | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Category creation
+  const [showCreateCat, setShowCreateCat] = useState(false);
+  const [catName, setCatName] = useState("");
+  const [catSurface, setCatSurface] = useState("floor");
+
   // Form state
   const [formName, setFormName] = useState("");
   const [formDesc, setFormDesc] = useState("");
@@ -67,6 +72,16 @@ export default function ProductsPage() {
 
   const { data: products = [], isLoading } = useQuery<ProductEntry[]>({ queryKey: [productsUrl] });
   const { data: categories = [] } = useQuery<CategoryEntry[]>({ queryKey: [categoriesUrl] });
+
+  const createCatMutation = useMutation({
+    mutationFn: (data: { name: string; surfaceType: string }) => apiRequest("POST", categoriesUrl, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [categoriesUrl] });
+      setShowCreateCat(false);
+      setCatName("");
+      setCatSurface("floor");
+    },
+  });
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -246,13 +261,22 @@ export default function ProductsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input placeholder="Leita..." className="pl-9 h-9 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <Select value={filterCat} onValueChange={setFilterCat}>
-            <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Allir flokkar" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Allir flokkar</SelectItem>
-              {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1.5">
+            <Select value={filterCat} onValueChange={setFilterCat}>
+              <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Allir flokkar" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Allir flokkar</SelectItem>
+                {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button
+              onClick={() => setShowCreateCat(true)}
+              className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors flex-shrink-0"
+              title="Nýr flokkur"
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+          </div>
           <Button onClick={() => { resetForm(); setShowCreate(true); }} className="text-white hover:opacity-90" style={{ backgroundColor: brandColor }}>
             <Plus className="w-4 h-4 mr-2" /> Bæta við
           </Button>
@@ -396,6 +420,43 @@ export default function ProductsPage() {
                 <><Save className="w-4 h-4 mr-1.5" /> Vista breytingar</>
               )}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Category Modal */}
+      {showCreateCat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateCat(false)}>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-slate-900">Nýr flokkur</h2>
+              <button onClick={() => setShowCreateCat(false)}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-xs">Nafn flokks</Label>
+                <Input value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="t.d. Parket, Flísar..." className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Yfirborðstegund</Label>
+                <Select value={catSurface} onValueChange={setCatSurface}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="floor">Gólf</SelectItem>
+                    <SelectItem value="wall">Veggur</SelectItem>
+                    <SelectItem value="both">Bæði</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => createCatMutation.mutate({ name: catName, surfaceType: catSurface })}
+                disabled={!catName || createCatMutation.isPending}
+                className="w-full text-white hover:opacity-90"
+                style={{ backgroundColor: brandColor }}
+              >
+                {createCatMutation.isPending ? "Bý til..." : "Búa til flokk"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
