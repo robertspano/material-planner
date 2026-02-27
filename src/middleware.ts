@@ -3,24 +3,41 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * Multi-tenant subdomain routing middleware.
  *
- * Extracts the company slug from the subdomain:
- *   byko.planner.is      → slug = "byko"
- *   admin.planner.is     → super admin mode
- *   localhost:3000        → dev mode (uses query param ?company=byko or defaults to "demo")
+ * Production (snid.is):
+ *   alfaborg.snid.is   → slug = "alfaborg" (company planner)
+ *   byko.snid.is       → slug = "byko"
+ *   admin.snid.is      → super admin mode
+ *   snid.is            → landing page (no company slug)
+ *
+ * Vercel preview:
+ *   material-planner.vercel.app?company=alfaborg → slug = "alfaborg"
+ *
+ * Dev (localhost):
+ *   localhost:3000?company=byko → slug = "byko"
+ *   localhost:3000?company=admin → super admin mode
+ *   localhost:3000/landing → landing page preview
  *
  * Sets headers:
  *   x-company-slug: the tenant slug
  *   x-is-super-admin: "true" if admin subdomain
+ *   x-is-landing: "true" if root domain (no subdomain)
  */
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "";
   const response = NextResponse.next();
+  const pathname = request.nextUrl.pathname;
 
   // Always check for ?company= query param (used by admin pages to scope API calls)
   const companyParam = request.nextUrl.searchParams.get("company");
 
   // Dev mode: use ?company= query param or x-company header
   if (hostname.includes("localhost") || hostname.includes("127.0.0.1")) {
+    // Allow previewing landing page at /landing in dev
+    if (pathname === "/landing") {
+      response.headers.set("x-is-landing", "true");
+      return response;
+    }
+
     const companyHeader = request.headers.get("x-company");
     const slug = companyParam || companyHeader || "demo";
 
@@ -33,9 +50,16 @@ export function middleware(request: NextRequest) {
   }
 
   // Vercel preview/hosting domains should use query param, not subdomain
-  const isVercelDomain = hostname.includes("vercel.app") || hostname.includes("vercel.sh");
+  const isVercelDomain =
+    hostname.includes("vercel.app") || hostname.includes("vercel.sh");
 
   if (isVercelDomain) {
+    // Allow landing page preview on Vercel
+    if (pathname === "/landing") {
+      response.headers.set("x-is-landing", "true");
+      return response;
+    }
+
     const slug = companyParam || "demo";
     if (slug === "admin") {
       response.headers.set("x-is-super-admin", "true");
@@ -49,10 +73,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Production: extract subdomain
-  // hostname = "byko.planner.is" → parts = ["byko", "planner", "is"]
+  // hostname = "alfaborg.snid.is" → parts = ["alfaborg", "snid", "is"]
   const parts = hostname.split(".");
 
   if (parts.length >= 3) {
+    // Has subdomain: alfaborg.snid.is, admin.snid.is, etc.
     const subdomain = parts[0];
 
     if (subdomain === "admin") {
@@ -65,8 +90,21 @@ export function middleware(request: NextRequest) {
       response.headers.set("x-company-slug", subdomain);
     }
   } else {
-    // No subdomain - could be the root domain
-    response.headers.set("x-company-slug", companyParam || "demo");
+    // No subdomain: snid.is → show landing page
+    // Unless ?company= is specified (for direct access)
+    if (companyParam) {
+      if (companyParam === "admin") {
+        response.headers.set("x-is-super-admin", "true");
+      } else {
+        response.headers.set("x-company-slug", companyParam);
+      }
+    } else {
+      // Root domain with no params → rewrite to landing page
+      response.headers.set("x-is-landing", "true");
+      return NextResponse.rewrite(new URL("/landing", request.url), {
+        headers: response.headers,
+      });
+    }
   }
 
   return response;

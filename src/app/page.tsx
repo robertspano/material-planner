@@ -48,8 +48,10 @@ function getCompanySlug(): string {
   const hostname = window.location.hostname;
   // Skip subdomain extraction for Vercel domains
   if (hostname.includes("vercel.app") || hostname.includes("vercel.sh")) return "demo";
+  // Production: alfaborg.snid.is → "alfaborg"
   const parts = hostname.split(".");
   if (parts.length >= 3) return parts[0];
+  // Root domain (snid.is) without subdomain — landing page handles this
   return "";
 }
 
