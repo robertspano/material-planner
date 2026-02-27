@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
           data: {
             email: adminEmail,
             passwordHash,
+            plainPassword: adminPassword,
             name: adminName,
             role: "admin",
             companyId: company.id,

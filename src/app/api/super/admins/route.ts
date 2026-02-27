@@ -11,7 +11,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    // Don't send password hashes
+    // Don't send password hashes, but include plainPassword for super admin
     return NextResponse.json(
       admins.map(({ passwordHash: _, ...admin }) => admin)
     );
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       data: {
         email,
         passwordHash,
+        plainPassword: password,
         name,
         companyId: companyId || null,
         role: role || "admin",

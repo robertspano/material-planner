@@ -31,14 +31,15 @@ model Company {
 }
 
 model CompanyAdmin {
-  id           String   @id @default(cuid())
-  companyId    String?
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         String   @default("admin")
-  createdAt    DateTime @default(now())
-  company      Company? @relation(fields: [companyId], references: [id])
+  id            String   @id @default(cuid())
+  companyId     String?
+  email         String   @unique
+  passwordHash  String
+  plainPassword String?
+  name          String
+  role          String   @default("admin")
+  createdAt     DateTime @default(now())
+  company       Company? @relation(fields: [companyId], references: [id])
 }
 
 model Category {
