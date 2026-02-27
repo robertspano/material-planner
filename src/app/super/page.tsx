@@ -115,7 +115,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
     setEditingAdminId(a.id);
     setAdminName(a.name);
     setAdminEmail(a.email);
-    setAdminPassword("");
+    setAdminPassword(a.plainPassword || "");
   };
 
   const handleSaveAdmin = async () => {
@@ -126,7 +126,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
       const original = admins.find(a => a.id === editingAdminId);
       if (adminName !== original?.name) data.name = adminName;
       if (adminEmail !== original?.email) data.email = adminEmail;
-      if (adminPassword) data.password = adminPassword;
+      if (adminPassword && adminPassword !== (original?.plainPassword || "")) data.password = adminPassword;
       if (Object.keys(data).length > 0) {
         await apiRequest("PATCH", `/api/super/admins/${editingAdminId}`, data);
         queryClient.invalidateQueries({ queryKey: ["/api/super/admins"] });
@@ -246,10 +246,10 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
                         </div>
                       </div>
                       <div>
-                        <Label className="text-[11px]">Nýtt lykilorð (skilja autt ef óbreytt)</Label>
+                        <Label className="text-[11px]">Lykilorð (skilja autt ef óbreytt)</Label>
                         <div className="relative mt-0.5">
                           <Key className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                          <Input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder="••••••••" className="h-8 text-xs pl-8" />
+                          <Input type="text" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder="••••••••" className="h-8 text-xs pl-8 font-mono" />
                         </div>
                       </div>
                       <div className="flex gap-2 pt-1">
