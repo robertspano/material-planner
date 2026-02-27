@@ -36,8 +36,14 @@ export function middleware(request: NextRequest) {
   // Dev mode: use ?company= query param or x-company header
   if (hostname.includes("localhost") || hostname.includes("127.0.0.1")) {
     // Allow previewing landing page at /landing in dev
-    if (pathname === "/landing") {
+    if (pathname === "/landing" || pathname === "/landing-lock") {
+      const hasPwCookie = request.cookies.get("snid-pw")?.value === "1";
       response.headers.set("x-is-landing", "true");
+      if (!hasPwCookie && pathname === "/landing") {
+        return NextResponse.rewrite(new URL("/landing-lock", request.url), {
+          headers: response.headers,
+        });
+      }
       return response;
     }
 
@@ -58,8 +64,14 @@ export function middleware(request: NextRequest) {
 
   if (isVercelDomain) {
     // Allow landing page preview on Vercel
-    if (pathname === "/landing") {
+    if (pathname === "/landing" || pathname === "/landing-lock") {
+      const hasPwCookie = request.cookies.get("snid-pw")?.value === "1";
       response.headers.set("x-is-landing", "true");
+      if (!hasPwCookie && pathname === "/landing") {
+        return NextResponse.rewrite(new URL("/landing-lock", request.url), {
+          headers: response.headers,
+        });
+      }
       return response;
     }
 
@@ -118,9 +130,15 @@ export function middleware(request: NextRequest) {
       return response;
     }
 
-    // snid.is (root) → landing page
+    // snid.is (root) → landing page (password protected)
     if (pathname === "/") {
+      const hasPwCookie = request.cookies.get("snid-pw")?.value === "1";
       response.headers.set("x-is-landing", "true");
+      if (!hasPwCookie) {
+        return NextResponse.rewrite(new URL("/landing-lock", request.url), {
+          headers: response.headers,
+        });
+      }
       return NextResponse.rewrite(new URL("/landing", request.url), {
         headers: response.headers,
       });
