@@ -79,7 +79,7 @@ export default function LandingPage() {
       </div>
 
       {/* Main content - centered, nudged up */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-20">
+      <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-32">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
           Velkomin til Snið
         </h1>
