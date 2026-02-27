@@ -11,14 +11,43 @@ import { useAdminCompany } from "@/components/admin/admin-company-context";
 import type { CompanyStats, CompanyBranding } from "@/types";
 import ProductsPage from "./products/page";
 
+interface DashboardResponse {
+  company: CompanyBranding;
+  products: unknown[];
+  categories: unknown[];
+  stats: CompanyStats;
+}
+
 export default function AdminDashboard() {
   const { adminApiUrl, companySlug } = useAdminCompany();
-  const { data: stats } = useQuery<CompanyStats>({ queryKey: [adminApiUrl("/api/admin/stats")] });
-  const { data: company } = useQuery<CompanyBranding>({
-    queryKey: [`/api/planner/company?company=${companySlug}`],
+
+  // Single combined fetch — one cold start instead of 5 separate API calls
+  const dashboardUrl = adminApiUrl("/api/admin/dashboard");
+  const { data: dashboard } = useQuery<DashboardResponse>({
+    queryKey: [dashboardUrl],
+    queryFn: async () => {
+      const res = await fetch(dashboardUrl, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load dashboard");
+      const data: DashboardResponse = await res.json();
+
+      // Seed individual caches so ProductsPage gets instant data (no extra fetches)
+      if (data.company) {
+        queryClient.setQueryData([`/api/planner/company?company=${companySlug}`], data.company);
+      }
+      if (data.products) {
+        queryClient.setQueryData([adminApiUrl("/api/admin/products")], data.products);
+      }
+      if (data.categories) {
+        queryClient.setQueryData([adminApiUrl("/api/admin/categories")], data.categories);
+      }
+
+      return data;
+    },
     enabled: !!companySlug,
   });
 
+  const stats = dashboard?.stats;
+  const company = dashboard?.company;
   const brandColor = company?.primaryColor || "#2e7cff";
   const [settingsOpen, setSettingsOpen] = useState(false);
 

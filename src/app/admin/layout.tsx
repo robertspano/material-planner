@@ -20,13 +20,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     }
   }, [authLoading, admin, router]);
 
-  // Prefetch all admin data
+  // Prefetch combined dashboard (one cold start instead of 4 separate API calls)
   useEffect(() => {
     if (admin && companySlug) {
       queryClient.prefetchQuery({ queryKey: [`/api/planner/company?company=${companySlug}`] });
-      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/stats")] });
-      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/products")] });
-      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/categories")] });
+      queryClient.prefetchQuery({ queryKey: [adminApiUrl("/api/admin/dashboard")] });
     }
   }, [admin, companySlug, adminApiUrl]);
 
