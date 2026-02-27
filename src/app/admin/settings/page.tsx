@@ -31,22 +31,22 @@ export default function SettingsPage() {
   });
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin dark:text-slate-400" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin" /></div>;
   }
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-xl lg:text-2xl font-bold dark:text-white text-slate-900">Stillingar</h1>
+      <h1 className="text-xl lg:text-2xl font-bold text-slate-900">Stillingar</h1>
 
-      <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-6">
-        <h2 className="text-lg font-semibold dark:text-white text-slate-900 mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
           <Paintbrush className="w-5 h-5" style={{ color: primary || "#2e7cff" }} /> Útlit og vörumerki
         </h2>
 
         <div className="space-y-4">
           <div>
             <Label>Nafn fyrirtækis</Label>
-            <p className="text-lg font-bold dark:text-white text-slate-900 mt-1">{company?.name}</p>
+            <p className="text-lg font-bold text-slate-900 mt-1">{company?.name}</p>
           </div>
 
           <div>
@@ -55,11 +55,11 @@ export default function SettingsPage() {
               {company?.logoUrl ? (
                 <img src={company.logoUrl} alt="Logo" className="h-12 w-auto rounded" />
               ) : (
-                <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                  <Upload className="w-5 h-5 dark:text-slate-400" />
+                <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+                  <Upload className="w-5 h-5" />
                 </div>
               )}
-              <p className="text-xs dark:text-slate-400 text-slate-500">Hafðu samband við kerfisstjóra til að breyta lógói</p>
+              <p className="text-xs text-slate-500">Hafðu samband við kerfisstjóra til að breyta lógói</p>
             </div>
           </div>
 
@@ -83,7 +83,7 @@ export default function SettingsPage() {
           {/* Preview */}
           <div>
             <Label>Forskoðun</Label>
-            <div className="mt-2 rounded-xl border dark:border-slate-700 border-slate-200 p-4" style={{ borderLeftWidth: 4, borderLeftColor: primary }}>
+            <div className="mt-2 rounded-xl border border-slate-200 p-4" style={{ borderLeftWidth: 4, borderLeftColor: primary }}>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: primary }}>
                   <Paintbrush className="w-4 h-4 text-white" />

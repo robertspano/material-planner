@@ -41,12 +41,12 @@ export function ResultGallery({ generationId, companySlug, onReset }: ResultGall
 
   if (status === "pending" || status === "segmenting" || status === "generating") {
     return (
-      <div className="dark:bg-slate-800/60 bg-white rounded-2xl border dark:border-slate-700/50 border-slate-200 p-12 text-center">
+      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
         <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: "var(--brand-primary)" }} />
-        <h3 className="text-lg font-semibold dark:text-white text-slate-900 mb-2">
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">
           {status === "pending" ? "Starting..." : status === "segmenting" ? "Analyzing room surfaces..." : "Generating visualization..."}
         </h3>
-        <p className="text-sm dark:text-slate-400 text-slate-500">
+        <p className="text-sm text-slate-500">
           This usually takes 15-30 seconds
         </p>
       </div>
@@ -55,12 +55,12 @@ export function ResultGallery({ generationId, companySlug, onReset }: ResultGall
 
   if (status === "failed") {
     return (
-      <div className="dark:bg-slate-800/60 bg-white rounded-2xl border dark:border-slate-700/50 border-slate-200 p-12 text-center">
+      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
         <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
           <ImageIcon className="w-8 h-8 text-red-400" />
         </div>
-        <h3 className="text-lg font-semibold dark:text-white text-slate-900 mb-2">Generation Failed</h3>
-        <p className="text-sm dark:text-slate-400 text-slate-500 mb-4">
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Generation Failed</h3>
+        <p className="text-sm text-slate-500 mb-4">
           {generation?.errorMessage || "Something went wrong. Please try again."}
         </p>
         <Button onClick={onReset} variant="outline">
@@ -74,8 +74,8 @@ export function ResultGallery({ generationId, companySlug, onReset }: ResultGall
 
   if (results.length === 0) {
     return (
-      <div className="dark:bg-slate-800/60 bg-white rounded-2xl border dark:border-slate-700/50 border-slate-200 p-12 text-center">
-        <p className="dark:text-slate-400 text-slate-500">No results generated</p>
+      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <p className="text-slate-500">No results generated</p>
         <Button onClick={onReset} variant="outline" className="mt-4">
           <RotateCcw className="w-4 h-4 mr-2" /> Try Again
         </Button>
@@ -88,7 +88,7 @@ export function ResultGallery({ generationId, companySlug, onReset }: ResultGall
   return (
     <div className="space-y-4">
       {/* Main Result Image */}
-      <div className="rounded-2xl overflow-hidden border dark:border-slate-700/50 border-slate-200">
+      <div className="rounded-2xl overflow-hidden border border-slate-200">
         <img
           src={currentResult.imageUrl}
           alt="Generated visualization"
@@ -106,7 +106,7 @@ export function ResultGallery({ generationId, companySlug, onReset }: ResultGall
               className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
                 idx === selectedIdx
                   ? "border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/30"
-                  : "dark:border-slate-700 border-slate-200"
+                  : "border-slate-200"
               }`}
             >
               <img src={result.imageUrl} alt="" className="w-full h-full object-cover" />

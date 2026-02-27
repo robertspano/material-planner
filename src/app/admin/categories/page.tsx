@@ -44,28 +44,28 @@ export default function CategoriesPage() {
   return (
     <div className="max-w-3xl space-y-4 lg:space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl lg:text-2xl font-bold dark:text-white text-slate-900">Flokkar</h1>
+        <h1 className="text-xl lg:text-2xl font-bold text-slate-900">Flokkar</h1>
         <Button onClick={() => setShowCreate(true)} className="text-white hover:opacity-90" style={{ backgroundColor: brandColor }}>
           <Plus className="w-4 h-4 mr-2" /> Bæta við
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="p-10 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto dark:text-slate-400" /></div>
+        <div className="p-10 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>
       ) : categories.length === 0 ? (
-        <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-12 text-center">
-          <FolderOpen className="w-12 h-12 dark:text-slate-600 text-slate-300 mx-auto mb-3" />
-          <p className="dark:text-slate-400">Engir flokkar ennþá</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+          <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="">Engir flokkar ennþá</p>
         </div>
       ) : (
         <div className="space-y-2">
           {categories.map((c) => (
-            <div key={c.id} className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-4 flex items-center justify-between">
+            <div key={c.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <FolderOpen className="w-5 h-5 dark:text-slate-400 text-slate-500" />
+                <FolderOpen className="w-5 h-5 text-slate-500" />
                 <div>
-                  <h3 className="font-medium dark:text-white text-slate-900">{c.name}</h3>
-                  <p className="text-xs dark:text-slate-400 text-slate-500">{c._count.products} vörur</p>
+                  <h3 className="font-medium text-slate-900">{c.name}</h3>
+                  <p className="text-xs text-slate-500">{c._count.products} vörur</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ export default function CategoriesPage() {
                   variant="ghost"
                   onClick={() => deleteMutation.mutate(c.id)}
                   disabled={c._count.products > 0 || deleteMutation.isPending}
-                  className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  className="h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -87,10 +87,10 @@ export default function CategoriesPage() {
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreate(false)}>
-          <div className="dark:bg-slate-800 bg-white rounded-2xl border dark:border-slate-700 border-slate-200 p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold dark:text-white text-slate-900">Bæta við flokki</h2>
-              <button onClick={() => setShowCreate(false)} className="dark:text-slate-400"><X className="w-5 h-5" /></button>
+              <h2 className="text-lg font-bold text-slate-900">Bæta við flokki</h2>
+              <button onClick={() => setShowCreate(false)} className=""><X className="w-5 h-5" /></button>
             </div>
             <div className="space-y-4">
               <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Parket" className="mt-1" /></div>

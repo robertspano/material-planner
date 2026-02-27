@@ -104,26 +104,26 @@ function ChartTooltip({ active, payload, label, range, companies, selectedIds, v
   const items = payload.filter(p => p.value > 0 && selectedIds.has(p.dataKey as string));
   const total = items.reduce((s, p) => s + (p.value || 0), 0);
   return (
-    <div className="dark:bg-slate-800 bg-white border dark:border-slate-700 border-slate-200 rounded-xl p-3 shadow-xl min-w-[140px]">
-      <p className="text-[10px] font-medium dark:text-slate-500 text-slate-400 mb-1.5">
+    <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xl min-w-[140px]">
+      <p className="text-[10px] font-medium text-slate-400 mb-1.5">
         {label ? formatDateLabel(label, range) : ""}
       </p>
       {items.sort((a, b) => b.value - a.value).map((entry, i) => (
         <div key={i} className="flex items-center justify-between gap-3 py-0.5">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-xs dark:text-slate-300 text-slate-600">{nameMap.get(entry.dataKey) || entry.dataKey}</span>
+            <span className="text-xs text-slate-600">{nameMap.get(entry.dataKey) || entry.dataKey}</span>
           </div>
-          <span className="text-xs font-bold dark:text-white text-slate-900 tabular-nums">{entry.value}</span>
+          <span className="text-xs font-bold text-slate-900 tabular-nums">{entry.value}</span>
         </div>
       ))}
       {items.length > 1 && (
-        <div className="border-t dark:border-slate-700 border-slate-200 mt-1 pt-1 flex justify-between">
-          <span className="text-[10px] dark:text-slate-500 text-slate-400">Samtals</span>
-          <span className="text-xs font-bold dark:text-white text-slate-900">{total}</span>
+        <div className="border-t border-slate-200 mt-1 pt-1 flex justify-between">
+          <span className="text-[10px] text-slate-400">Samtals</span>
+          <span className="text-xs font-bold text-slate-900">{total}</span>
         </div>
       )}
-      <p className="text-[9px] dark:text-slate-600 text-slate-300 mt-1">
+      <p className="text-[9px] text-slate-300 mt-1">
         {view === "generates" ? "generates" : "myndir"}
       </p>
     </div>
@@ -138,14 +138,14 @@ function RevTooltip({ active, payload, label, range }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="dark:bg-slate-800 bg-white border dark:border-slate-700 border-slate-200 rounded-xl p-3 shadow-xl">
-      <p className="text-[10px] font-medium dark:text-slate-500 text-slate-400 mb-1">
+    <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xl">
+      <p className="text-[10px] font-medium text-slate-400 mb-1">
         {label ? formatDateLabel(label, range) : ""}
       </p>
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-xs font-bold dark:text-white text-slate-900">{formatISK(entry.value)}</span>
+          <span className="text-xs font-bold text-slate-900">{formatISK(entry.value)}</span>
         </div>
       ))}
     </div>
@@ -161,13 +161,13 @@ function StatCard({ label, value, sub, icon: Icon, color }: {
   color: string;
 }) {
   return (
-    <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-4 relative overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 relative overflow-hidden">
       <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full opacity-[0.07]" style={{ background: color }} />
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-medium dark:text-slate-500 text-slate-400 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold dark:text-white text-slate-900 mt-1">{value}</p>
-          {sub && <p className="text-[10px] dark:text-slate-500 text-slate-400 mt-0.5">{sub}</p>}
+          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{label}</p>
+          <p className="text-xl font-bold text-slate-900 mt-1">{value}</p>
+          {sub && <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>}
         </div>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
           <Icon className="w-4 h-4" style={{ color }} />
@@ -251,7 +251,7 @@ export default function FinancePage() {
   if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin dark:text-slate-400 text-slate-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
       </div>
     );
   }
@@ -260,13 +260,13 @@ export default function FinancePage() {
     <div className="max-w-5xl space-y-5 pb-10">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold dark:text-white text-slate-900">Fjármál</h1>
-        <p className="text-sm dark:text-slate-400 text-slate-500 mt-0.5">Tekjur og notkun</p>
+        <h1 className="text-2xl font-bold text-slate-900">Fjármál</h1>
+        <p className="text-sm text-slate-500 mt-0.5">Tekjur og notkun</p>
       </div>
 
       {/* Time range pills */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex dark:bg-slate-800/80 bg-slate-100 rounded-lg p-0.5">
+        <div className="flex bg-slate-100 rounded-lg p-0.5">
           {RANGES.map(r => (
             <button
               key={r.key}
@@ -274,14 +274,14 @@ export default function FinancePage() {
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 range === r.key
                   ? "bg-purple-600 text-white shadow-sm"
-                  : "dark:text-slate-400 text-slate-500 dark:hover:text-white hover:text-slate-800"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
               {r.label}
             </button>
           ))}
         </div>
-        <span className="text-xs dark:text-slate-600 text-slate-400 ml-1">{rangePeriodLabel(range)}</span>
+        <span className="text-xs text-slate-400 ml-1">{rangePeriodLabel(range)}</span>
       </div>
 
       {/* Stat cards — 5 cards: revenue, period revenue, generates, images, avg */}
@@ -323,13 +323,13 @@ export default function FinancePage() {
 
       {/* Company filter pills */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs font-medium dark:text-slate-500 text-slate-400">Fyrirtæki:</span>
+        <span className="text-xs font-medium text-slate-400">Fyrirtæki:</span>
         <button
           onClick={() => setSelectedCompanies([])}
           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all border ${
             selectedCompanies.length === 0
               ? "bg-purple-600 text-white border-purple-600"
-              : "dark:bg-slate-800/60 bg-white dark:border-slate-700 border-slate-200 dark:text-slate-400 text-slate-500 hover:dark:border-slate-500 hover:border-slate-400"
+              : "bg-white border-slate-200 text-slate-500 hover:border-slate-400"
           }`}
         >
           Öll
@@ -343,7 +343,7 @@ export default function FinancePage() {
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all border ${
                 isSelected
                   ? "text-white border-transparent"
-                  : "dark:bg-slate-800/60 bg-white dark:border-slate-700 border-slate-200 dark:text-slate-400 text-slate-500 hover:dark:border-slate-500 hover:border-slate-400"
+                  : "bg-white border-slate-200 text-slate-500 hover:border-slate-400"
               }`}
               style={isSelected ? { backgroundColor: c.primaryColor, borderColor: c.primaryColor } : undefined}
             >
@@ -352,7 +352,7 @@ export default function FinancePage() {
                 style={{ backgroundColor: isSelected ? "#fff" : c.primaryColor }}
               />
               {c.name}
-              <span className={`text-[10px] ${isSelected ? "text-white/70" : "dark:text-slate-600 text-slate-300"}`}>
+              <span className={`text-[10px] ${isSelected ? "text-white/70" : "text-slate-300"}`}>
                 {c.periodGenerates}
               </span>
             </button>
@@ -361,17 +361,17 @@ export default function FinancePage() {
       </div>
 
       {/* Generates / Images Chart */}
-      <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-5">
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             {/* Toggle between generates and images */}
-            <div className="flex dark:bg-slate-700/50 bg-slate-100 rounded-lg p-0.5">
+            <div className="flex bg-slate-100 rounded-lg p-0.5">
               <button
                 onClick={() => setChartView("generates")}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                   chartView === "generates"
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "dark:text-slate-400 text-slate-500 hover:dark:text-white"
+                    : "text-slate-500"
                 }`}
               >
                 Generates
@@ -381,13 +381,13 @@ export default function FinancePage() {
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                   chartView === "images"
                     ? "bg-amber-500 text-white shadow-sm"
-                    : "dark:text-slate-400 text-slate-500 hover:dark:text-white"
+                    : "text-slate-500"
                 }`}
               >
                 Myndir
               </button>
             </div>
-            <p className="text-[10px] dark:text-slate-500 text-slate-400">
+            <p className="text-[10px] text-slate-400">
               {selectedCompanies.length === 0
                 ? "Öll fyrirtæki"
                 : selectedCompanies.length === 1
@@ -395,13 +395,13 @@ export default function FinancePage() {
                   : `${selectedCompanies.length} fyrirtæki`}
             </p>
           </div>
-          <span className="text-lg font-bold dark:text-white text-slate-900 tabular-nums">
+          <span className="text-lg font-bold text-slate-900 tabular-nums">
             {activeTotal.toLocaleString("is-IS")}
           </span>
         </div>
         {activePoints.length === 0 ? (
           <div className="h-[240px] flex items-center justify-center">
-            <p className="text-sm dark:text-slate-600 text-slate-300">Engin gögn</p>
+            <p className="text-sm text-slate-300">Engin gögn</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={240}>
@@ -448,19 +448,19 @@ export default function FinancePage() {
       </div>
 
       {/* Revenue Chart — always based on generates × price */}
-      <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-5">
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold dark:text-white text-slate-900">Tekjur</h2>
-            <p className="text-[10px] dark:text-slate-500 text-slate-400 mt-0.5">Reiknað: generates × verð per generate</p>
+            <h2 className="text-sm font-semibold text-slate-900">Tekjur</h2>
+            <p className="text-[10px] text-slate-400 mt-0.5">Reiknað: generates × verð per generate</p>
           </div>
-          <span className="text-lg font-bold dark:text-emerald-400 text-emerald-600 tabular-nums">
+          <span className="text-lg font-bold text-emerald-600 tabular-nums">
             {formatISK(filteredStats.revenue)}
           </span>
         </div>
         {revenueChartData.length === 0 ? (
           <div className="h-[220px] flex items-center justify-center">
-            <p className="text-sm dark:text-slate-600 text-slate-300">Engin gögn</p>
+            <p className="text-sm text-slate-300">Engin gögn</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
@@ -502,8 +502,8 @@ export default function FinancePage() {
       </div>
 
       {/* Company breakdown — compact table */}
-      <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-5">
-        <h2 className="text-sm font-semibold dark:text-white text-slate-900 mb-3">Yfirlit fyrirtækja</h2>
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <h2 className="text-sm font-semibold text-slate-900 mb-3">Yfirlit fyrirtækja</h2>
         <div className="space-y-2">
           {data.companies.map(c => {
             const pct = data.summary.periodGenerates > 0
@@ -512,11 +512,11 @@ export default function FinancePage() {
             return (
               <div
                 key={c.id}
-                className="flex items-center gap-3 py-2 px-3 rounded-lg dark:bg-slate-700/20 bg-slate-50"
+                className="flex items-center gap-3 py-2 px-3 rounded-lg bg-slate-50"
               >
                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: c.primaryColor }} />
-                <span className="text-sm font-medium dark:text-white text-slate-900 min-w-[100px]">{c.name}</span>
-                <div className="flex-1 h-1.5 rounded-full dark:bg-slate-700 bg-slate-200 overflow-hidden">
+                <span className="text-sm font-medium text-slate-900 min-w-[100px]">{c.name}</span>
+                <div className="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden">
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${pct}%`, backgroundColor: c.primaryColor }}
@@ -524,14 +524,14 @@ export default function FinancePage() {
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0 text-right">
                   <div>
-                    <span className="text-xs font-semibold dark:text-white text-slate-900 tabular-nums">{c.periodGenerates}</span>
-                    <span className="text-[9px] dark:text-slate-500 text-slate-400 ml-0.5">gen</span>
+                    <span className="text-xs font-semibold text-slate-900 tabular-nums">{c.periodGenerates}</span>
+                    <span className="text-[9px] text-slate-400 ml-0.5">gen</span>
                   </div>
                   <div>
-                    <span className="text-xs font-semibold dark:text-blue-400 text-blue-600 tabular-nums">{c.periodImages}</span>
-                    <span className="text-[9px] dark:text-slate-500 text-slate-400 ml-0.5">myndir</span>
+                    <span className="text-xs font-semibold text-blue-600 tabular-nums">{c.periodImages}</span>
+                    <span className="text-[9px] text-slate-400 ml-0.5">myndir</span>
                   </div>
-                  <span className="text-xs font-semibold dark:text-emerald-400 text-emerald-600 tabular-nums w-20 text-right">
+                  <span className="text-xs font-semibold text-emerald-600 tabular-nums w-20 text-right">
                     {formatISK(c.periodRevenue)}
                   </span>
                 </div>

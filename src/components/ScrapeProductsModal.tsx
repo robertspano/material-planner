@@ -270,28 +270,28 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
       onClick={onClose}
     >
       <div
-        className="dark:bg-slate-800 bg-white rounded-2xl border dark:border-slate-700 border-slate-200 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col"
+        className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between p-5 border-b dark:border-slate-700 border-slate-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-5 border-b border-slate-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center">
               <FileSpreadsheet className="w-4 h-4 text-purple-400" />
             </div>
             <div>
-              <h2 className="text-base font-bold dark:text-white text-slate-900">
+              <h2 className="text-base font-bold text-slate-900">
                 {step === "input" && "Flytja inn vörur"}
                 {step === "preview" && `${products.length} vörur fundust`}
                 {step === "importing" && "Flyt inn vörur..."}
                 {step === "done" && "Innflutningur lokið!"}
               </h2>
               {step === "preview" && pageTitle && (
-                <p className="text-xs dark:text-slate-400 text-slate-500 mt-0.5">{pageTitle}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{pageTitle}</p>
               )}
             </div>
           </div>
-          <button onClick={onClose} className="dark:text-slate-400 text-slate-500 hover:opacity-70">
+          <button onClick={onClose} className="text-slate-500 hover:opacity-70">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -307,8 +307,8 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                 <div
                   className={`mt-1.5 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
                     uploadedFile
-                      ? "dark:border-purple-500/40 border-purple-300 dark:bg-purple-500/5 bg-purple-50"
-                      : "dark:border-slate-600 border-slate-300 dark:hover:border-slate-500 hover:border-slate-400"
+                      ? "border-purple-300 bg-purple-50"
+                      : "border-slate-300 hover:border-slate-400"
                   }`}
                   onClick={() => fileInputRef.current?.click()}
                   onDrop={handleDrop}
@@ -320,25 +320,25 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                         <FileSpreadsheet className="w-5 h-5 text-purple-400" />
                       </div>
                       <div className="text-left">
-                        <p className="text-sm font-medium dark:text-white text-slate-900">{uploadedFile.name}</p>
-                        <p className="text-[10px] dark:text-slate-500 text-slate-400">
+                        <p className="text-sm font-medium text-slate-900">{uploadedFile.name}</p>
+                        <p className="text-[10px] text-slate-400">
                           {(uploadedFile.size / 1024).toFixed(0)} KB · {fileExt}
                         </p>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setUploadedFile(null); }}
-                        className="w-7 h-7 rounded-lg dark:bg-slate-700 bg-slate-200 flex items-center justify-center dark:text-slate-400 text-slate-500 hover:opacity-70"
+                        className="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center text-slate-500 hover:opacity-70"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <Upload className="w-8 h-8 dark:text-slate-500 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm dark:text-slate-400 text-slate-500">
+                      <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500">
                         Dragðu skrá hingað eða <span className="text-purple-400 font-medium">smelltu</span>
                       </p>
-                      <p className="text-[10px] dark:text-slate-600 text-slate-400 mt-1">
+                      <p className="text-[10px] text-slate-400 mt-1">
                         Excel (.xlsx), CSV, Numbers, ODS
                       </p>
                     </>
@@ -366,9 +366,9 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
               {/* Divider */}
               {!uploadedFile && (
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px dark:bg-slate-700 bg-slate-200" />
-                  <span className="text-[10px] font-medium dark:text-slate-500 text-slate-400 uppercase">eða</span>
-                  <div className="flex-1 h-px dark:bg-slate-700 bg-slate-200" />
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-[10px] font-medium text-slate-400 uppercase">eða</span>
+                  <div className="flex-1 h-px bg-slate-200" />
                 </div>
               )}
 
@@ -378,7 +378,7 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                   <Label className="text-xs font-medium">Google Sheets / Docs slóð</Label>
                   <div className="flex gap-2 mt-1.5">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-slate-500 text-slate-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         value={sheetUrl}
                         onChange={(e) => setSheetUrl(e.target.value)}
@@ -395,7 +395,7 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                       {scraping ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sækja"}
                     </Button>
                   </div>
-                  <p className="text-[10px] dark:text-slate-500 text-slate-400 mt-1">
+                  <p className="text-[10px] text-slate-400 mt-1">
                     Skjalið þarf að vera deilt (Share → Anyone with the link)
                   </p>
                 </div>
@@ -415,26 +415,26 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                   <select
                     value={categoryOverride}
                     onChange={(e) => setCategoryOverride(e.target.value)}
-                    className="mt-1.5 w-full h-10 rounded-lg border dark:border-slate-600 border-slate-300 dark:bg-slate-700 bg-white px-3 text-sm dark:text-slate-200 text-slate-800"
+                    className="mt-1.5 w-full h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800"
                   >
                     <option value="">Sjálfvirkt — greina flokk</option>
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
-                  <p className="text-[10px] dark:text-slate-500 text-slate-400 mt-1">
+                  <p className="text-[10px] text-slate-400 mt-1">
                     Ef ekkert er valið greinir kerfið flokkinn sjálfkrafa (flísar, parket, vinyl)
                   </p>
                 </div>
               )}
 
               {/* Info */}
-              <div className="dark:bg-slate-700/30 bg-slate-50 rounded-xl p-4 space-y-2">
-                <p className="text-xs dark:text-slate-400 text-slate-500">
+              <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+                <p className="text-xs text-slate-500">
                   Hladdu upp <strong>Excel</strong>, <strong>CSV</strong>, <strong>Numbers</strong> eða <strong>Google Sheets</strong> skjali.
                   Fyrsta röðin ætti að vera hausar (nafn, verð, stærð, mynd...).
                 </p>
-                <p className="text-[10px] dark:text-slate-500 text-slate-400">
+                <p className="text-[10px] text-slate-400">
                   Flokkar búnir til sjálfkrafa: Flísar, Parket, Vinyl
                 </p>
               </div>
@@ -445,9 +445,9 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
           {step === "preview" && (
             <div className="space-y-3">
               {warnings.length > 0 && (
-                <div className="dark:bg-amber-500/10 bg-amber-50 rounded-lg p-3 space-y-1">
+                <div className="bg-amber-50 rounded-lg p-3 space-y-1">
                   {warnings.map((w, i) => (
-                    <p key={i} className="text-xs dark:text-amber-400 text-amber-600 flex items-center gap-1.5">
+                    <p key={i} className="text-xs text-amber-600 flex items-center gap-1.5">
                       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {w}
                     </p>
                   ))}
@@ -457,16 +457,16 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
               <div className="flex items-center justify-between">
                 <button
                   onClick={toggleAll}
-                  className="flex items-center gap-2 text-sm dark:text-slate-300 text-slate-700 hover:opacity-80"
+                  className="flex items-center gap-2 text-sm text-slate-700 hover:opacity-80"
                 >
                   {selected.size === products.length ? (
                     <CheckSquare className="w-4 h-4 text-purple-400" />
                   ) : (
-                    <Square className="w-4 h-4 dark:text-slate-500 text-slate-400" />
+                    <Square className="w-4 h-4 text-slate-400" />
                   )}
                   <span>Velja allar ({products.length})</span>
                 </button>
-                <span className="text-xs dark:text-slate-500 text-slate-400">
+                <span className="text-xs text-slate-400">
                   {selected.size} valdar
                 </span>
               </div>
@@ -482,19 +482,19 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                       onClick={() => toggleOne(i)}
                       className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
                         isSelected
-                          ? "dark:bg-purple-500/10 bg-purple-50 border dark:border-purple-500/30 border-purple-200"
-                          : "dark:bg-slate-700/30 bg-slate-50 border dark:border-slate-700/30 border-slate-200 opacity-60 hover:opacity-80"
+                          ? "bg-purple-50 border border-purple-200"
+                          : "bg-slate-50 border border-slate-200 opacity-60 hover:opacity-80"
                       }`}
                     >
                       <div className="flex-shrink-0">
                         {isSelected ? (
                           <CheckSquare className="w-4 h-4 text-purple-400" />
                         ) : (
-                          <Square className="w-4 h-4 dark:text-slate-500 text-slate-400" />
+                          <Square className="w-4 h-4 text-slate-400" />
                         )}
                       </div>
 
-                      <div className="w-14 h-14 rounded-lg dark:bg-slate-700 bg-slate-200 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-lg bg-slate-200 flex-shrink-0 overflow-hidden flex items-center justify-center">
                         {product.imageUrl ? (
                           <img
                             src={product.imageUrl}
@@ -506,13 +506,13 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                             }}
                           />
                         ) : (
-                          <ImageIcon className="w-5 h-5 dark:text-slate-500 text-slate-400" />
+                          <ImageIcon className="w-5 h-5 text-slate-400" />
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium dark:text-white text-slate-900 truncate">
+                          <p className="text-sm font-medium text-slate-900 truncate">
                             {product.name}
                           </p>
                           {!categoryOverride && product.detectedCategory && (
@@ -523,7 +523,7 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           {product.price !== null && (
-                            <span className="text-xs font-semibold dark:text-emerald-400 text-emerald-600">
+                            <span className="text-xs font-semibold text-emerald-600">
                               {formatISK(product.price)}
                             </span>
                           )}
@@ -533,12 +533,12 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
                             </span>
                           )}
                           {dims && (
-                            <span className="text-[10px] dark:text-slate-500 text-slate-400">
+                            <span className="text-[10px] text-slate-400">
                               {dims}
                             </span>
                           )}
                           {product.color && (
-                            <span className="text-[10px] dark:text-blue-400/70 text-blue-500/70">
+                            <span className="text-[10px] text-blue-500/70">
                               {product.color}
                             </span>
                           )}
@@ -558,8 +558,8 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
 
               {products.length === 0 && (
                 <div className="text-center py-10">
-                  <Package className="w-10 h-10 dark:text-slate-600 text-slate-300 mx-auto mb-3" />
-                  <p className="text-sm dark:text-slate-400 text-slate-500">Engar vörur fundust</p>
+                  <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm text-slate-500">Engar vörur fundust</p>
                   <Button onClick={() => setStep("input")} variant="ghost" className="mt-3">
                     Reyna aftur
                   </Button>
@@ -573,15 +573,15 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
             <div className="text-center py-10 space-y-5">
               <Loader2 className="w-10 h-10 animate-spin text-purple-400 mx-auto" />
               <div>
-                <p className="text-sm font-medium dark:text-white text-slate-900">
+                <p className="text-sm font-medium text-slate-900">
                   Flyt inn {importTotal} vörur...
                 </p>
-                <p className="text-xs dark:text-slate-400 text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Sæki myndir og vista í gagnagrunn
                 </p>
               </div>
               <div className="w-full max-w-xs mx-auto">
-                <div className="h-2 rounded-full dark:bg-slate-700 bg-slate-200 overflow-hidden">
+                <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-purple-500 transition-all duration-500"
                     style={{ width: `${importTotal > 0 ? (importProgress / importTotal) * 100 : 0}%` }}
@@ -605,23 +605,23 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
               )}
 
               <div>
-                <p className="text-lg font-bold dark:text-white text-slate-900">
+                <p className="text-lg font-bold text-slate-900">
                   {importResult.imported > 0
                     ? `${importResult.imported} ${importResult.imported === 1 ? "vara" : "vörur"} fluttar inn`
                     : "Innflutningur mistókst"
                   }
                 </p>
                 {importResult.failed > 0 && (
-                  <p className="text-sm dark:text-red-400 text-red-500 mt-1">
+                  <p className="text-sm text-red-500 mt-1">
                     {importResult.failed} {importResult.failed === 1 ? "villa" : "villur"}
                   </p>
                 )}
               </div>
 
               {importResult.errors.length > 0 && (
-                <div className="dark:bg-red-500/10 bg-red-50 rounded-xl p-3 text-left max-h-[150px] overflow-y-auto">
+                <div className="bg-red-50 rounded-xl p-3 text-left max-h-[150px] overflow-y-auto">
                   {importResult.errors.map((e, i) => (
-                    <p key={i} className="text-xs dark:text-red-400 text-red-600 py-0.5">
+                    <p key={i} className="text-xs text-red-600 py-0.5">
                       <strong>{e.name}:</strong> {e.error}
                     </p>
                   ))}
@@ -632,7 +632,7 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
         </div>
 
         {/* ── Footer ── */}
-        <div className="p-4 border-t dark:border-slate-700 border-slate-200 flex-shrink-0">
+        <div className="p-4 border-t border-slate-200 flex-shrink-0">
           {step === "preview" && products.length > 0 && (
             <div className="flex items-center gap-3">
               <Button onClick={() => setStep("input")} variant="ghost" className="h-10">
@@ -654,7 +654,7 @@ export default function ScrapeProductsModal({ companyId, categories, onClose }: 
             </Button>
           )}
           {step === "input" && (
-            <p className="text-[10px] dark:text-slate-600 text-slate-300 text-center">
+            <p className="text-[10px] text-slate-300 text-center">
               Styður Excel, CSV, Google Sheets, Google Docs, Numbers og ODS
             </p>
           )}

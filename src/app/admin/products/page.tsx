@@ -240,7 +240,7 @@ export default function ProductsPage() {
   return (
     <div className="max-w-6xl space-y-4 lg:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-xl lg:text-2xl font-bold dark:text-white text-slate-900">Vörur</h1>
+        <h1 className="text-xl lg:text-2xl font-bold text-slate-900">Vörur</h1>
         <div className="flex gap-3 flex-wrap">
           <div className="relative flex-1 sm:w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -260,11 +260,11 @@ export default function ProductsPage() {
       </div>
 
       {isLoading ? (
-        <div className="p-10 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto dark:text-slate-400" /></div>
+        <div className="p-10 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>
       ) : filtered.length === 0 ? (
-        <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-12 text-center">
-          <Package className="w-12 h-12 dark:text-slate-600 text-slate-300 mx-auto mb-3" />
-          <p className="dark:text-slate-400">Engar vörur fundust</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+          <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="">Engar vörur fundust</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -285,19 +285,19 @@ export default function ProductsPage() {
       {/* Delete Confirmation Modal */}
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setDeletingId(null)}>
-          <div className="dark:bg-slate-800 bg-white rounded-2xl border dark:border-slate-700 border-slate-200 p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
                 <Trash2 className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <h3 className="font-bold dark:text-white text-slate-900">Eyða vöru?</h3>
-                <p className="text-xs dark:text-slate-400 text-slate-500 mt-0.5">
+                <h3 className="font-bold text-slate-900">Eyða vöru?</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
                   {products.find(p => p.id === deletingId)?.name}
                 </p>
               </div>
             </div>
-            <p className="text-sm dark:text-slate-400 text-slate-500 mb-5">
+            <p className="text-sm text-slate-500 mb-5">
               Þetta eyðir vörunni varanlega. Ekki er hægt að afturkalla þetta.
             </p>
             <div className="flex gap-2">
@@ -319,10 +319,10 @@ export default function ProductsPage() {
       {/* Create Product Modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreate(false)}>
-          <div className="dark:bg-slate-800 bg-white rounded-2xl border dark:border-slate-700 border-slate-200 p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold dark:text-white text-slate-900">Ný vara</h2>
-              <button onClick={() => setShowCreate(false)} className="dark:text-slate-400"><X className="w-5 h-5" /></button>
+              <h2 className="text-lg font-bold text-slate-900">Ný vara</h2>
+              <button onClick={() => setShowCreate(false)} className=""><X className="w-5 h-5" /></button>
             </div>
             <ProductForm
               categories={categories}
@@ -356,10 +356,10 @@ export default function ProductsPage() {
       {/* Edit Product Modal */}
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => { setEditingProduct(null); resetForm(); }}>
-          <div className="dark:bg-slate-800 bg-white rounded-2xl border dark:border-slate-700 border-slate-200 p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold dark:text-white text-slate-900">Breyta vöru</h2>
-              <button onClick={() => { setEditingProduct(null); resetForm(); }} className="dark:text-slate-400"><X className="w-5 h-5" /></button>
+              <h2 className="text-lg font-bold text-slate-900">Breyta vöru</h2>
+              <button onClick={() => { setEditingProduct(null); resetForm(); }} className=""><X className="w-5 h-5" /></button>
             </div>
             {/* Current image preview */}
             {editingProduct.imageUrl && editingProduct.imageUrl !== "" && editingProduct.imageUrl !== "/placeholder-product.jpg" && (
@@ -448,12 +448,12 @@ function ProductCard({
   };
 
   return (
-    <div className={`dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 overflow-hidden transition-all hover:shadow-lg group ${!p.isActive ? "opacity-50" : ""}`}>
-      <div className="aspect-square bg-slate-100 dark:bg-slate-700 relative">
+    <div className={`bg-white rounded-xl border border-slate-200 overflow-hidden transition-all hover:shadow-lg group ${!p.isActive ? "opacity-50" : ""}`}>
+      <div className="aspect-square bg-slate-100 relative">
         {p.imageUrl && p.imageUrl !== "/placeholder-product.jpg" && p.imageUrl !== "" ? (
           <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-10 h-10 dark:text-slate-600 text-slate-300" /></div>
+          <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-10 h-10 text-slate-300" /></div>
         )}
         {/* Surface type badges */}
         <div className="absolute top-2 left-2 flex gap-1">
@@ -486,17 +486,17 @@ function ProductCard({
         </div>
       </div>
       <div className="p-2.5">
-        <h3 className="font-semibold dark:text-white text-slate-900 text-sm truncate">{p.name}</h3>
-        <p className="text-xs dark:text-slate-400 text-slate-500 mt-0.5">{p.category.name}</p>
+        <h3 className="font-semibold text-slate-900 text-sm truncate">{p.name}</h3>
+        <p className="text-xs text-slate-500 mt-0.5">{p.category.name}</p>
         {(p.tileWidth && p.tileHeight) ? (
-          <p className="text-[10px] dark:text-slate-500 text-slate-400 mt-0.5">{p.tileWidth}×{p.tileHeight} cm</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{p.tileWidth}×{p.tileHeight} cm</p>
         ) : null}
 
         {/* Quick-edit price & discount row */}
         <div className="mt-2 space-y-1.5">
           {/* Price */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] dark:text-slate-500 text-slate-400 w-8 flex-shrink-0">Verð</span>
+            <span className="text-[10px] text-slate-400 w-8 flex-shrink-0">Verð</span>
             {editingField === "price" ? (
               <div className="flex items-center gap-1 flex-1">
                 <input
@@ -505,10 +505,10 @@ function ProductCard({
                   onChange={(e) => setTempValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   autoFocus
-                  className="w-full h-6 px-1.5 text-xs rounded border dark:border-slate-600 border-slate-300 dark:bg-slate-700 bg-white dark:text-white text-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full h-6 px-1.5 text-xs rounded border border-slate-300 bg-white text-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="0"
                 />
-                <span className="text-[10px] dark:text-slate-500 text-slate-400">kr</span>
+                <span className="text-[10px] text-slate-400">kr</span>
                 <button onClick={saveInlineEdit} className="w-5 h-5 rounded bg-blue-500 hover:bg-blue-600 flex items-center justify-center flex-shrink-0 transition-colors">
                   <Check className="w-3 h-3 text-white" />
                 </button>
@@ -516,7 +516,7 @@ function ProductCard({
             ) : (
               <button
                 onClick={(e) => startInlineEdit("price", e)}
-                className="flex-1 text-left text-xs font-semibold dark:text-white text-slate-900 hover:dark:text-blue-400 hover:text-blue-600 transition-colors cursor-text rounded px-1 -mx-1 hover:dark:bg-slate-700/50 hover:bg-slate-100"
+                className="flex-1 text-left text-xs font-semibold text-slate-900 hover:text-blue-600 transition-colors cursor-text rounded px-1 -mx-1 hover:bg-slate-100"
               >
                 {p.price ? `${p.price.toLocaleString()} kr` : "—"}
               </button>
@@ -525,7 +525,7 @@ function ProductCard({
 
           {/* Discount */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] dark:text-slate-500 text-slate-400 w-8 flex-shrink-0">Afsl.</span>
+            <span className="text-[10px] text-slate-400 w-8 flex-shrink-0">Afsl.</span>
             {editingField === "discount" ? (
               <div className="flex items-center gap-1 flex-1">
                 <input
@@ -536,10 +536,10 @@ function ProductCard({
                   autoFocus
                   min="0"
                   max="100"
-                  className="w-full h-6 px-1.5 text-xs rounded border dark:border-slate-600 border-slate-300 dark:bg-slate-700 bg-white dark:text-white text-slate-900 outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-6 px-1.5 text-xs rounded border border-slate-300 bg-white text-slate-900 outline-none focus:ring-1 focus:ring-emerald-500"
                   placeholder="0"
                 />
-                <span className="text-[10px] dark:text-slate-500 text-slate-400">%</span>
+                <span className="text-[10px] text-slate-400">%</span>
                 <button onClick={saveInlineEdit} className="w-5 h-5 rounded bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center flex-shrink-0 transition-colors">
                   <Check className="w-3 h-3 text-white" />
                 </button>
@@ -547,12 +547,12 @@ function ProductCard({
             ) : (
               <button
                 onClick={(e) => startInlineEdit("discount", e)}
-                className="flex-1 text-left text-xs transition-colors cursor-text rounded px-1 -mx-1 hover:dark:bg-slate-700/50 hover:bg-slate-100"
+                className="flex-1 text-left text-xs transition-colors cursor-text rounded px-1 -mx-1 hover:bg-slate-100"
               >
                 {p.discountPercent ? (
-                  <span className="font-semibold text-emerald-400">-{p.discountPercent}%{p.price ? <span className="dark:text-slate-400 text-slate-500 font-normal ml-1">{Math.round(p.price * (1 - p.discountPercent / 100)).toLocaleString()} kr</span> : null}</span>
+                  <span className="font-semibold text-emerald-400">-{p.discountPercent}%{p.price ? <span className="text-slate-500 font-normal ml-1">{Math.round(p.price * (1 - p.discountPercent / 100)).toLocaleString()} kr</span> : null}</span>
                 ) : (
-                  <span className="dark:text-slate-600 text-slate-300">Enginn</span>
+                  <span className="text-slate-300">Enginn</span>
                 )}
               </button>
             )}
@@ -560,7 +560,7 @@ function ProductCard({
         </div>
 
         {/* Active toggle */}
-        <div className="flex items-center justify-end mt-2 pt-1.5 border-t dark:border-slate-700/50 border-slate-100">
+        <div className="flex items-center justify-end mt-2 pt-1.5 border-t border-slate-100">
           <Switch
             checked={p.isActive}
             onCheckedChange={onToggleActive}
@@ -634,8 +634,8 @@ function ProductForm({
       </div>
 
       {/* Discount — highlighted section */}
-      <div className="rounded-lg border dark:border-red-500/20 border-red-200 dark:bg-red-500/5 bg-red-50/50 p-3">
-        <Label className="text-xs font-semibold flex items-center gap-1.5 dark:text-red-400 text-red-600">
+      <div className="rounded-lg border border-red-200 bg-red-50/50 p-3">
+        <Label className="text-xs font-semibold flex items-center gap-1.5 text-red-600">
           <Percent className="w-3 h-3" /> Afsláttur
         </Label>
         <div className="flex items-center gap-3 mt-1.5">
@@ -649,12 +649,12 @@ function ProductForm({
               max="100"
               className="h-9 text-sm pr-8"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs dark:text-slate-500 text-slate-400">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
           </div>
           {discountedPrice !== null && discountedPrice > 0 && (
             <div className="flex-shrink-0 text-right">
-              <p className="text-xs font-bold dark:text-white text-slate-900">{discountedPrice.toLocaleString()} kr</p>
-              <p className="text-[10px] line-through dark:text-slate-500 text-slate-400">{parseFloat(formPrice).toLocaleString()} kr</p>
+              <p className="text-xs font-bold text-slate-900">{discountedPrice.toLocaleString()} kr</p>
+              <p className="text-[10px] line-through text-slate-400">{parseFloat(formPrice).toLocaleString()} kr</p>
             </div>
           )}
         </div>
@@ -665,7 +665,7 @@ function ProductForm({
                 key={pct}
                 type="button"
                 onClick={() => setFormDiscount(pct.toString())}
-                className="text-[10px] px-2 py-1 rounded-md dark:bg-slate-700/60 bg-white border dark:border-slate-600 border-slate-200 dark:text-slate-300 text-slate-600 hover:opacity-80 transition-opacity"
+                className="text-[10px] px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-600 hover:opacity-80 transition-opacity"
               >
                 {pct}%
               </button>
@@ -693,11 +693,11 @@ function ProductForm({
         <div className="flex gap-4 mt-1.5">
           <label className="flex items-center gap-2 cursor-pointer">
             <Checkbox checked={formFloor} onCheckedChange={(v) => setFormFloor(!!v)} />
-            <span className="text-sm dark:text-white text-slate-900">Gólf</span>
+            <span className="text-sm text-slate-900">Gólf</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <Checkbox checked={formWall} onCheckedChange={(v) => setFormWall(!!v)} />
-            <span className="text-sm dark:text-white text-slate-900">Veggur</span>
+            <span className="text-sm text-slate-900">Veggur</span>
           </label>
         </div>
       </div>
@@ -708,15 +708,15 @@ function ProductForm({
         <div className="grid grid-cols-3 gap-2 mt-1">
           <div>
             <Input type="number" value={formTileW} onChange={(e) => setFormTileW(e.target.value)} placeholder="Breidd" className="h-9 text-sm" />
-            <span className="text-[10px] dark:text-slate-500 text-slate-400 mt-0.5 block">Breidd cm</span>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Breidd cm</span>
           </div>
           <div>
             <Input type="number" value={formTileH} onChange={(e) => setFormTileH(e.target.value)} placeholder="Hæð" className="h-9 text-sm" />
-            <span className="text-[10px] dark:text-slate-500 text-slate-400 mt-0.5 block">Hæð cm</span>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Hæð cm</span>
           </div>
           <div>
             <Input type="number" value={formTileT} onChange={(e) => setFormTileT(e.target.value)} placeholder="Þykkt" className="h-9 text-sm" />
-            <span className="text-[10px] dark:text-slate-500 text-slate-400 mt-0.5 block">Þykkt mm</span>
+            <span className="text-[10px] text-slate-400 mt-0.5 block">Þykkt mm</span>
           </div>
         </div>
       </div>
@@ -725,19 +725,19 @@ function ProductForm({
       <div>
         <Label className="text-xs">Vörumynd</Label>
         <div
-          className="mt-1 flex items-center justify-center w-full h-20 border-2 border-dashed dark:border-slate-600 border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+          className="mt-1 flex items-center justify-center w-full h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
           onClick={() => imageInputRef.current?.click()}
         >
           {formImage ? (
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 dark:text-slate-400" />
-              <span className="text-sm dark:text-white text-slate-700 truncate max-w-[200px]">{formImage.name}</span>
+              <ImageIcon className="w-4 h-4" />
+              <span className="text-sm text-slate-700 truncate max-w-[200px]">{formImage.name}</span>
               <button onClick={(e) => { e.stopPropagation(); setFormImage(null); }} className="text-red-400 hover:text-red-300"><X className="w-3.5 h-3.5" /></button>
             </div>
           ) : (
             <div className="text-center">
-              <Upload className="w-5 h-5 mx-auto dark:text-slate-500 text-slate-400" />
-              <span className="text-xs dark:text-slate-500 text-slate-400">Smelltu til að hlaða upp</span>
+              <Upload className="w-5 h-5 mx-auto text-slate-400" />
+              <span className="text-xs text-slate-400">Smelltu til að hlaða upp</span>
             </div>
           )}
           <input ref={imageInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => setFormImage(e.target.files?.[0] || null)} />

@@ -21,12 +21,12 @@ export function SurfaceSelector({ selected, onSelect, onContinue, roomImageUrl, 
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl overflow-hidden border dark:border-slate-700/50 border-slate-200">
+      <div className="rounded-2xl overflow-hidden border border-slate-200">
         <img src={roomImageUrl} alt="Room" className="w-full max-h-[400px] object-contain bg-black" />
       </div>
 
       <div className="flex flex-col items-center gap-3">
-        <h3 className="text-sm font-medium dark:text-slate-400 text-slate-500">Veldu flöt:</h3>
+        <h3 className="text-sm font-medium text-slate-500">Veldu flöt:</h3>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           {options.map(({ value, label }) => (
             <button
@@ -35,7 +35,7 @@ export function SurfaceSelector({ selected, onSelect, onContinue, roomImageUrl, 
               className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-medium text-sm transition-all ${
                 selected === value
                   ? "text-white shadow-lg"
-                  : "dark:bg-slate-800 bg-slate-100 dark:text-slate-300 text-slate-700 dark:hover:bg-slate-700 hover:bg-slate-200"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
               style={selected === value ? { backgroundColor: "var(--brand-primary)" } : undefined}
             >
@@ -45,7 +45,7 @@ export function SurfaceSelector({ selected, onSelect, onContinue, roomImageUrl, 
         </div>
 
         {roomCount > 1 && selected && (
-          <p className="text-xs dark:text-slate-500 text-slate-400">
+          <p className="text-xs text-slate-400">
             Þetta gildir um allar {roomCount} myndir
           </p>
         )}

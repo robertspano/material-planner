@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   const brandColor = company?.primaryColor || "#2e7cff";
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin dark:text-slate-400" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin" /></div>;
   }
 
   const cards = [
@@ -32,10 +32,10 @@ export default function AdminDashboard() {
     <div className="max-w-4xl space-y-6">
       {/* Welcome header */}
       <div>
-        <h1 className="text-xl lg:text-2xl font-bold dark:text-white text-slate-900">
+        <h1 className="text-xl lg:text-2xl font-bold text-slate-900">
           Stjórnborð
         </h1>
-        <p className="text-sm dark:text-slate-400 text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 mt-1">
           Yfirlit yfir {company?.name || "fyrirtækið"}
         </p>
       </div>
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-4 lg:p-5">
+            <div key={card.label} className="bg-white rounded-xl border border-slate-200 p-4 lg:p-5">
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -54,8 +54,8 @@ export default function AdminDashboard() {
                   <Icon className="w-5 h-5" style={{ color: brandColor }} />
                 </div>
                 <div>
-                  <p className="text-xl lg:text-2xl font-bold dark:text-white text-slate-900">{card.value}</p>
-                  <p className="text-xs dark:text-slate-400 text-slate-500">{card.label}</p>
+                  <p className="text-xl lg:text-2xl font-bold text-slate-900">{card.value}</p>
+                  <p className="text-xs text-slate-500">{card.label}</p>
                 </div>
               </div>
             </div>
@@ -64,18 +64,18 @@ export default function AdminDashboard() {
       </div>
 
       {/* Usage Meter */}
-      <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-6">
-        <h2 className="text-lg font-semibold dark:text-white text-slate-900 mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
           <BarChart3 className="w-5 h-5" style={{ color: brandColor }} />
           Mánaðarleg notkun
         </h2>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm dark:text-slate-400 text-slate-500">
+          <span className="text-sm text-slate-500">
             {stats?.generationsUsed ?? 0} / {stats?.generationLimit ?? 0} myndagerðir
           </span>
-          <span className="text-sm font-medium dark:text-white text-slate-900">{usagePercent}%</span>
+          <span className="text-sm font-medium text-slate-900">{usagePercent}%</span>
         </div>
-        <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all"
             style={{
@@ -87,8 +87,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="dark:bg-slate-800/60 bg-white rounded-xl border dark:border-slate-700/50 border-slate-200 p-6">
-        <h2 className="text-lg font-semibold dark:text-white text-slate-900 mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
           <Eye className="w-5 h-5" style={{ color: brandColor }} />
           Flýtiaðgerðir
         </h2>
@@ -97,26 +97,26 @@ export default function AdminDashboard() {
             href={`/?company=${companySlug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 rounded-xl border dark:border-slate-700/50 border-slate-200 dark:hover:bg-slate-700/50 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
           >
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: brandColor + "20" }}>
               <Eye className="w-4 h-4" style={{ color: brandColor }} />
             </div>
             <div>
-              <p className="font-medium dark:text-white text-slate-900 text-sm">Skoða planner</p>
-              <p className="text-xs dark:text-slate-400 text-slate-500">Opna sjónræna áætlun viðskiptavina</p>
+              <p className="font-medium text-slate-900 text-sm">Skoða planner</p>
+              <p className="text-xs text-slate-500">Opna sjónræna áætlun viðskiptavina</p>
             </div>
           </a>
           <a
             href={`/admin/products?company=${companySlug}`}
-            className="flex items-center gap-3 p-4 rounded-xl border dark:border-slate-700/50 border-slate-200 dark:hover:bg-slate-700/50 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
           >
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: brandColor + "20" }}>
               <Package className="w-4 h-4" style={{ color: brandColor }} />
             </div>
             <div>
-              <p className="font-medium dark:text-white text-slate-900 text-sm">Sýsla með vörur</p>
-              <p className="text-xs dark:text-slate-400 text-slate-500">{stats?.totalProducts ?? 0} vörur í vörulista</p>
+              <p className="font-medium text-slate-900 text-sm">Sýsla með vörur</p>
+              <p className="text-xs text-slate-500">{stats?.totalProducts ?? 0} vörur í vörulista</p>
             </div>
           </a>
         </div>

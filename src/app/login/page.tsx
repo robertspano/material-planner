@@ -47,18 +47,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-blue-50 to-sky-100 dark:from-[#0E172A] dark:via-[#131C2E] dark:to-[#1A253C] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-blue-50 to-sky-100 p-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center">
             <Paintbrush className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-2xl font-bold dark:text-white text-slate-900">Material Planner</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Material Planner</h1>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 border-slate-200 p-6 shadow-lg">
-          <h2 className="text-lg font-semibold dark:text-white text-slate-900 mb-1">Innskráning</h2>
-          <p className="text-sm dark:text-slate-400 text-slate-500 mb-6">Skráðu þig inn til að stjórna vörulistanum</p>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-lg">
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">Innskráning</h2>
+          <p className="text-sm text-slate-500 mb-6">Skráðu þig inn til að stjórna vörulistanum</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -87,7 +87,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
+              <p className="text-sm text-red-500">{error}</p>
             )}
 
             <Button type="submit" disabled={loading} className="w-full">
