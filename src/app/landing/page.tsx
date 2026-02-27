@@ -88,7 +88,7 @@ export default function LandingPage() {
         </p>
         <a
           href="mailto:info@snid.is"
-          className="mt-8 text-base font-bold text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
+          className="mt-12 text-base font-bold text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
         >
           Hafðu samband
         </a>
