@@ -20,11 +20,23 @@ export async function GET() {
 
     const [totalProducts, totalCategories, totalGenerations, generationsThisMonth] =
       await Promise.all([
-        prisma.product.count({ where: { companyId, isActive: true } }),
+        prisma.product.count({ where: { companyId } }),
         prisma.category.count({ where: { companyId } }),
         prisma.generation.count({ where: { companyId } }),
         prisma.generation.count({ where: { companyId, createdAt: { gte: startOfMonth } } }),
       ]);
+
+    // Count distinct "generates" (button presses) — same logic as super admin
+    // New records: each unique batchId = one generate
+    // Old records (no batchId): group by sessionId — all images from same session = one generate
+    const generateResult = await prisma.$queryRaw<{ generateCount: bigint }[]>`
+      SELECT COUNT(*) as "generateCount" FROM (
+        SELECT DISTINCT "batchId" AS grp FROM "Generation" WHERE "batchId" IS NOT NULL AND "companyId" = ${companyId}
+        UNION ALL
+        SELECT DISTINCT "sessionId" AS grp FROM "Generation" WHERE "batchId" IS NULL AND "companyId" = ${companyId}
+      ) sub
+    `;
+    const generationsUsed = Number(generateResult[0]?.generateCount || 0);
 
     return NextResponse.json({
       totalProducts,
@@ -32,7 +44,7 @@ export async function GET() {
       totalGenerations,
       generationsThisMonth,
       generationLimit: companyData?.monthlyGenerationLimit || 500,
-      generationsUsed: companyData?.generationsUsed || 0,
+      generationsUsed,
     });
   } catch (error) {
     if (error instanceof Response) return error;
