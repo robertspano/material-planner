@@ -46,6 +46,8 @@ function getCompanySlug(): string {
   const fromParam = params.get("company");
   if (fromParam) return fromParam;
   const hostname = window.location.hostname;
+  // Skip subdomain extraction for Vercel domains
+  if (hostname.includes("vercel.app") || hostname.includes("vercel.sh")) return "demo";
   const parts = hostname.split(".");
   if (parts.length >= 3) return parts[0];
   return "";
