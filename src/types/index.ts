@@ -15,6 +15,7 @@ export interface CompanyBranding {
   id: string;
   name: string;
   slug: string;
+  kennitala: string | null;
   logoUrl: string | null;
   primaryColor: string;
   secondaryColor: string;

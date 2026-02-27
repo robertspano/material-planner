@@ -78,11 +78,16 @@ export default function SettingsPage() {
       <h1 className="text-lg font-semibold text-slate-900">Stillingar</h1>
 
       <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-6">
-        {/* Company name */}
+        {/* Company name + kennitala */}
         <div>
           <Label className="text-xs text-slate-400 uppercase tracking-wider">Fyrirtæki</Label>
           {company?.name ? (
-            <p className="text-lg font-bold text-slate-900 mt-1">{company.name}</p>
+            <div className="mt-1">
+              <p className="text-lg font-bold text-slate-900">{company.name}</p>
+              {company.kennitala && (
+                <p className="text-sm text-slate-500 font-mono mt-0.5">kt. {company.kennitala}</p>
+              )}
+            </div>
           ) : (
             <div className="h-7 w-40 bg-slate-100 rounded animate-pulse mt-1" />
           )}

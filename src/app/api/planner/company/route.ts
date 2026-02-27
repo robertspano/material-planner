@@ -13,6 +13,7 @@ export async function GET() {
       id: company.id,
       name: company.name,
       slug: company.slug,
+      kennitala: company.kennitala,
       logoUrl: company.logoUrl,
       primaryColor: company.primaryColor,
       secondaryColor: company.secondaryColor,
