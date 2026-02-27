@@ -26,8 +26,7 @@ export default function AdminDashboard() {
     <div className="max-w-6xl space-y-10">
       {/* Overview section */}
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-slate-900">{company?.name || "Yfirlit"}</h1>
+        <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSettingsOpen(true)}
