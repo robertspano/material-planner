@@ -194,7 +194,7 @@ export async function GET(request: NextRequest) {
         name: true,
         primaryColor: true,
         pricePerGeneration: true,
-        _count: { select: { generations: true } }, // total images (Generation rows)
+        _count: { select: { generations: true, products: true } },
       },
       orderBy: { generations: { _count: "desc" } },
     });
@@ -234,6 +234,7 @@ export async function GET(request: NextRequest) {
         name: c.name,
         primaryColor: c.primaryColor,
         pricePerGeneration: c.pricePerGeneration,
+        totalProducts: c._count.products,
         totalImages: c._count.generations,
         totalGenerates: allTimeGensMap.get(c.id) || 0,
         totalRevenue: (allTimeGensMap.get(c.id) || 0) * c.pricePerGeneration,

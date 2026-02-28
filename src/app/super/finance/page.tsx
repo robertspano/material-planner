@@ -2,7 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Calendar, Zap, ImageIcon, DollarSign } from "lucide-react";
+import {
+  Loader2, Zap, ImageIcon, DollarSign, Package,
+  ChevronDown, Calendar,
+} from "lucide-react";
 
 // ── Types ──
 type Range = "day" | "week" | "month" | "6months" | "year" | "all";
@@ -12,6 +15,7 @@ interface CompanyInfo {
   name: string;
   primaryColor: string;
   pricePerGeneration: number;
+  totalProducts: number;
   totalImages: number;
   totalGenerates: number;
   totalRevenue: number;
@@ -58,54 +62,38 @@ const RANGES: { key: Range; label: string }[] = [
 // ── Main Page ──
 export default function FinancePage() {
   const [range, setRange] = useState<Range>("month");
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery<FinanceData>({
     queryKey: [`/api/super/finance?range=${range}`],
   });
 
-  // Build daily activity from generatePoints and imagePoints
-  const dailyActivity = useMemo(() => {
-    if (!data) return [];
+  // Build per-company daily data (only for expanded company)
+  const companyDailyData = useMemo(() => {
+    if (!data || !expandedCompany) return [];
 
-    const dateMap = new Map<string, Map<string, { generates: number; images: number }>>();
+    const dateMap = new Map<string, { generates: number; images: number }>();
 
     for (const point of data.generatePoints) {
-      if (!dateMap.has(point.date)) dateMap.set(point.date, new Map());
-      const companyMap = dateMap.get(point.date)!;
-      for (const company of data.companies) {
-        const count = (point[company.id] as number) || 0;
-        if (count > 0) {
-          if (!companyMap.has(company.id)) companyMap.set(company.id, { generates: 0, images: 0 });
-          companyMap.get(company.id)!.generates += count;
-        }
+      const count = (point[expandedCompany] as number) || 0;
+      if (count > 0) {
+        if (!dateMap.has(point.date)) dateMap.set(point.date, { generates: 0, images: 0 });
+        dateMap.get(point.date)!.generates += count;
       }
     }
 
     for (const point of data.imagePoints) {
-      if (!dateMap.has(point.date)) dateMap.set(point.date, new Map());
-      const companyMap = dateMap.get(point.date)!;
-      for (const company of data.companies) {
-        const count = (point[company.id] as number) || 0;
-        if (count > 0) {
-          if (!companyMap.has(company.id)) companyMap.set(company.id, { generates: 0, images: 0 });
-          companyMap.get(company.id)!.images += count;
-        }
+      const count = (point[expandedCompany] as number) || 0;
+      if (count > 0) {
+        if (!dateMap.has(point.date)) dateMap.set(point.date, { generates: 0, images: 0 });
+        dateMap.get(point.date)!.images += count;
       }
     }
 
     return [...dateMap.entries()]
       .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([date, companyMap]) => ({
-        date,
-        companies: [...companyMap.entries()]
-          .map(([companyId, counts]) => ({
-            companyId,
-            company: data.companies.find(c => c.id === companyId)!,
-            ...counts,
-          }))
-          .sort((a, b) => b.generates - a.generates),
-      }));
-  }, [data]);
+      .map(([date, counts]) => ({ date, ...counts }));
+  }, [data, expandedCompany]);
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
@@ -137,7 +125,7 @@ export default function FinancePage() {
           {RANGES.map(r => (
             <button
               key={r.key}
-              onClick={() => setRange(r.key)}
+              onClick={() => { setRange(r.key); setExpandedCompany(null); }}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 range === r.key
                   ? "bg-purple-600 text-white shadow-sm"
@@ -168,81 +156,96 @@ export default function FinancePage() {
         </div>
       </div>
 
-      {/* Company summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {data.companies.map(c => (
-          <div key={c.id} className="flex items-center gap-3 bg-white rounded-xl border border-slate-200 px-4 py-3">
-            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: c.primaryColor }} />
-            <span className="text-sm font-semibold text-slate-900 flex-1 truncate">{c.name}</span>
-            <div className="flex items-center gap-3 text-xs tabular-nums flex-shrink-0">
-              <span>
-                <span className="font-bold text-slate-900">{c.periodGenerates}</span>
-                <span className="text-slate-400 ml-0.5">framl.</span>
-              </span>
-              <span>
-                <span className="font-bold text-blue-600">{c.periodImages}</span>
-                <span className="text-slate-400 ml-0.5">myndir</span>
-              </span>
-              <span className="font-bold text-emerald-600 min-w-[60px] text-right">{formatISK(c.periodRevenue)}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Company cards — clickable, expandable */}
+      <div className="space-y-2">
+        {data.companies.map(c => {
+          const isExpanded = expandedCompany === c.id;
 
-      {/* Daily breakdown */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-900">Dagleg virkni</h2>
-        </div>
-        {dailyActivity.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">Engin virkni á tímabili</div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {dailyActivity.map(day => {
-              const dayGenerates = day.companies.reduce((s, c) => s + c.generates, 0);
-              const dayImages = day.companies.reduce((s, c) => s + c.images, 0);
-              const dayRevenue = day.companies.reduce((s, c) => s + c.generates * c.company.pricePerGeneration, 0);
+          return (
+            <div
+              key={c.id}
+              className="bg-white rounded-xl border border-slate-200 overflow-hidden transition-all"
+            >
+              {/* Company row — clickable */}
+              <button
+                onClick={() => setExpandedCompany(isExpanded ? null : c.id)}
+                className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-slate-50 transition-colors"
+              >
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: c.primaryColor }} />
+                <span className="text-sm font-semibold text-slate-900 flex-1 truncate">{c.name}</span>
 
-              return (
-                <div key={day.date} className="px-4 py-3">
-                  {/* Date header */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-slate-300" />
-                      <span className="text-xs font-semibold text-slate-600">{formatDate(day.date)}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-[10px] text-slate-400 tabular-nums">
-                      <span>{dayGenerates} framl.</span>
-                      <span>{dayImages} myndir</span>
-                      <span className="text-emerald-500 font-medium">{formatISK(dayRevenue)}</span>
-                    </div>
-                  </div>
-
-                  {/* Per-company rows */}
-                  <div className="space-y-1 ml-5">
-                    {day.companies.map(({ companyId, company, generates, images }) => (
-                      <div key={companyId} className="flex items-center gap-3 text-xs">
-                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: company.primaryColor }} />
-                        <span className="text-slate-700 min-w-[90px] truncate">{company.name}</span>
-                        <span className="tabular-nums">
-                          <span className="font-semibold text-slate-900">{generates}</span>
-                          <span className="text-slate-400 ml-0.5">framl.</span>
-                        </span>
-                        <span className="tabular-nums">
-                          <span className="font-semibold text-blue-600">{images}</span>
-                          <span className="text-slate-400 ml-0.5">myndir</span>
-                        </span>
-                        <span className="font-semibold text-emerald-600 tabular-nums ml-auto">
-                          {formatISK(generates * company.pricePerGeneration)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-4 text-xs tabular-nums flex-shrink-0">
+                  <span className="hidden sm:flex items-center gap-1">
+                    <Package className="w-3 h-3 text-slate-300" />
+                    <span className="font-bold text-slate-700">{c.totalProducts}</span>
+                    <span className="text-slate-400">vörur</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-blue-400" />
+                    <span className="font-bold text-slate-900">{c.periodGenerates}</span>
+                    <span className="text-slate-400 hidden sm:inline">framl.</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <ImageIcon className="w-3 h-3 text-amber-400" />
+                    <span className="font-bold text-slate-900">{c.periodImages}</span>
+                    <span className="text-slate-400 hidden sm:inline">myndir</span>
+                  </span>
+                  <span className="font-bold text-emerald-600 min-w-[70px] text-right">
+                    {formatISK(c.periodRevenue)}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        )}
+
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-300 flex-shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {/* Expanded — daily detail for this company */}
+              {isExpanded && (
+                <div className="border-t border-slate-100">
+                  {/* Company all-time summary */}
+                  <div className="px-4 py-3 bg-slate-50/50 flex items-center gap-5 text-[11px] text-slate-400 flex-wrap">
+                    <span>Verð per gen: <span className="font-semibold text-slate-600">{c.pricePerGeneration} kr</span></span>
+                    <span>Samtals: <span className="font-semibold text-slate-600">{c.totalGenerates} framl.</span></span>
+                    <span>Samtals myndir: <span className="font-semibold text-slate-600">{c.totalImages}</span></span>
+                    <span>Heildartekjur: <span className="font-semibold text-emerald-600">{formatISK(c.totalRevenue)}</span></span>
+                  </div>
+
+                  {/* Daily rows */}
+                  {companyDailyData.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-xs text-slate-400">
+                      Engin virkni á tímabili
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-50 max-h-[320px] overflow-y-auto">
+                      {companyDailyData.map(day => (
+                        <div key={day.date} className="flex items-center justify-between px-4 py-2.5 text-xs hover:bg-slate-50/50">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3 h-3 text-slate-300" />
+                            <span className="font-medium text-slate-600">{formatDate(day.date)}</span>
+                          </div>
+                          <div className="flex items-center gap-4 tabular-nums">
+                            <span>
+                              <span className="font-bold text-slate-900">{day.generates}</span>
+                              <span className="text-slate-400 ml-0.5">framl.</span>
+                            </span>
+                            <span>
+                              <span className="font-bold text-blue-600">{day.images}</span>
+                              <span className="text-slate-400 ml-0.5">myndir</span>
+                            </span>
+                            <span className="font-bold text-emerald-600 min-w-[60px] text-right">
+                              {formatISK(day.generates * c.pricePerGeneration)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
