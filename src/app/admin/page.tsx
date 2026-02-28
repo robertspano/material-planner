@@ -80,7 +80,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-3 gap-4">
           <StatCard icon={Package} color="blue" value={stats?.totalProducts} label="Vörur" />
-          <StatCard icon={Layers} color="emerald" value={stats?.generationsUsed} label="Generates" />
+          <StatCard icon={Layers} color="emerald" value={stats?.generationsUsed} label="Framleiðslur" />
           <StatCard icon={ImageIcon} color="orange" value={stats?.totalGenerations} label="Myndir" />
         </div>
       </div>
