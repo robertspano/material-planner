@@ -210,12 +210,12 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                     : "border-slate-200 hover:border-slate-400"
                 }`}
               >
-                {/* Hover popup — large product photo */}
-                {product.imageUrl && product.imageUrl !== "/placeholder-product.jpg" && (
+                {/* Hover popup — room scene photo (swatchUrl) or product photo */}
+                {(product.swatchUrl || (product.imageUrl && product.imageUrl !== "/placeholder-product.jpg")) && (
                   <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom hidden group-hover:block">
                     <div className="w-72 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white ring-1 ring-black/5">
                       <img
-                        src={product.imageUrl}
+                        src={product.swatchUrl || product.imageUrl}
                         alt={product.name}
                         className="w-full aspect-[4/3] object-cover rounded-t-xl"
                       />
