@@ -74,12 +74,12 @@ export default function PlannerPage() {
 
   const cachedCompany = useMemo(() => getCachedCompany(companySlug), [companySlug]);
 
-  const { data: company, isError: companyError } = useQuery<CompanyBranding>({
+  const { data: company, isError: companyError, isPlaceholderData } = useQuery<CompanyBranding>({
     queryKey: [`/api/planner/company?company=${companySlug}`],
     enabled: !!companySlug,
     placeholderData: cachedCompany,
-    staleTime: 60_000, // 1 min — allows quick lock when company is deactivated
-    retry: 1,
+    staleTime: 0, // always revalidate — critical for lock/unlock to work instantly
+    retry: false,
   });
 
   // Cache company data for instant reload
@@ -316,9 +316,24 @@ export default function PlannerPage() {
     );
   }
 
-  // First visit only (no cache yet): show minimal loading
-  if (!company) {
-    return <div className="min-h-screen bg-[#eeeeee]" />;
+  // Still checking company status — show branding but not interactive content
+  if (!company || isPlaceholderData) {
+    const c = company || cachedCompany;
+    return (
+      <div className="min-h-screen bg-[#eeeeee]">
+        {c && (
+          <header className="sticky top-0 z-30 shadow-md" style={{ backgroundColor: c.primaryColor }}>
+            <div className="max-w-5xl mx-auto px-4 h-14 flex items-center">
+              {c.logoUrl ? (
+                <img src={c.logoUrl} alt={c.name} className="h-8 w-auto" />
+              ) : (
+                <span className="text-white font-bold text-lg tracking-wide uppercase">{c.name}</span>
+              )}
+            </div>
+          </header>
+        )}
+      </div>
+    );
   }
 
   return (
