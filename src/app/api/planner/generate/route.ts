@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCompanyFromRequest } from "@/lib/tenant";
 import { generateWithGemini } from "@/lib/gemini";
+import { waitUntil } from "@vercel/functions";
+
+// Allow up to 60 seconds for Gemini image generation
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
@@ -130,8 +134,9 @@ export async function POST(request: NextRequest) {
       data: { generationsUsed: { increment: 1 } },
     });
 
-    // Run Gemini generation asynchronously
-    generateWithGemini({
+    // Run Gemini generation — use waitUntil to keep the function alive
+    // after the response is sent (critical on Vercel serverless)
+    const generationPromise = generateWithGemini({
       roomImageUrl: generation.roomImageUrl,
       productImageUrl: product.swatchUrl || product.imageUrl,
       productName: product.name,
@@ -154,6 +159,9 @@ export async function POST(request: NextRequest) {
     }).catch((err) => {
       console.error("Generation failed:", err);
     });
+
+    // Keep the serverless function alive until Gemini finishes
+    waitUntil(generationPromise);
 
     return NextResponse.json({
       generationId: generation.id,
