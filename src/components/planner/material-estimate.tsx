@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, ChevronDown, ChevronUp, FileText, Send } from "lucide-react";
+import { Loader2, FileText, Send } from "lucide-react";
 
 interface Product {
   id: string;
@@ -73,7 +73,6 @@ export function MaterialEstimate({
   const [area, setArea] = useState<string>("");
   const [width, setWidth] = useState<string>("");
   const [lengthOrHeight, setLengthOrHeight] = useState<string>("");
-  const [showDimensions, setShowDimensions] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
   // Auto-measure
@@ -188,20 +187,52 @@ export function MaterialEstimate({
         <h3 className="text-sm font-semibold text-slate-800">
           {surfaceLabel}
         </h3>
-        {measuring && (
+        {measuring ? (
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Loader2 className="w-3 h-3 animate-spin" />
             Mæli…
           </div>
-        )}
+        ) : measured ? (
+          <span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
+            Áætlun — breyttu ef þarf
+          </span>
+        ) : null}
       </div>
 
       {/* Body */}
       <div className="p-4 space-y-3">
-        {/* Area input — clean inline */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-600">{surfaceLabel}</span>
-          <div className="flex items-center gap-1">
+        {/* Dimensions — always visible, editable inline */}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <label className="text-[10px] text-slate-400 uppercase tracking-wider">Breidd (m)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="—"
+              value={width}
+              onChange={(e) => handleDimensionChange(e.target.value, lengthOrHeight)}
+              className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
+            />
+          </div>
+          <div className="flex items-end pb-1 text-slate-300">×</div>
+          <div className="flex-1">
+            <label className="text-[10px] text-slate-400 uppercase tracking-wider">
+              {surfaceType === "floor" ? "Lengd (m)" : "Hæð (m)"}
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="—"
+              value={lengthOrHeight}
+              onChange={(e) => handleDimensionChange(width, e.target.value)}
+              className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
+            />
+          </div>
+          <div className="flex items-end pb-1 text-slate-300">=</div>
+          <div className="flex-1">
+            <label className="text-[10px] text-slate-400 uppercase tracking-wider">{surfaceLabel}</label>
             <input
               type="number"
               step="0.1"
@@ -209,49 +240,11 @@ export function MaterialEstimate({
               placeholder="—"
               value={area}
               onChange={(e) => setArea(e.target.value)}
-              className="w-20 text-right text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30 focus:border-[var(--brand-primary)]"
+              className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
             />
-            <span className="text-sm text-slate-500">{unit}</span>
           </div>
+          <div className="flex items-end pb-1.5 text-sm text-slate-500">{unit}</div>
         </div>
-
-        {/* Expandable dimension editor */}
-        <button
-          onClick={() => setShowDimensions(!showDimensions)}
-          className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
-        >
-          {showDimensions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          {measured ? "Breyta mælingum" : "Slá inn mál"}
-        </button>
-
-        {showDimensions && (
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider">Breidd (m)</label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="—"
-                value={width}
-                onChange={(e) => handleDimensionChange(e.target.value, lengthOrHeight)}
-                className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider">
-                {surfaceType === "floor" ? "Lengd (m)" : "Hæð (m)"}
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="—"
-                value={lengthOrHeight}
-                onChange={(e) => handleDimensionChange(width, e.target.value)}
-                className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Calculation summary — only when area is set */}
         {areaNum > 0 && (

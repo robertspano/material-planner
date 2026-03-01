@@ -925,10 +925,10 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
                   }`}>
                     <img src={item.result.imageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
-                  {/* Product swatch */}
+                  {/* Product swatch — always show the tile color, not room scene */}
                   <div className="w-8 h-8 rounded-md overflow-hidden border border-slate-200 flex-shrink-0">
                     <img
-                      src={product.swatchUrl || product.imageUrl}
+                      src={product.imageUrl}
                       alt=""
                       className="w-full h-full object-cover"
                     />
