@@ -12,12 +12,13 @@ cloudinary.config({
  */
 export async function uploadToCloudinary(
   buffer: Buffer,
-  filename: string
+  filename: string,
+  folder = "planner-rooms"
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: "planner-rooms",
+        folder,
         public_id: filename.replace(/\.[^.]+$/, ""),
         resource_type: "image",
       },

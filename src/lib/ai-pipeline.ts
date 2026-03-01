@@ -58,15 +58,22 @@ export async function runAIPipeline(generationId: string): Promise<void> {
         selection.surfaceType
       );
 
-      // Upload result to S3
+      // Upload result (Cloudinary if configured, otherwise S3)
       const response = await fetch(resultImageUrl);
       const buffer = Buffer.from(await response.arrayBuffer());
-      const key = buildS3Key(
-        generation.companyId,
-        "results",
-        `${generationId}-${selection.surfaceType}-${Date.now()}.jpg`
-      );
-      const storedUrl = await uploadToS3(key, buffer, "image/jpeg");
+      let storedUrl: string;
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        const { uploadToCloudinary } = await import("./cloudinary");
+        const filename = `${generationId}-${selection.surfaceType}-${Date.now()}.jpg`;
+        storedUrl = await uploadToCloudinary(buffer, filename, "planner-results");
+      } else {
+        const key = buildS3Key(
+          generation.companyId,
+          "results",
+          `${generationId}-${selection.surfaceType}-${Date.now()}.jpg`
+        );
+        storedUrl = await uploadToS3(key, buffer, "image/jpeg");
+      }
 
       // Create result record
       await prisma.generationResult.create({

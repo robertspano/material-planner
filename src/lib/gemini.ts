@@ -211,9 +211,16 @@ export async function generateWithGemini(params: {
       .png({ quality: 95 })
       .toBuffer();
 
-    // Save the generated image
-    const key = buildS3Key(companyId, "results", `${generationId}-${surfaceType}-${Date.now()}.png`);
-    const savedUrl = await uploadToS3(key, resizedBuffer, "image/png");
+    // Save the generated image (Cloudinary if configured, otherwise S3)
+    let savedUrl: string;
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      const { uploadToCloudinary } = await import("./cloudinary");
+      const filename = `${generationId}-${surfaceType}-${Date.now()}.png`;
+      savedUrl = await uploadToCloudinary(resizedBuffer, filename, "planner-results");
+    } else {
+      const key = buildS3Key(companyId, "results", `${generationId}-${surfaceType}-${Date.now()}.png`);
+      savedUrl = await uploadToS3(key, resizedBuffer, "image/png");
+    }
 
     // Create result record
     await prisma.generationResult.create({
@@ -607,17 +614,28 @@ async function fetchImageAsBase64(imageUrl: string): Promise<{ base64: string; m
     return cached;
   }
 
-  // Handle local file paths
+  // Handle local/relative paths — convert to full URL and fetch remotely
+  // On Vercel, local filesystem is read-only so we can't use fs.readFile
   if (imageUrl.startsWith("/uploads/") || imageUrl.startsWith("/placeholder")) {
-    const fs = await import("fs/promises");
-    const path = await import("path");
-    const filePath = path.join(process.cwd(), "public", imageUrl);
-    const fileBuffer = await fs.readFile(filePath);
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeType = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
-    const result = { base64: fileBuffer.toString("base64"), mimeType };
-    imageCache.set(imageUrl, result);
-    return result;
+    // In production, these should be absolute URLs already.
+    // If we still get relative paths, try reading locally (dev) or construct a fetchable URL
+    try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const filePath = path.join(process.cwd(), "public", imageUrl);
+      const fileBuffer = await fs.readFile(filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      const mimeType = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
+      const result = { base64: fileBuffer.toString("base64"), mimeType };
+      imageCache.set(imageUrl, result);
+      return result;
+    } catch {
+      // Filesystem not available (Vercel) — fall through to remote fetch
+      // Construct full URL from NEXTAUTH_URL or VERCEL_URL
+      const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+      imageUrl = `${baseUrl}${imageUrl}`;
+      console.log("[Gemini] Local read failed, fetching via URL:", imageUrl.substring(0, 100));
+    }
   }
 
   // Remote URL - fetch with timeout + retry
