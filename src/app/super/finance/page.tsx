@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Loader2, Zap, ImageIcon, Package,
@@ -24,17 +24,8 @@ interface CompanyInfo {
   periodRevenue: number;
 }
 
-interface DataPoint {
-  date: string;
-  total: number;
-  revenue: number;
-  [key: string]: unknown;
-}
-
 interface FinanceData {
   companies: CompanyInfo[];
-  imagePoints: DataPoint[];
-  generatePoints: DataPoint[];
   summary: {
     totalImages: number;
     totalGenerates: number;
@@ -46,6 +37,15 @@ interface FinanceData {
   range: Range;
 }
 
+interface CompanyDetail {
+  companyId: string;
+  since: string;
+  until: string;
+  totalGenerates: number;
+  totalImages: number;
+  daily: { date: string; generates: number; images: number }[];
+}
+
 const RANGES: { key: Range; label: string }[] = [
   { key: "week", label: "Vika" },
   { key: "month", label: "Mánuður" },
@@ -54,53 +54,52 @@ const RANGES: { key: Range; label: string }[] = [
   { key: "all", label: "Allt" },
 ];
 
+function toDateStr(d: Date) {
+  return d.toISOString().split("T")[0];
+}
+
+function formatDay(iso: string) {
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("is-IS", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    ...(d.getFullYear() !== new Date().getFullYear() ? { year: "numeric" } : {}),
+  });
+}
+
 // ── Main Page ──
 export default function FinancePage() {
   const [range, setRange] = useState<Range>("month");
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const { data, isLoading } = useQuery<FinanceData>({
     queryKey: [`/api/super/finance?range=${range}`],
   });
 
-  // Build per-company daily data (only for expanded company)
-  const companyDailyData = useMemo(() => {
-    if (!data || !expandedCompany) return [];
+  // Per-company detail query — fires only when company is expanded + both dates set
+  const detailUrl = expandedCompany && dateFrom && dateTo
+    ? `/api/super/finance/company?companyId=${expandedCompany}&since=${dateFrom}&until=${dateTo}`
+    : null;
 
-    const dateMap = new Map<string, { generates: number; images: number }>();
+  const { data: detail, isLoading: detailLoading } = useQuery<CompanyDetail>({
+    queryKey: [detailUrl],
+    enabled: !!detailUrl,
+  });
 
-    for (const point of data.generatePoints) {
-      const count = (point[expandedCompany] as number) || 0;
-      if (count > 0) {
-        if (!dateMap.has(point.date)) dateMap.set(point.date, { generates: 0, images: 0 });
-        dateMap.get(point.date)!.generates += count;
-      }
+  const handleExpand = (companyId: string) => {
+    if (expandedCompany === companyId) {
+      setExpandedCompany(null);
+      return;
     }
-
-    for (const point of data.imagePoints) {
-      const count = (point[expandedCompany] as number) || 0;
-      if (count > 0) {
-        if (!dateMap.has(point.date)) dateMap.set(point.date, { generates: 0, images: 0 });
-        dateMap.get(point.date)!.images += count;
-      }
-    }
-
-    return [...dateMap.entries()]
-      .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([date, counts]) => ({ date, ...counts }));
-  }, [data, expandedCompany]);
-
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    if (range === "day") {
-      return d.toLocaleString("is-IS", { hour: "2-digit", minute: "2-digit" });
-    }
-    return d.toLocaleDateString("is-IS", {
-      weekday: "short",
-      day: "numeric",
-      month: "long",
-      ...(d.getFullYear() !== new Date().getFullYear() ? { year: "numeric" } : {}),
-    });
+    setExpandedCompany(companyId);
+    // Pre-fill: first of current month → today
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    setDateFrom(toDateStr(firstOfMonth));
+    setDateTo(toDateStr(now));
   };
 
   if (isLoading || !data) {
@@ -159,7 +158,7 @@ export default function FinancePage() {
             >
               {/* Company row — clickable */}
               <button
-                onClick={() => setExpandedCompany(isExpanded ? null : c.id)}
+                onClick={() => handleExpand(c.id)}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-slate-50 transition-colors"
               >
                 <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: c.primaryColor }} />
@@ -188,42 +187,85 @@ export default function FinancePage() {
                 />
               </button>
 
-              {/* Expanded — daily detail for this company */}
+              {/* Expanded — date picker + detail */}
               {isExpanded && (
                 <div className="border-t border-slate-100">
-                  {/* Company all-time summary */}
+                  {/* All-time summary */}
                   <div className="px-4 py-3 bg-slate-50/50 flex items-center gap-5 text-[11px] text-slate-400 flex-wrap">
                     <span>Samtals: <span className="font-semibold text-slate-600">{c.totalGenerates} framl.</span></span>
                     <span>Samtals myndir: <span className="font-semibold text-slate-600">{c.totalImages}</span></span>
                   </div>
 
-                  {/* Daily rows */}
-                  {companyDailyData.length === 0 ? (
+                  {/* Date range picker */}
+                  <div className="px-4 py-3 flex items-center gap-4 flex-wrap border-b border-slate-50">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-slate-500 font-medium">Frá</label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-slate-500 font-medium">Til</label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Results */}
+                  {detailLoading ? (
+                    <div className="px-4 py-8 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                    </div>
+                  ) : detail && detail.daily.length > 0 ? (
+                    <div>
+                      {/* Period summary */}
+                      <div className="px-4 py-3 flex items-center gap-5 text-sm">
+                        <span className="flex items-center gap-1.5">
+                          <Zap className="w-4 h-4 text-blue-500" />
+                          <span className="font-bold text-slate-900">{detail.totalGenerates}</span>
+                          <span className="text-slate-400">framleiðslur</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <ImageIcon className="w-4 h-4 text-amber-500" />
+                          <span className="font-bold text-slate-900">{detail.totalImages}</span>
+                          <span className="text-slate-400">myndir</span>
+                        </span>
+                      </div>
+
+                      {/* Daily rows */}
+                      <div className="divide-y divide-slate-50 max-h-[320px] overflow-y-auto">
+                        {detail.daily.map(day => (
+                          <div key={day.date} className="flex items-center justify-between px-4 py-2.5 text-xs hover:bg-slate-50/50">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3 h-3 text-slate-300" />
+                              <span className="font-medium text-slate-600">{formatDay(day.date)}</span>
+                            </div>
+                            <div className="flex items-center gap-4 tabular-nums">
+                              <span>
+                                <span className="font-bold text-slate-900">{day.generates}</span>
+                                <span className="text-slate-400 ml-0.5">framl.</span>
+                              </span>
+                              <span>
+                                <span className="font-bold text-blue-600">{day.images}</span>
+                                <span className="text-slate-400 ml-0.5">myndir</span>
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : detail ? (
                     <div className="px-4 py-6 text-center text-xs text-slate-400">
                       Engin virkni á tímabili
                     </div>
-                  ) : (
-                    <div className="divide-y divide-slate-50 max-h-[320px] overflow-y-auto">
-                      {companyDailyData.map(day => (
-                        <div key={day.date} className="flex items-center justify-between px-4 py-2.5 text-xs hover:bg-slate-50/50">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3 h-3 text-slate-300" />
-                            <span className="font-medium text-slate-600">{formatDate(day.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-4 tabular-nums">
-                            <span>
-                              <span className="font-bold text-slate-900">{day.generates}</span>
-                              <span className="text-slate-400 ml-0.5">framl.</span>
-                            </span>
-                            <span>
-                              <span className="font-bold text-blue-600">{day.images}</span>
-                              <span className="text-slate-400 ml-0.5">myndir</span>
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
