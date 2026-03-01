@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Alfaborg Gallery Image Scraper
+ * Alfaborg Gallery Image Scraper (v2 — picks best landscape image)
  *
  * Scrapes the "MYNDIR" (room scene / installed look) images from each
- * Alfaborg product page and stores the first gallery image URL as
- * `swatchUrl` in the database.
+ * Alfaborg product page. For each product, checks all gallery images
+ * and picks the best landscape-oriented one (best for the 4:3 hover popup).
  *
- * The gallery images are embedded as base64-encoded JSON in the static HTML,
- * so no browser automation (puppeteer) is needed.
+ * Image dimension detection: reads the first ~10KB of each JPEG to extract
+ * width/height from the SOF marker without downloading the full image.
  *
  * Run: node scripts/scrape-gallery-images.mjs
  */
@@ -28,15 +28,12 @@ const HEADERS = {
   'Accept-Language': 'is,en;q=0.9',
 };
 
-const DELAY_MS = 400; // Polite delay between requests
+const DELAY_MS = 300;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Fetch a page with browser-like headers. Retries once.
- */
 async function fetchPage(url) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -46,7 +43,7 @@ async function fetchPage(url) {
         return null;
       }
       return await res.text();
-    } catch (err) {
+    } catch {
       if (attempt === 0) { await sleep(2000); continue; }
       return null;
     }
@@ -55,29 +52,78 @@ async function fetchPage(url) {
 }
 
 /**
- * Extract gallery image URLs from the HTML.
- *
- * The Alfaborg product page embeds gallery data as base64-encoded JSON
- * in a data attribute near the `.my-gallery` swiper container.
- *
- * Format: {"uniqueVal":"1","listOfImages":"[{\"url\":\"...\",\"description\":\"...\"}]"}
+ * Read JPEG dimensions from the first ~16KB of image data.
+ * Returns { width, height } or null.
+ */
+function readJpegDimensions(buffer) {
+  if (buffer.length < 4) return null;
+  // Verify JPEG magic bytes
+  if (buffer[0] !== 0xFF || buffer[1] !== 0xD8) return null;
+
+  let offset = 2;
+  while (offset < buffer.length - 8) {
+    if (buffer[offset] !== 0xFF) { offset++; continue; }
+
+    const marker = buffer[offset + 1];
+
+    // SOF markers (Start of Frame) contain dimensions
+    // SOF0=0xC0, SOF1=0xC1, SOF2=0xC2, SOF3=0xC3
+    if (marker >= 0xC0 && marker <= 0xC3) {
+      const height = buffer.readUInt16BE(offset + 5);
+      const width = buffer.readUInt16BE(offset + 7);
+      if (width > 0 && height > 0) {
+        return { width, height };
+      }
+    }
+
+    // Skip to next marker
+    if (marker === 0xD8 || marker === 0xD9) {
+      offset += 2;
+    } else {
+      const segLen = buffer.readUInt16BE(offset + 2);
+      offset += 2 + segLen;
+    }
+  }
+  return null;
+}
+
+/**
+ * Fetch just the first 16KB of an image to read its dimensions.
+ */
+async function getImageDimensions(url) {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        ...HEADERS,
+        'Range': 'bytes=0-16383',
+        'Accept': 'image/*',
+      },
+    });
+    if (!res.ok && res.status !== 206) return null;
+
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return readJpegDimensions(buffer);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract gallery image URLs from the HTML (base64-encoded JSON).
  */
 function extractGalleryImages(html) {
-  // Find the area around the gallery
   const galleryIdx = html.indexOf('my-gallery');
   if (galleryIdx === -1) return [];
 
-  // Search for base64 strings in a large window before the gallery
   const searchStart = Math.max(0, galleryIdx - 5000);
   const section = html.substring(searchStart, galleryIdx + 200);
 
-  // Find base64 strings (at least 50 chars, look like base64)
   const b64Pattern = /[A-Za-z0-9+/]{50,}={0,2}/g;
   let match;
   while ((match = b64Pattern.exec(section)) !== null) {
     try {
       const decoded = Buffer.from(match[0], 'base64').toString('utf-8');
-      // Check if this looks like our gallery data
       if (decoded.includes('listOfImages')) {
         const data = JSON.parse(decoded);
         if (data.listOfImages) {
@@ -97,27 +143,55 @@ function extractGalleryImages(html) {
 }
 
 /**
- * Also try to extract the main product image from background-image style
+ * Pick the best gallery image for the hover popup.
+ * Prefers landscape images with the widest aspect ratio.
+ * Falls back to the largest image if no landscape found.
  */
-function extractMainProductImage(html) {
-  // The main product image is often a background-image on a specific div
-  // Pattern: class containing "dmRespCol" + "large-7" with background-image
-  const bgPattern = /u_1249815434[^>]*background-image:\s*url\(['"](https?:\/\/[^'"]+)['"]\)/;
-  const match = html.match(bgPattern);
-  if (match) return match[1];
+async function pickBestImage(images) {
+  if (images.length === 0) return null;
+  if (images.length === 1) return images[0].url;
 
-  // Alternative: look for the main product image in a specific column
-  const altPattern = /class="u_1249815434[^"]*"[^>]*style="[^"]*background-image:\s*url\(&quot;([^&]+)&quot;\)/;
-  const altMatch = html.match(altPattern);
-  if (altMatch) return altMatch[1];
+  // Check dimensions for each image (fetch only first 16KB)
+  const candidates = [];
+  for (const img of images) {
+    const dims = await getImageDimensions(img.url);
+    candidates.push({
+      url: img.url,
+      description: img.description,
+      width: dims?.width || 0,
+      height: dims?.height || 0,
+      isLandscape: dims ? dims.width >= dims.height : false,
+      aspectRatio: dims && dims.height > 0 ? dims.width / dims.height : 0,
+      area: dims ? dims.width * dims.height : 0,
+    });
+  }
 
-  return null;
+  // Prefer landscape images
+  const landscape = candidates.filter(c => c.isLandscape && c.width >= 800);
+  if (landscape.length > 0) {
+    // Among landscape images, prefer the one closest to 4:3 ratio (1.33) but wider than 1:1
+    // Sort by: closest to 4:3, then by resolution
+    landscape.sort((a, b) => {
+      const targetRatio = 4 / 3;
+      const diffA = Math.abs(a.aspectRatio - targetRatio);
+      const diffB = Math.abs(b.aspectRatio - targetRatio);
+      // If one is much closer to target ratio, prefer it
+      if (Math.abs(diffA - diffB) > 0.3) return diffA - diffB;
+      // Otherwise prefer higher resolution
+      return b.area - a.area;
+    });
+    return landscape[0].url;
+  }
+
+  // No landscape images — pick the one with most pixels
+  candidates.sort((a, b) => b.area - a.area);
+  // If we got dimensions, use the best. Otherwise just use the first image.
+  return candidates[0].area > 0 ? candidates[0].url : images[0].url;
 }
 
 async function main() {
-  console.log('=== Alfaborg Gallery Image Scraper ===\n');
+  console.log('=== Alfaborg Gallery Image Scraper v2 (best landscape) ===\n');
 
-  // Load the scraped products JSON (has href for each product)
   const jsonPath = path.join(__dirname, 'alfaborg-products.json');
   if (!fs.existsSync(jsonPath)) {
     console.error('ERROR: alfaborg-products.json not found');
@@ -127,7 +201,6 @@ async function main() {
   const rawProducts = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
   console.log(`Loaded ${rawProducts.length} products from JSON\n`);
 
-  // Get all Alfaborg products from the database
   const company = await prisma.company.findUnique({ where: { slug: 'alfaborg' } });
   if (!company) {
     console.error('ERROR: Alfaborg company not found in database');
@@ -140,14 +213,13 @@ async function main() {
   });
   console.log(`Found ${dbProducts.length} products in database\n`);
 
-  // Build a lookup map: "name|description" -> dbProduct
   const dbMap = new Map();
   for (const p of dbProducts) {
     const key = `${p.name}|${p.description || ''}`.toLowerCase();
     dbMap.set(key, p);
   }
 
-  // Deduplicate by href (some products share the same product page)
+  // Deduplicate by href
   const uniqueHrefs = new Map();
   for (const p of rawProducts) {
     if (!p.href) continue;
@@ -164,6 +236,7 @@ async function main() {
   let updated = 0;
   let skipped = 0;
   let failed = 0;
+  let landscapeCount = 0;
 
   const entries = [...uniqueHrefs.entries()];
 
@@ -178,7 +251,7 @@ async function main() {
     scraped++;
 
     if (!html) {
-      console.log('FAILED (fetch error)');
+      console.log('FAILED');
       failed++;
       await sleep(DELAY_MS);
       continue;
@@ -193,11 +266,22 @@ async function main() {
       continue;
     }
 
-    // Use the first gallery image (usually the best room scene)
-    const galleryUrl = galleryImages[0].url;
+    // Pick the best image (checking dimensions for landscape preference)
+    const bestUrl = await pickBestImage(galleryImages);
+    if (!bestUrl) {
+      console.log('no good image');
+      skipped++;
+      await sleep(DELAY_MS);
+      continue;
+    }
+
     found++;
 
-    // Update all DB products that match any of the raw products sharing this href
+    // Check if it's landscape
+    const dims = await getImageDimensions(bestUrl);
+    const isLandscape = dims && dims.width >= dims.height;
+    if (isLandscape) landscapeCount++;
+
     let updatedCount = 0;
     for (const rawProduct of products) {
       const key = `${rawProduct.name}|${rawProduct.description || ''}`.toLowerCase();
@@ -206,14 +290,16 @@ async function main() {
       if (dbProduct) {
         await prisma.product.update({
           where: { id: dbProduct.id },
-          data: { swatchUrl: galleryUrl },
+          data: { swatchUrl: bestUrl },
         });
         updatedCount++;
         updated++;
       }
     }
 
-    console.log(`${galleryImages.length} images -> updated ${updatedCount} products`);
+    const dimStr = dims ? `${dims.width}x${dims.height}` : '?';
+    const orientStr = isLandscape ? 'L' : 'P';
+    console.log(`${galleryImages.length} imgs -> best: ${dimStr} [${orientStr}] -> ${updatedCount} updated`);
     await sleep(DELAY_MS);
   }
 
@@ -221,6 +307,7 @@ async function main() {
   console.log(`Pages scraped: ${scraped}`);
   console.log(`Gallery images found: ${found}`);
   console.log(`Products updated in DB: ${updated}`);
+  console.log(`Landscape images picked: ${landscapeCount}`);
   console.log(`Pages without gallery: ${skipped}`);
   console.log(`Pages failed: ${failed}`);
 }
