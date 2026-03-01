@@ -13,40 +13,6 @@ function formatPrice(price: number): string {
   return price.toLocaleString("is-IS");
 }
 
-/* Tile layout preview — shows tiles with grout lines like a real floor/wall */
-function TilePreview({ imageUrl, tileWidth, tileHeight }: { imageUrl: string; tileWidth: number | null; tileHeight: number | null }) {
-  // Calculate tile aspect ratio and grid
-  const tw = tileWidth || 30;
-  const th = tileHeight || 30;
-  const ratio = tw / th; // >1 = wide tile, <1 = tall tile
-
-  // How many tiles fit — aim for ~4-6 columns
-  const cols = ratio >= 2 ? 3 : ratio >= 1 ? 4 : 5;
-  const tilePxW = Math.floor(240 / cols); // popup is w-64 = 256px, minus grout
-  const tilePxH = Math.round(tilePxW / ratio);
-  const rows = Math.max(2, Math.min(5, Math.ceil(180 / tilePxH)));
-
-  return (
-    <div
-      className="w-full rounded-t-xl overflow-hidden"
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, ${tilePxH}px)`,
-        gap: "2px",
-        padding: "2px",
-        backgroundColor: "#d4d0c8",
-      }}
-    >
-      {Array.from({ length: cols * rows }).map((_, i) => (
-        <div key={i} className="overflow-hidden">
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 interface Category {
   id: string;
   name: string;
@@ -244,15 +210,22 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                     : "border-slate-200 hover:border-slate-400"
                 }`}
               >
-                {/* Hover popup — tile layout preview with grout lines */}
+                {/* Hover popup — large product photo */}
                 {product.imageUrl && product.imageUrl !== "/placeholder-product.jpg" && (
                   <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom hidden group-hover:block">
-                    <div className="w-64 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white ring-1 ring-black/5">
-                      <TilePreview imageUrl={product.imageUrl} tileWidth={product.tileWidth} tileHeight={product.tileHeight} />
+                    <div className="w-72 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white ring-1 ring-black/5">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full aspect-[4/3] object-cover rounded-t-xl"
+                      />
                       <div className="px-3 py-2.5">
                         <p className="text-sm font-semibold text-slate-900 leading-tight">{product.name}</p>
+                        {product.description && (
+                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{product.description}</p>
+                        )}
                         {product.tileWidth && product.tileHeight && (
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">
                             {product.tileWidth}×{product.tileHeight} cm
                           </p>
                         )}
