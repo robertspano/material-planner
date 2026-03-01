@@ -14,6 +14,19 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { AdminStats } from "@/types";
 
+/** Build correct URL for a company — uses subdomain on production, query param on dev/preview */
+function companyUrl(slug: string, path: string = "") {
+  if (typeof window === "undefined") return `${path || "/"}?company=${slug}`;
+  const h = window.location.hostname;
+  // Production snid.is → subdomain
+  if (h === "snid.is" || h.endsWith(".snid.is")) {
+    return `https://${slug}.snid.is${path}`;
+  }
+  // Dev / Vercel preview → query param
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path || "/"}${sep}company=${slug}`;
+}
+
 interface CompanyWithCounts {
   id: string;
   name: string;
@@ -209,13 +222,13 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
         <div className="border-t border-slate-200 p-4 space-y-5">
           {/* Quick links */}
           <div className="flex gap-2">
-            <a href={`/admin?company=${company.slug}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
+            <a href={companyUrl(company.slug, "/admin")} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
               <Settings className="w-4 h-4" /> Stjórnborð
             </a>
             <a href={`/super/products/${company.id}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
               <Package className="w-4 h-4" /> Vörur
             </a>
-            <a href={`/?company=${company.slug}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
+            <a href={companyUrl(company.slug)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
               <Eye className="w-4 h-4" /> Planner
             </a>
           </div>
