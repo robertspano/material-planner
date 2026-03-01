@@ -3,50 +3,19 @@
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { LogOut, Settings, FileText, ExternalLink, X, Upload, Save, Loader2, ImageIcon, Eye, Calendar, Ruler } from "lucide-react";
+import { LogOut, Settings, FileText, ExternalLink, X, Upload, Save, Loader2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import { AdminCompanyProvider, useAdminCompany } from "@/components/admin/admin-company-context";
 import { queryClient } from "@/lib/queryClient";
 import type { CompanyBranding } from "@/types";
-
-/* ── Tilboð types ── */
-interface QuoteGeneration {
-  id: string;
-  sessionId: string;
-  roomImageUrl: string;
-  roomWidth: number | null;
-  roomLength: number | null;
-  roomHeight: number | null;
-  floorArea: number | null;
-  wallArea: number | null;
-  createdAt: string;
-  products: {
-    id: string;
-    surfaceType: string;
-    product: {
-      id: string;
-      name: string;
-      price: number | null;
-      unit: string;
-      imageUrl: string;
-      discountPercent: number | null;
-      tileWidth: number | null;
-      tileHeight: number | null;
-    };
-  }[];
-  results: {
-    imageUrl: string;
-    surfaceType: string;
-  }[];
-}
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { companySlug, isSuperAdmin, admin, isLoading: authLoading, adminApiUrl } = useAdminCompany();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [tilbodOpen, setTilbodOpen] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -122,14 +91,14 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               <Settings className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Stillingar</span>
             </button>
-            <button
-              onClick={() => setTilbodOpen(true)}
+            <Link
+              href={`/admin/tilbod?company=${companySlug}`}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:opacity-80"
               style={{ backgroundColor: brandColor + "15", color: brandColor }}
             >
               <FileText className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Tilboð</span>
-            </button>
+            </Link>
             <a
               href={`/?company=${companySlug}`}
               target="_blank"
@@ -174,14 +143,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Tilboð Modal */}
-      {tilbodOpen && (
-        <TilbodModal
-          brandColor={brandColor}
-          adminApiUrl={adminApiUrl}
-          onClose={() => setTilbodOpen(false)}
-        />
-      )}
     </div>
   );
 }
@@ -354,199 +315,6 @@ function SettingsModal({
           </Button>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ── Tilboð Modal ── */
-function TilbodModal({
-  brandColor,
-  adminApiUrl,
-  onClose,
-}: {
-  brandColor: string;
-  adminApiUrl: (path: string) => string;
-  onClose: () => void;
-}) {
-  const quotesUrl = adminApiUrl("/api/admin/quotes");
-  const { data: generations = [], isLoading } = useQuery<QuoteGeneration[]>({
-    queryKey: [quotesUrl],
-  });
-
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("is-IS", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Tilboð</h2>
-            <p className="text-xs text-slate-400 mt-0.5">PDF skjöl frá viðskiptavinum</p>
-          </div>
-          <button onClick={onClose}>
-            <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-slate-50 rounded-xl p-4 animate-pulse">
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 bg-slate-200 rounded-lg flex-shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-slate-200 rounded w-2/3" />
-                      <div className="h-3 bg-slate-200 rounded w-1/3" />
-                      <div className="h-3 bg-slate-200 rounded w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : generations.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-400">Engin tilboð fundust</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {generations.map((gen) => (
-                <div
-                  key={gen.id}
-                  className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors"
-                >
-                  <div className="flex gap-4">
-                    {/* Thumbnail — result image or room image */}
-                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                      {gen.results[0]?.imageUrl ? (
-                        <img
-                          src={gen.results[0].imageUrl}
-                          alt="Niðurstaða"
-                          className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => setSelectedImage(gen.results[0].imageUrl)}
-                        />
-                      ) : gen.roomImageUrl ? (
-                        <img
-                          src={gen.roomImageUrl}
-                          alt="Herbergi"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-slate-300" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Details */}
-                    <div className="flex-1 min-w-0">
-                      {/* Products */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {gen.products.map((gp) => (
-                          <span
-                            key={gp.id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium"
-                            style={{ backgroundColor: brandColor + "15", color: brandColor }}
-                          >
-                            {gp.product.name}
-                            {gp.product.price && (
-                              <span className="opacity-60">
-                                {gp.product.discountPercent
-                                  ? Math.round(gp.product.price * (1 - gp.product.discountPercent / 100)).toLocaleString("is-IS")
-                                  : gp.product.price.toLocaleString("is-IS")}{" "}
-                                kr/{gp.product.unit === "m2" ? "m²" : "stk"}
-                              </span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Meta row */}
-                      <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(gen.createdAt)}
-                        </span>
-                        {(gen.roomWidth && gen.roomLength) && (
-                          <span className="flex items-center gap-1">
-                            <Ruler className="w-3 h-3" />
-                            {gen.roomWidth.toFixed(1)} × {gen.roomLength.toFixed(1)} m
-                            {gen.floorArea && (
-                              <span className="text-slate-300 ml-0.5">({gen.floorArea.toFixed(1)} m²)</span>
-                            )}
-                          </span>
-                        )}
-                        {gen.results.length > 1 && (
-                          <span className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
-                            {gen.results.length} myndir
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Result thumbnails (extra images) */}
-                    {gen.results.length > 1 && (
-                      <div className="hidden md:flex gap-1.5 flex-shrink-0">
-                        {gen.results.slice(1, 3).map((r, i) => (
-                          <div
-                            key={i}
-                            className="w-14 h-14 rounded-lg overflow-hidden bg-slate-200 cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setSelectedImage(r.imageUrl)}
-                          >
-                            <img
-                              src={r.imageUrl}
-                              alt={`Niðurstaða ${i + 2}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Image lightbox */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-8"
-          onClick={() => setSelectedImage(null)}
-        >
-          <img
-            src={selectedImage}
-            alt="Stækkuð mynd"
-            className="max-w-full max-h-full rounded-xl shadow-2xl"
-          />
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
