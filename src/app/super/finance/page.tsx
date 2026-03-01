@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Loader2, Zap, ImageIcon, DollarSign, Package,
+  Loader2, Zap, ImageIcon, Package,
   ChevronDown, Calendar,
 } from "lucide-react";
 
@@ -44,11 +44,6 @@ interface FinanceData {
     periodRevenue: number;
   };
   range: Range;
-}
-
-// ── Helpers ──
-function formatISK(amount: number): string {
-  return `${amount.toLocaleString("is-IS")} kr`;
 }
 
 const RANGES: { key: Range; label: string }[] = [
@@ -150,10 +145,6 @@ export default function FinancePage() {
           <span className="font-bold text-slate-900">{data.summary.periodImages}</span>
           <span className="text-slate-400">myndir</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <DollarSign className="w-4 h-4 text-emerald-500" />
-          <span className="font-bold text-emerald-600">{formatISK(data.summary.periodRevenue)}</span>
-        </div>
       </div>
 
       {/* Company cards — clickable, expandable */}
@@ -190,9 +181,6 @@ export default function FinancePage() {
                     <span className="font-bold text-slate-900">{c.periodImages}</span>
                     <span className="text-slate-400 hidden sm:inline">myndir</span>
                   </span>
-                  <span className="font-bold text-emerald-600 min-w-[70px] text-right">
-                    {formatISK(c.periodRevenue)}
-                  </span>
                 </div>
 
                 <ChevronDown
@@ -205,10 +193,8 @@ export default function FinancePage() {
                 <div className="border-t border-slate-100">
                   {/* Company all-time summary */}
                   <div className="px-4 py-3 bg-slate-50/50 flex items-center gap-5 text-[11px] text-slate-400 flex-wrap">
-                    <span>Verð per gen: <span className="font-semibold text-slate-600">{c.pricePerGeneration} kr</span></span>
                     <span>Samtals: <span className="font-semibold text-slate-600">{c.totalGenerates} framl.</span></span>
                     <span>Samtals myndir: <span className="font-semibold text-slate-600">{c.totalImages}</span></span>
-                    <span>Heildartekjur: <span className="font-semibold text-emerald-600">{formatISK(c.totalRevenue)}</span></span>
                   </div>
 
                   {/* Daily rows */}
@@ -232,9 +218,6 @@ export default function FinancePage() {
                             <span>
                               <span className="font-bold text-blue-600">{day.images}</span>
                               <span className="text-slate-400 ml-0.5">myndir</span>
-                            </span>
-                            <span className="font-bold text-emerald-600 min-w-[60px] text-right">
-                              {formatISK(day.generates * c.pricePerGeneration)}
                             </span>
                           </div>
                         </div>
