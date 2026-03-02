@@ -4,8 +4,8 @@ import { getCompanyFromRequest } from "@/lib/tenant";
 import { generateWithGemini } from "@/lib/gemini";
 import { waitUntil } from "@vercel/functions";
 
-// Allow up to 60 seconds for Gemini image generation
-export const maxDuration = 60;
+// Allow up to 300 seconds for Gemini image generation (image fetch + generation + upload + retries)
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {

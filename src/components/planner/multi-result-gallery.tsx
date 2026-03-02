@@ -776,11 +776,18 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
             <p className="text-sm font-semibold text-slate-700">
               {completedCount > 0 && completedCount < totalCount
                 ? `${completedCount} af ${totalCount} tilbúnar…`
-                : "Myndar sjónræna sýn…"
+                : elapsed > 90000
+                  ? "Vinnsla tekur lengri tíma en venjulega…"
+                  : "Myndar sjónræna sýn…"
               }
             </p>
             <p className="text-xs text-slate-400">
-              Tekur u.þ.b. 20–40 sekúndur
+              {elapsed > 120000
+                ? "Ef ekkert gerist skaltu endurhlaða síðuna og reyna aftur"
+                : elapsed > 90000
+                  ? `${formatTime(elapsed)} liðnar — bíðum eftir Gemini…`
+                  : "Tekur u.þ.b. 20–40 sekúndur"
+              }
             </p>
           </div>
         </div>
