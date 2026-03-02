@@ -12,9 +12,11 @@ export async function GET() {
     });
 
     // Don't send password hashes, but include plainPassword for super admin
-    return NextResponse.json(
+    const res = NextResponse.json(
       admins.map(({ passwordHash: _, ...admin }) => admin)
     );
+    res.headers.set("Cache-Control", "private, max-age=15, stale-while-revalidate=30");
+    return res;
   } catch (error) {
     if (error instanceof Response) return error;
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
