@@ -91,7 +91,12 @@ THIS IS THE MOST ACCURATE METHOD — prioritize tile counting over other referen
   const resultImageHint = options?.resultImage
     ? `\n\nNOTE: You are given TWO images. The FIRST image is the original room photo. The SECOND image is the same room with new ${surfaceType === "wall" ? "wall tiles" : surfaceType === "both" ? "floor and wall tiles" : "flooring"} applied digitally. Use BOTH images:
 - The original photo helps identify doors, windows, furniture, and other reference objects
-- The result image shows the new tiles/flooring clearly — use this for tile counting since the tile edges are crisp and visible`
+- The result image shows the new tiles/flooring clearly — use this for tile counting since the tile edges are crisp and visible
+
+CRITICAL: Compare both images carefully. The area that CHANGED between the original and the result image is EXACTLY the surface area that needs material. Measure THAT area — the area where the new tiles/flooring were applied. This may be:
+- ALL visible ${surfaceType === "wall" ? "walls" : surfaceType === "both" ? "floors and walls" : "floor"} in the room
+- Or only PART of them (e.g. a kitchen backsplash, one accent wall, etc.)
+Look at WHERE the material was applied in the result image and measure THAT surface.`
     : "";
 
   // Surface-type-specific focus instructions
@@ -100,14 +105,18 @@ THIS IS THE MOST ACCURATE METHOD — prioritize tile counting over other referen
 ⚠️  YOUR PRIMARY TASK IS TO MEASURE THE WALL SURFACE AREA ⚠️
 You are estimating how many m² of WALL TILES are needed.
 
+IMPORTANT: If you have TWO images (original + result), measure the AREA THAT WAS TILED in the result image.
+The tiled area might be ALL walls, or only SOME walls. Look at where tiles appear in the result image.
+
 Think carefully about walls:
-- How many walls are visible in the photo? (usually 2-3 visible)
-- How many walls TOTAL does this room have? (usually 4)
-- What is the WIDTH of EACH wall you can see?
+- How many walls have tiles on them? (look at the result image!)
+- What is the WIDTH of EACH tiled wall?
+- What is the HEIGHT of tiling on each wall? (could be floor-to-ceiling, or just a portion)
 - What is the ceiling HEIGHT? (typically 2.4-2.5m in Iceland)
 - Subtract door openings (~2.0m × 0.83m = 1.7 m² each)
 - Subtract window openings (estimate each window size)
 - Subtract large mirrors, built-in cabinets that cover the wall
+- INCLUDE walls that are NOT visible in the photo but would logically also be tiled (e.g. behind the camera)
 
 WALL AREA FORMULA:
   wall_area = (wall1_width × height) + (wall2_width × height) + ... − door_openings − window_openings
@@ -524,6 +533,19 @@ function sanitizeResult(result: GeminiRoomMeasurements, options?: MeasureOptions
     const estimatedWall = round(perimeter * result.roomHeight * 0.85);
     result.wallArea = Math.max(result.wallArea, estimatedWall);
     result.notes += ` Veggflötur endurreiknaður frá málum.`;
+  }
+
+  // --- Bias correction: AI consistently underestimates surface area ---
+  // Apply +6.5 m² correction to the primary surface measurement to compensate.
+  // This accounts for: walls behind camera, areas not visible in photo, AI's tendency to undercount.
+  const BIAS_CORRECTION = 6.5;
+  if (surfaceType === "wall" || surfaceType === "both") {
+    console.log(`[GeminiMeasure] Bias correction: wall ${result.wallArea} → ${round(result.wallArea + BIAS_CORRECTION)} m² (+${BIAS_CORRECTION})`);
+    result.wallArea = round(result.wallArea + BIAS_CORRECTION);
+  }
+  if (surfaceType === "floor" || surfaceType === "both") {
+    console.log(`[GeminiMeasure] Bias correction: floor ${result.floorArea} → ${round(result.floorArea + BIAS_CORRECTION)} m² (+${BIAS_CORRECTION})`);
+    result.floorArea = round(result.floorArea + BIAS_CORRECTION);
   }
 
   return result;
