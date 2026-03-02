@@ -648,7 +648,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
     setSendingEmail(true);
     setSendError("");
     try {
-      // Generate the PDF
+      // Generate the PDF (also uploads to Cloudinary, returns URL in header)
       const items = buildQuoteItems();
       const pdfRes = await fetch("/api/planner/quote", {
         method: "POST",
@@ -657,17 +657,20 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
       });
       if (!pdfRes.ok) throw new Error("Villa við að búa til PDF");
 
-      // Get PDF as blob, then send it to the send endpoint which uploads + emails
-      const pdfBlob = await pdfRes.blob();
-      const formData = new FormData();
-      formData.append("email", sendEmail);
-      formData.append("pdf", pdfBlob, "tilbod.pdf");
-      formData.append("productNames", JSON.stringify(items.map(it => it.productName)));
-      if (combinedTotal) formData.append("combinedTotal", String(combinedTotal));
+      const pdfUrl = pdfRes.headers.get("X-Quote-Url");
+      if (!pdfUrl) throw new Error("PDF vistun tókst ekki");
 
+      // Send the email with the PDF URL
       const sendRes = await fetch("/api/planner/quote/send", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companySlug,
+          email: sendEmail,
+          pdfUrl,
+          productNames: items.map(it => it.productName),
+          combinedTotal,
+        }),
       });
 
       if (!sendRes.ok) {

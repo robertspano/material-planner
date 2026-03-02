@@ -457,16 +457,10 @@ export async function POST(request: NextRequest) {
       ? `tilbod-${items[0].productName.toLowerCase().replace(/\s+/g, "-")}.pdf`
       : "tilbod.pdf";
 
-    // Return PDF immediately — upload to Cloudinary + save Quote in background
-    const headers: Record<string, string> = {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    };
-
-    // Background: upload to Cloudinary and create Quote record
-    const backgroundSave = async () => {
-      try {
-        if (!process.env.CLOUDINARY_CLOUD_NAME) return;
+    // Upload PDF to Cloudinary (sync — needed for X-Quote-Url header)
+    let pdfUrl: string | null = null;
+    try {
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
         cloudinary.config({
           cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
           api_key: process.env.CLOUDINARY_API_KEY,
@@ -487,32 +481,49 @@ export async function POST(request: NextRequest) {
           );
           uploadStream.end(Buffer.from(pdfBuffer));
         });
-
-        const pdfUrl = uploadResult.secure_url;
-        const resultImageUrls = items
-          .map(it => it.resultImageUrl)
-          .filter((u): u is string => !!u);
-        const productNames = items.map(it => it.productName);
-        const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
-
-        await prisma.quote.create({
-          data: {
-            companyId: company.id,
-            pdfUrl,
-            items: items as unknown as import("@prisma/client/runtime/library").JsonArray,
-            combinedTotal: combinedTotal || null,
-            roomImageUrl: firstRoomImage,
-            resultImageUrls,
-            productNames,
-          },
-        });
-        console.log(`[Quote] Saved: ${pdfUrl}`);
-      } catch (err) {
-        console.error("[Quote] Background save error:", err);
+        pdfUrl = uploadResult.secure_url;
       }
-    };
-    waitUntil(backgroundSave());
+    } catch (err) {
+      console.error("[Quote] Cloudinary upload error:", err);
+    }
 
+    // Save Quote record in background (don't block the response)
+    if (pdfUrl) {
+      const savedPdfUrl = pdfUrl;
+      waitUntil((async () => {
+        try {
+          const resultImageUrls = items
+            .map(it => it.resultImageUrl)
+            .filter((u): u is string => !!u);
+          const productNames = items.map(it => it.productName);
+          const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
+
+          await prisma.quote.create({
+            data: {
+              companyId: company.id,
+              pdfUrl: savedPdfUrl,
+              items: items as unknown as import("@prisma/client/runtime/library").JsonArray,
+              combinedTotal: combinedTotal || null,
+              roomImageUrl: firstRoomImage,
+              resultImageUrls,
+              productNames,
+            },
+          });
+          console.log(`[Quote] Saved: ${savedPdfUrl}`);
+        } catch (err) {
+          console.error("[Quote] DB save error:", err);
+        }
+      })());
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    };
+    if (pdfUrl) {
+      headers["X-Quote-Url"] = pdfUrl;
+      headers["Access-Control-Expose-Headers"] = "X-Quote-Url";
+    }
     return new NextResponse(new Uint8Array(pdfBuffer), { headers });
   } catch (error) {
     console.error("Quote PDF error:", error);
