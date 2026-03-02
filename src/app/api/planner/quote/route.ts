@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCompanyFromRequest } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
-import sharp from "sharp";
 import { v2 as cloudinary } from "cloudinary";
 import { waitUntil } from "@vercel/functions";
-
-// Allow up to 120 seconds for PDF generation
-export const maxDuration = 120;
 
 interface QuoteItem {
   productName: string;
@@ -63,26 +59,31 @@ function lightenColor(hex: string, amount: number): string {
   return `rgb(${lr},${lg},${lb})`;
 }
 
+/**
+ * Optimize image URL via Cloudinary transformations (no native modules needed).
+ * For Cloudinary URLs: insert w_800,q_auto,f_jpg transforms
+ * For other URLs: fetch as-is
+ */
+function optimizeUrl(url: string, maxWidth = 800): string {
+  // Cloudinary URL pattern: .../upload/v123/... → .../upload/w_800,q_auto,f_jpg/v123/...
+  const cloudinaryMatch = url.match(/^(https?:\/\/res\.cloudinary\.com\/.+\/upload\/)(v\d+\/.+)$/);
+  if (cloudinaryMatch) {
+    return `${cloudinaryMatch[1]}w_${maxWidth},q_auto,f_jpg/${cloudinaryMatch[2]}`;
+  }
+  return url;
+}
+
 async function fetchImageBase64(url: string, maxWidth = 800): Promise<string | null> {
   try {
+    const optimized = optimizeUrl(url, maxWidth);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
-    const res = await fetch(url, { signal: controller.signal });
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(optimized, { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return null;
-    const rawBuf = Buffer.from(await res.arrayBuffer());
-    const mime = res.headers.get("content-type") || "image/png";
-    // Resize large images for PDF embedding (saves ~80% on large photos)
-    const meta = await sharp(rawBuf).metadata();
-    if (meta.width && meta.width > maxWidth) {
-      const resized = await sharp(rawBuf).resize(maxWidth, undefined, { fit: "inside" }).jpeg({ quality: 80 }).toBuffer();
-      return `data:image/jpeg;base64,${resized.toString("base64")}`;
-    }
-    if (mime.includes("svg")) {
-      const pngBuf = await sharp(rawBuf).png().toBuffer();
-      return `data:image/png;base64,${pngBuf.toString("base64")}`;
-    }
-    return `data:${mime};base64,${rawBuf.toString("base64")}`;
+    const buf = Buffer.from(await res.arrayBuffer());
+    const mime = res.headers.get("content-type") || "image/jpeg";
+    return `data:${mime};base64,${buf.toString("base64")}`;
   } catch {
     return null;
   }
