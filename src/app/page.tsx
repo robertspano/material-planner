@@ -226,30 +226,28 @@ export default function PlannerPage() {
       // Create a unique batchId to group all generations from this button press
       const batchId = crypto.randomUUID();
 
-      // Send API calls with short stagger (500ms) to register them all quickly,
-      // the actual Gemini work runs async on the server with its own retry logic
-      const results: { generationId: string; status: string }[] = [];
-      for (let i = 0; i < combinations.length; i++) {
-        if (i > 0) await new Promise(r => setTimeout(r, 500));
-        const combo = combinations[i];
-        const res = await fetch(`/api/planner/generate?company=${companySlug}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            generationId: combo.entry.generationId,
-            surfaceType: combo.surfaceType,
-            productId: combo.product.id,
-            pattern: combo.pattern,
-            batchId,
-            // "both" mode: include wall product info
-            ...(combo.surfaceType === "both" && combo.wallProduct ? {
-              wallProductId: combo.wallProduct.id,
-              wallPattern: combo.wallPattern,
-            } : {}),
-          }),
-        });
-        results.push(await res.json());
-      }
+      // Fire ALL generation requests in parallel so they process simultaneously
+      const results = await Promise.all(
+        combinations.map(async (combo) => {
+          const res = await fetch(`/api/planner/generate?company=${companySlug}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              generationId: combo.entry.generationId,
+              surfaceType: combo.surfaceType,
+              productId: combo.product.id,
+              pattern: combo.pattern,
+              batchId,
+              // "both" mode: include wall product info
+              ...(combo.surfaceType === "both" && combo.wallProduct ? {
+                wallProductId: combo.wallProduct.id,
+                wallPattern: combo.wallPattern,
+              } : {}),
+            }),
+          });
+          return res.json() as Promise<{ generationId: string; status: string }>;
+        })
+      );
 
       const groups: GenerationGroup[] = combinations.map((combo, i) => ({
         roomImageUrl: combo.entry.imageUrl,
