@@ -648,7 +648,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
     setSendingEmail(true);
     setSendError("");
     try {
-      // First generate the PDF (which also saves it to Cloudinary and returns the URL in header)
+      // Generate the PDF
       const items = buildQuoteItems();
       const pdfRes = await fetch("/api/planner/quote", {
         method: "POST",
@@ -657,21 +657,17 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
       });
       if (!pdfRes.ok) throw new Error("Villa við að búa til PDF");
 
-      // Get the PDF URL from the response header
-      const pdfUrl = pdfRes.headers.get("X-Quote-Url");
-      if (!pdfUrl) throw new Error("PDF vistun tókst ekki");
+      // Get PDF as blob, then send it to the send endpoint which uploads + emails
+      const pdfBlob = await pdfRes.blob();
+      const formData = new FormData();
+      formData.append("email", sendEmail);
+      formData.append("pdf", pdfBlob, "tilbod.pdf");
+      formData.append("productNames", JSON.stringify(items.map(it => it.productName)));
+      if (combinedTotal) formData.append("combinedTotal", String(combinedTotal));
 
-      // Now send the email with the PDF URL
       const sendRes = await fetch("/api/planner/quote/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companySlug,
-          email: sendEmail,
-          pdfUrl,
-          productNames: items.map(it => it.productName),
-          combinedTotal,
-        }),
+        body: formData,
       });
 
       if (!sendRes.ok) {
@@ -1099,23 +1095,13 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
           {combinedTotal != null && combinedTotal > 0 && (
             <div className="rounded-2xl overflow-hidden border border-slate-200">
               {/* Combined total price */}
-              <div
-                className="px-4 py-4 flex items-center justify-between"
-                style={{ backgroundColor: "var(--brand-primary)" }}
-              >
-                <div>
-                  <p className="text-xs text-white/70 font-medium">
-                    {hasMultipleEstimates ? "Samtals áætlaður kostnaður" : "Áætlaður kostnaður"}
-                  </p>
-                  <p className="text-xl font-bold text-white mt-0.5">
-                    {formatPrice(Math.round(combinedTotal))} kr
-                  </p>
-                </div>
-                {hasMultipleEstimates && (
-                  <span className="text-xs text-white/50">
-                    {completedCount} {completedCount === 1 ? "vara" : "vörur"}
-                  </span>
-                )}
+              <div className="px-4 py-4 flex items-center justify-between bg-slate-50">
+                <p className="text-sm font-semibold text-slate-700">
+                  Áætlaður heildarkostnaður
+                </p>
+                <p className="text-xl font-bold text-emerald-600">
+                  {formatPrice(Math.round(combinedTotal))} kr
+                </p>
               </div>
               {/* Quote buttons */}
               <div className="flex gap-2 p-3 bg-white">

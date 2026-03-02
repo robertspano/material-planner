@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCompanyFromRequest } from "@/lib/tenant";
+import { prisma } from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,10 +12,74 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
-    const { email, pdfUrl, productNames, combinedTotal } = await request.json();
+    const contentType = request.headers.get("content-type") || "";
 
-    if (!email || !pdfUrl) {
-      return NextResponse.json({ error: "Email and pdfUrl are required" }, { status: 400 });
+    let email: string;
+    let pdfUrl: string;
+    let productNames: string[];
+    let combinedTotal: number | null;
+
+    if (contentType.includes("multipart/form-data")) {
+      // New flow: client sends PDF blob + metadata as FormData
+      const formData = await request.formData();
+      email = formData.get("email") as string;
+      productNames = JSON.parse(formData.get("productNames") as string || "[]");
+      combinedTotal = parseFloat(formData.get("combinedTotal") as string) || null;
+      const pdfFile = formData.get("pdf") as File;
+
+      if (!email || !pdfFile) {
+        return NextResponse.json({ error: "Email and PDF are required" }, { status: 400 });
+      }
+
+      // Upload PDF to Cloudinary
+      if (!process.env.CLOUDINARY_CLOUD_NAME) {
+        return NextResponse.json({ error: "Cloudinary ekki stillt" }, { status: 503 });
+      }
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      const pdfBuffer = Buffer.from(await pdfFile.arrayBuffer());
+      const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "planner-quotes",
+            public_id: `quote-${company.slug}-${Date.now()}`,
+            resource_type: "raw",
+          },
+          (error, result) => {
+            if (error || !result) reject(error || new Error("Upload failed"));
+            else resolve(result);
+          }
+        );
+        uploadStream.end(pdfBuffer);
+      });
+      pdfUrl = uploadResult.secure_url;
+
+      // Save Quote record
+      await prisma.quote.create({
+        data: {
+          companyId: company.id,
+          pdfUrl,
+          items: [],
+          combinedTotal,
+          productNames,
+        },
+      }).catch(err => console.error("[Quote] DB save error:", err));
+
+    } else {
+      // Legacy JSON flow
+      const body = await request.json();
+      email = body.email;
+      pdfUrl = body.pdfUrl;
+      productNames = body.productNames || [];
+      combinedTotal = body.combinedTotal || null;
+
+      if (!email || !pdfUrl) {
+        return NextResponse.json({ error: "Email and pdfUrl are required" }, { status: 400 });
+      }
     }
 
     // Validate email format

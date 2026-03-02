@@ -3,9 +3,10 @@ import { getCompanyFromRequest } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import sharp from "sharp";
 import { v2 as cloudinary } from "cloudinary";
+import { waitUntil } from "@vercel/functions";
 
-// Allow up to 60 seconds for PDF generation with image fetching
-export const maxDuration = 60;
+// Allow up to 120 seconds for PDF generation
+export const maxDuration = 120;
 
 interface QuoteItem {
   productName: string;
@@ -62,17 +63,26 @@ function lightenColor(hex: string, amount: number): string {
   return `rgb(${lr},${lg},${lb})`;
 }
 
-async function fetchImageBase64(url: string): Promise<string | null> {
+async function fetchImageBase64(url: string, maxWidth = 800): Promise<string | null> {
   try {
-    const res = await fetch(url);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
+    const rawBuf = Buffer.from(await res.arrayBuffer());
     const mime = res.headers.get("content-type") || "image/png";
+    // Resize large images for PDF embedding (saves ~80% on large photos)
+    const meta = await sharp(rawBuf).metadata();
+    if (meta.width && meta.width > maxWidth) {
+      const resized = await sharp(rawBuf).resize(maxWidth, undefined, { fit: "inside" }).jpeg({ quality: 80 }).toBuffer();
+      return `data:image/jpeg;base64,${resized.toString("base64")}`;
+    }
     if (mime.includes("svg")) {
-      const pngBuf = await sharp(buf).png().toBuffer();
+      const pngBuf = await sharp(rawBuf).png().toBuffer();
       return `data:image/png;base64,${pngBuf.toString("base64")}`;
     }
-    return `data:${mime};base64,${buf.toString("base64")}`;
+    return `data:${mime};base64,${rawBuf.toString("base64")}`;
   } catch {
     return null;
   }
@@ -447,10 +457,16 @@ export async function POST(request: NextRequest) {
       ? `tilbod-${items[0].productName.toLowerCase().replace(/\s+/g, "-")}.pdf`
       : "tilbod.pdf";
 
-    // Upload PDF to Cloudinary and save Quote record
-    let pdfUrl: string | null = null;
-    try {
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
+    // Return PDF immediately — upload to Cloudinary + save Quote in background
+    const headers: Record<string, string> = {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    };
+
+    // Background: upload to Cloudinary and create Quote record
+    const backgroundSave = async () => {
+      try {
+        if (!process.env.CLOUDINARY_CLOUD_NAME) return;
         cloudinary.config({
           cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
           api_key: process.env.CLOUDINARY_API_KEY,
@@ -472,17 +488,13 @@ export async function POST(request: NextRequest) {
           uploadStream.end(Buffer.from(pdfBuffer));
         });
 
-        pdfUrl = uploadResult.secure_url;
-      }
+        const pdfUrl = uploadResult.secure_url;
+        const resultImageUrls = items
+          .map(it => it.resultImageUrl)
+          .filter((u): u is string => !!u);
+        const productNames = items.map(it => it.productName);
+        const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
 
-      // Collect metadata for the Quote record
-      const resultImageUrls = items
-        .map(it => it.resultImageUrl)
-        .filter((u): u is string => !!u);
-      const productNames = items.map(it => it.productName);
-      const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
-
-      if (pdfUrl) {
         await prisma.quote.create({
           data: {
             companyId: company.id,
@@ -495,20 +507,12 @@ export async function POST(request: NextRequest) {
           },
         });
         console.log(`[Quote] Saved: ${pdfUrl}`);
+      } catch (err) {
+        console.error("[Quote] Background save error:", err);
       }
-    } catch (err) {
-      // Don't fail the response if save fails — still return the PDF
-      console.error("[Quote] Save error:", err);
-    }
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
     };
-    if (pdfUrl) {
-      headers["X-Quote-Url"] = pdfUrl;
-      headers["Access-Control-Expose-Headers"] = "X-Quote-Url";
-    }
+    waitUntil(backgroundSave());
+
     return new NextResponse(new Uint8Array(pdfBuffer), { headers });
   } catch (error) {
     console.error("Quote PDF error:", error);
