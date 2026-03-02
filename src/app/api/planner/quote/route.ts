@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCompanyFromRequest } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
+import sharp from "sharp";
 import { v2 as cloudinary } from "cloudinary";
-import { waitUntil } from "@vercel/functions";
+
+// Allow up to 60 seconds for PDF generation with image fetching
+export const maxDuration = 60;
 
 interface QuoteItem {
   productName: string;
@@ -59,30 +62,16 @@ function lightenColor(hex: string, amount: number): string {
   return `rgb(${lr},${lg},${lb})`;
 }
 
-/**
- * Optimize image URL via Cloudinary transformations (no native modules needed).
- * For Cloudinary URLs: insert w_800,q_auto,f_jpg transforms
- * For other URLs: fetch as-is
- */
-function optimizeUrl(url: string, maxWidth = 800): string {
-  // Cloudinary URL pattern: .../upload/v123/... → .../upload/w_800,q_auto,f_jpg/v123/...
-  const cloudinaryMatch = url.match(/^(https?:\/\/res\.cloudinary\.com\/.+\/upload\/)(v\d+\/.+)$/);
-  if (cloudinaryMatch) {
-    return `${cloudinaryMatch[1]}w_${maxWidth},q_auto,f_jpg/${cloudinaryMatch[2]}`;
-  }
-  return url;
-}
-
-async function fetchImageBase64(url: string, maxWidth = 800): Promise<string | null> {
+async function fetchImageBase64(url: string): Promise<string | null> {
   try {
-    const optimized = optimizeUrl(url, maxWidth);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(optimized, { signal: controller.signal });
-    clearTimeout(timeout);
+    const res = await fetch(url);
     if (!res.ok) return null;
     const buf = Buffer.from(await res.arrayBuffer());
-    const mime = res.headers.get("content-type") || "image/jpeg";
+    const mime = res.headers.get("content-type") || "image/png";
+    if (mime.includes("svg")) {
+      const pngBuf = await sharp(buf).png().toBuffer();
+      return `data:image/png;base64,${pngBuf.toString("base64")}`;
+    }
     return `data:${mime};base64,${buf.toString("base64")}`;
   } catch {
     return null;
@@ -458,7 +447,7 @@ export async function POST(request: NextRequest) {
       ? `tilbod-${items[0].productName.toLowerCase().replace(/\s+/g, "-")}.pdf`
       : "tilbod.pdf";
 
-    // Upload PDF to Cloudinary (sync — needed for X-Quote-Url header)
+    // Upload PDF to Cloudinary and save Quote record
     let pdfUrl: string | null = null;
     try {
       if (process.env.CLOUDINARY_CLOUD_NAME) {
@@ -482,39 +471,34 @@ export async function POST(request: NextRequest) {
           );
           uploadStream.end(Buffer.from(pdfBuffer));
         });
+
         pdfUrl = uploadResult.secure_url;
       }
+
+      // Collect metadata for the Quote record
+      const resultImageUrls = items
+        .map(it => it.resultImageUrl)
+        .filter((u): u is string => !!u);
+      const productNames = items.map(it => it.productName);
+      const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
+
+      if (pdfUrl) {
+        await prisma.quote.create({
+          data: {
+            companyId: company.id,
+            pdfUrl,
+            items: items as unknown as import("@prisma/client/runtime/library").JsonArray,
+            combinedTotal: combinedTotal || null,
+            roomImageUrl: firstRoomImage,
+            resultImageUrls,
+            productNames,
+          },
+        });
+        console.log(`[Quote] Saved: ${pdfUrl}`);
+      }
     } catch (err) {
-      console.error("[Quote] Cloudinary upload error:", err);
-    }
-
-    // Save Quote record in background (don't block the response)
-    if (pdfUrl) {
-      const savedPdfUrl = pdfUrl;
-      waitUntil((async () => {
-        try {
-          const resultImageUrls = items
-            .map(it => it.resultImageUrl)
-            .filter((u): u is string => !!u);
-          const productNames = items.map(it => it.productName);
-          const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
-
-          await prisma.quote.create({
-            data: {
-              companyId: company.id,
-              pdfUrl: savedPdfUrl,
-              items: items as unknown as import("@prisma/client/runtime/library").JsonArray,
-              combinedTotal: combinedTotal || null,
-              roomImageUrl: firstRoomImage,
-              resultImageUrls,
-              productNames,
-            },
-          });
-          console.log(`[Quote] Saved: ${savedPdfUrl}`);
-        } catch (err) {
-          console.error("[Quote] DB save error:", err);
-        }
-      })());
+      // Don't fail the response if save fails — still return the PDF
+      console.error("[Quote] Save error:", err);
     }
 
     const headers: Record<string, string> = {
