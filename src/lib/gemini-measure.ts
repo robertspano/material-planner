@@ -371,7 +371,7 @@ async function runPass(
   label: string
 ): Promise<RawMeasurement> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-pro",
+    model: "gemini-3-pro",
     generationConfig: {
       temperature: 0.1,
       responseMimeType: "application/json",
