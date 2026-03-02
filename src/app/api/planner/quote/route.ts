@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCompanyFromRequest } from "@/lib/tenant";
+import { prisma } from "@/lib/prisma";
 import sharp from "sharp";
+import { v2 as cloudinary } from "cloudinary";
+
+// Allow up to 60 seconds for PDF generation with image fetching
+export const maxDuration = 60;
 
 interface QuoteItem {
   productName: string;
@@ -442,12 +447,69 @@ export async function POST(request: NextRequest) {
       ? `tilbod-${items[0].productName.toLowerCase().replace(/\s+/g, "-")}.pdf`
       : "tilbod.pdf";
 
-    return new NextResponse(new Uint8Array(pdfBuffer), {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-      },
-    });
+    // Upload PDF to Cloudinary and save Quote record
+    let pdfUrl: string | null = null;
+    try {
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        cloudinary.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+
+        const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: "planner-quotes",
+              public_id: `quote-${company.slug}-${Date.now()}`,
+              resource_type: "raw",
+            },
+            (error, result) => {
+              if (error || !result) reject(error || new Error("Upload failed"));
+              else resolve(result);
+            }
+          );
+          uploadStream.end(Buffer.from(pdfBuffer));
+        });
+
+        pdfUrl = uploadResult.secure_url;
+      }
+
+      // Collect metadata for the Quote record
+      const resultImageUrls = items
+        .map(it => it.resultImageUrl)
+        .filter((u): u is string => !!u);
+      const productNames = items.map(it => it.productName);
+      const firstRoomImage = items.find(it => it.roomImageUrl)?.roomImageUrl || null;
+
+      if (pdfUrl) {
+        await prisma.quote.create({
+          data: {
+            companyId: company.id,
+            pdfUrl,
+            items: items as unknown as import("@prisma/client/runtime/library").JsonArray,
+            combinedTotal: combinedTotal || null,
+            roomImageUrl: firstRoomImage,
+            resultImageUrls,
+            productNames,
+          },
+        });
+        console.log(`[Quote] Saved: ${pdfUrl}`);
+      }
+    } catch (err) {
+      // Don't fail the response if save fails — still return the PDF
+      console.error("[Quote] Save error:", err);
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    };
+    if (pdfUrl) {
+      headers["X-Quote-Url"] = pdfUrl;
+      headers["Access-Control-Expose-Headers"] = "X-Quote-Url";
+    }
+    return new NextResponse(new Uint8Array(pdfBuffer), { headers });
   } catch (error) {
     console.error("Quote PDF error:", error);
     const message = error instanceof Error ? error.message : "Internal server error";

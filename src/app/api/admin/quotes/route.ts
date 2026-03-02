@@ -17,34 +17,14 @@ export async function GET() {
       );
     }
 
-    const generations = await prisma.generation.findMany({
-      where: { companyId, status: "completed" },
-      include: {
-        products: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                unit: true,
-                imageUrl: true,
-                discountPercent: true,
-                tileWidth: true,
-                tileHeight: true,
-              },
-            },
-          },
-        },
-        results: {
-          select: { imageUrl: true, surfaceType: true },
-        },
-      },
+    // Fetch actual saved quotes (created when user clicks "Sækja tilboð")
+    const quotes = await prisma.quote.findMany({
+      where: { companyId },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 100,
     });
 
-    const res = NextResponse.json(generations);
+    const res = NextResponse.json(quotes);
     res.headers.set(
       "Cache-Control",
       "private, max-age=30, stale-while-revalidate=60",

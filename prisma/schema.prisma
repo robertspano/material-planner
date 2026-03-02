@@ -28,6 +28,7 @@ model Company {
   admins                 CompanyAdmin[]
   generations            Generation[]
   products               Product[]
+  quotes                 Quote[]
 }
 
 model CompanyAdmin {
@@ -115,6 +116,22 @@ model GenerationProduct {
   product      Product    @relation(fields: [productId], references: [id])
 
   @@index([generationId])
+}
+
+model Quote {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id])
+  pdfUrl        String
+  items         Json
+  combinedTotal Float?
+  roomImageUrl  String?
+  resultImageUrls String[]
+  productNames  String[]
+  createdAt     DateTime @default(now())
+
+  @@index([companyId])
+  @@index([createdAt])
 }
 
 model GenerationResult {

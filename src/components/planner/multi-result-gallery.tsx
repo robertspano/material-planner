@@ -576,37 +576,40 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
 
   const surfaceLabel = (s: string) => s === "floor" ? "Gólf" : s === "both" ? "Gólf og veggir" : "Veggir";
 
+  // Build quote items from estimate data
+  const buildQuoteItems = useCallback(() => {
+    return resultItems
+      .filter(item => item.result)
+      .map((item, idx) => {
+        const product = item.group.product;
+        const estimateKey = `${item.group.generationId}-${product.id}`;
+        const floorData = estimateDataMap[`${estimateKey}-floor`];
+        const wallData = estimateDataMap[`${estimateKey}-wall`] || estimateDataMap[`${estimateKey}-wall-both`];
+        return {
+          productName: product.name,
+          surfaceType: item.group.surfaceType,
+          price: product.price,
+          discountPercent: product.discountPercent,
+          unit: product.unit || "m2",
+          tileWidth: product.tileWidth,
+          tileHeight: product.tileHeight,
+          area: floorData?.area || wallData?.area || 0,
+          totalNeeded: floorData?.totalNeeded || wallData?.totalNeeded || 0,
+          unitPrice: floorData?.unitPrice ?? wallData?.unitPrice ?? product.price,
+          totalPrice: (floorData?.totalPrice || 0) + (wallData?.totalPrice || 0),
+          resultImageUrl: item.result!.imageUrl,
+          roomImageUrl: item.group.roomImageUrl,
+          index: idx + 1,
+        };
+      });
+  }, [resultItems, estimateDataMap]);
+
   // Generate PDF for combined quote — sends ALL estimate data
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const handleDownloadQuote = useCallback(async () => {
     setGeneratingPdf(true);
     try {
-      // Build items array — one per completed result with estimate data
-      const items = resultItems
-        .filter(item => item.result)
-        .map((item, idx) => {
-          const product = item.group.product;
-          const estimateKey = `${item.group.generationId}-${product.id}`;
-          const floorData = estimateDataMap[`${estimateKey}-floor`];
-          const wallData = estimateDataMap[`${estimateKey}-wall`] || estimateDataMap[`${estimateKey}-wall-both`];
-          return {
-            productName: product.name,
-            surfaceType: item.group.surfaceType,
-            price: product.price,
-            discountPercent: product.discountPercent,
-            unit: product.unit || "m2",
-            tileWidth: product.tileWidth,
-            tileHeight: product.tileHeight,
-            area: floorData?.area || wallData?.area || 0,
-            totalNeeded: floorData?.totalNeeded || wallData?.totalNeeded || 0,
-            unitPrice: floorData?.unitPrice ?? wallData?.unitPrice ?? product.price,
-            totalPrice: (floorData?.totalPrice || 0) + (wallData?.totalPrice || 0),
-            resultImageUrl: item.result!.imageUrl,
-            roomImageUrl: item.group.roomImageUrl,
-            index: idx + 1,
-          };
-        });
-
+      const items = buildQuoteItems();
       const res = await fetch("/api/planner/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -631,7 +634,64 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
     } finally {
       setGeneratingPdf(false);
     }
-  }, [resultItems, estimateDataMap, companySlug, combinedTotal]);
+  }, [buildQuoteItems, companySlug, combinedTotal]);
+
+  // Send quote via email
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [sendEmail, setSendEmail] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
+  const [sendError, setSendError] = useState("");
+
+  const handleSendQuote = useCallback(async () => {
+    if (!sendEmail) return;
+    setSendingEmail(true);
+    setSendError("");
+    try {
+      // First generate the PDF (which also saves it to Cloudinary and returns the URL in header)
+      const items = buildQuoteItems();
+      const pdfRes = await fetch("/api/planner/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companySlug, items, combinedTotal }),
+      });
+      if (!pdfRes.ok) throw new Error("Villa vi\u00F0 a\u00F0 b\u00FAa til PDF");
+
+      // Get the PDF URL from the response header
+      const pdfUrl = pdfRes.headers.get("X-Quote-Url");
+      if (!pdfUrl) throw new Error("PDF vistun t\u00F3kst ekki");
+
+      // Now send the email with the PDF URL
+      const sendRes = await fetch("/api/planner/quote/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companySlug,
+          email: sendEmail,
+          pdfUrl,
+          productNames: items.map(it => it.productName),
+          combinedTotal,
+        }),
+      });
+
+      if (!sendRes.ok) {
+        const errData = await sendRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Villa vi\u00F0 a\u00F0 senda");
+      }
+
+      setSendSuccess(true);
+      setTimeout(() => {
+        setShowSendModal(false);
+        setSendSuccess(false);
+        setSendEmail("");
+      }, 2000);
+    } catch (err) {
+      console.error("Send error:", err);
+      setSendError(err instanceof Error ? err.message : "Villa kom upp");
+    } finally {
+      setSendingEmail(false);
+    }
+  }, [sendEmail, buildQuoteItems, companySlug, combinedTotal]);
 
   return (
     <div className="space-y-3">
@@ -1066,7 +1126,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
                   Sækja tilboð
                 </button>
                 <button
-                  onClick={() => { /* TODO: open email modal */ }}
+                  onClick={() => setShowSendModal(true)}
                   className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all"
                 >
                   <Send className="w-4 h-4" />
@@ -1126,6 +1186,94 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
           onClose={() => setCinemaOpen(false)}
           onDownload={downloadCurrent}
         />
+      )}
+
+      {/* Send Quote Modal */}
+      {showSendModal && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowSendModal(false); setSendError(""); setSendSuccess(false); } }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-slate-500" />
+                <h3 className="text-base font-bold text-slate-900">Senda tilbo\u00F0</h3>
+              </div>
+              <button
+                onClick={() => { setShowSendModal(false); setSendError(""); setSendSuccess(false); }}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              {sendSuccess ? (
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="text-base font-semibold text-slate-900">Tilbo\u00F0 sent!</p>
+                  <p className="text-sm text-slate-400 mt-1">PDF skjali\u00F0 hefur veri\u00F0 sent \u00E1 {sendEmail}</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-500">
+                    Tilbo\u00F0i\u00F0 ver\u00F0ur sent sem PDF skjal \u00E1 netfangi\u00F0 sem \u00FE\u00FA sl\u00E6r inn.
+                  </p>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Netfang</label>
+                    <input
+                      type="email"
+                      placeholder="netfang@dæmi.is"
+                      value={sendEmail}
+                      onChange={(e) => setSendEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleSendQuote(); }}
+                      className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30 focus:border-[var(--brand-primary)]"
+                      autoFocus
+                    />
+                  </div>
+                  {sendError && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {sendError}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            {!sendSuccess && (
+              <div className="px-5 py-4 border-t border-slate-100 flex gap-2">
+                <button
+                  onClick={() => { setShowSendModal(false); setSendError(""); }}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  H\u00E6tta vi\u00F0
+                </button>
+                <button
+                  onClick={handleSendQuote}
+                  disabled={sendingEmail || !sendEmail}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
+                >
+                  {sendingEmail ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  Senda tilbo\u00F0
+                </button>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, FileText, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface Product {
   id: string;
@@ -73,8 +73,6 @@ export function MaterialEstimate({
   const [area, setArea] = useState<string>("");
   const [width, setWidth] = useState<string>("");
   const [lengthOrHeight, setLengthOrHeight] = useState<string>("");
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-
   // Auto-measure
   const autoMeasure = useCallback(async () => {
     if (!roomImageUrl || measuring || measured) return;
@@ -135,47 +133,6 @@ export function MaterialEstimate({
     const wN = parseFloat(w) || 0;
     const lN = parseFloat(lh) || 0;
     if (wN > 0 && lN > 0) setArea((wN * lN).toFixed(1));
-  };
-
-  // Download PDF quote
-  const handleDownloadQuote = async () => {
-    setGeneratingPdf(true);
-    try {
-      const res = await fetch("/api/planner/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companySlug,
-          surfaceType,
-          product: {
-            name: product.name,
-            price: product.price,
-            discountPercent: product.discountPercent,
-            unit: product.unit,
-          },
-          area: areaNum,
-          totalNeeded,
-          unitPrice,
-          totalPrice,
-          resultImageUrl,
-          roomImageUrl,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to generate quote");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `tilbod-${product.name.toLowerCase().replace(/\s+/g, "-")}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("PDF error:", err);
-    } finally {
-      setGeneratingPdf(false);
-    }
   };
 
   const surfaceLabel = surfaceType === "floor" ? "Gólfflötur" : "Veggflötur";
@@ -300,33 +257,7 @@ export function MaterialEstimate({
               </p>
             )}
 
-            {/* Quote buttons — hidden in compact mode */}
-            {unitPrice && unitPrice > 0 && !compact && (
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={handleDownloadQuote}
-                  disabled={generatingPdf}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-                  style={{ backgroundColor: "var(--brand-primary)" }}
-                >
-                  {generatingPdf ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <FileText className="w-4 h-4" />
-                  )}
-                  Sækja tilboð
-                </button>
-                <button
-                  onClick={() => {
-                    // TODO: open email modal
-                  }}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all"
-                >
-                  <Send className="w-4 h-4" />
-                  Senda
-                </button>
-              </div>
-            )}
+            {/* Quote buttons removed — handled by the combined section in MultiResultGallery */}
           </>
         )}
       </div>
