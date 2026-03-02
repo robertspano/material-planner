@@ -238,14 +238,23 @@ export function RoomUpload({ onUploaded, companySlug }: RoomUploadProps) {
     }
   }, [companySlug]);
 
+  const MAX_IMAGES = 15;
+
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     setError(null);
     const validFiles: { file: File; preview: ImagePreview }[] = [];
+
+    // Check how many images already exist
+    const currentCount = previews.length;
 
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) {
         setError("Aðeins myndir eru leyfðar");
         continue;
+      }
+      if (currentCount + validFiles.length >= MAX_IMAGES) {
+        setError(`Hámark ${MAX_IMAGES} myndir í einu`);
+        break;
       }
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const preview: ImagePreview = {
