@@ -847,8 +847,8 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
             </div>
           )}
 
-          {/* Mode switcher — inside image, bottom center */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+          {/* Mode switcher — inside image, top center */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
             <div className="relative flex bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg border border-white/50">
               <div
                 className="absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-out shadow-md"
@@ -961,7 +961,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
 
       {/* ── Material estimates — ONE per completed result ── */}
       {completedCount > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3 mt-4">
           {resultItems.map((item, i) => {
             if (!item.result) return null;
             const product = item.group.product;
