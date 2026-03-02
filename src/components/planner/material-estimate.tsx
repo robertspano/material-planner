@@ -49,7 +49,7 @@ interface MeasureResult {
 const WASTE_FACTOR = 0.10;
 
 function formatUnit(unit: string): string {
-  const map: Record<string, string> = { m2: "m²", m3: "m³", stk: "stk" };
+  const map: Record<string, string> = { m2: "m\u00B2", m3: "m\u00B3", stk: "stk" };
   return map[unit] || unit;
 }
 
@@ -64,15 +64,15 @@ export function MaterialEstimate({
   roomImageUrl,
   generationId,
   resultImageUrl,
-  company,
   onEstimateChange,
   compact,
 }: MaterialEstimateProps) {
   const [measuring, setMeasuring] = useState(false);
   const [measured, setMeasured] = useState(false);
   const [area, setArea] = useState<string>("");
-  const [width, setWidth] = useState<string>("");
-  const [lengthOrHeight, setLengthOrHeight] = useState<string>("");
+  const [dim1, setDim1] = useState<string>(""); // floor: width, wall: wall length (perimeter)
+  const [dim2, setDim2] = useState<string>(""); // floor: length, wall: height
+
   // Auto-measure
   const autoMeasure = useCallback(async () => {
     if (!roomImageUrl || measuring || measured) return;
@@ -97,12 +97,17 @@ export function MaterialEstimate({
       }
       if (surfaceType === "floor") {
         setArea(data.floorArea?.toFixed(1) || "");
-        setWidth(data.roomWidth?.toFixed(1) || "");
-        setLengthOrHeight(data.roomLength?.toFixed(1) || "");
+        setDim1(data.roomWidth?.toFixed(1) || "");
+        setDim2(data.roomLength?.toFixed(1) || "");
       } else {
-        setArea(data.wallArea?.toFixed(1) || "");
-        setWidth(data.roomWidth?.toFixed(1) || "");
-        setLengthOrHeight(data.roomHeight?.toFixed(1) || "");
+        // Wall: wallArea is total wall area (all walls)
+        // Compute wall length = wallArea / height so dim1 \u00D7 dim2 = wallArea
+        const wallArea = data.wallArea || 0;
+        const height = data.roomHeight || 2.5;
+        const wallLength = height > 0 ? wallArea / height : 0;
+        setArea(wallArea.toFixed(1));
+        setDim1(wallLength.toFixed(1));
+        setDim2(height.toFixed(1));
       }
       setMeasured(true);
     } catch {
@@ -110,7 +115,7 @@ export function MaterialEstimate({
     } finally {
       setMeasuring(false);
     }
-  }, [roomImageUrl, generationId, companySlug, surfaceType, measuring, measured]);
+  }, [roomImageUrl, generationId, companySlug, surfaceType, measuring, measured, resultImageUrl, product.tileWidth, product.tileHeight]);
 
   useEffect(() => { autoMeasure(); }, [autoMeasure]);
 
@@ -120,22 +125,24 @@ export function MaterialEstimate({
     ? Math.round(product.price * (1 - product.discountPercent / 100))
     : product.price;
   const totalPrice = unitPrice ? totalNeeded * unitPrice : null;
-  const unit = formatUnit(product.unit || "m²");
+  const unit = formatUnit(product.unit || "m\u00B2");
 
   // Report estimate data changes to parent
   useEffect(() => {
     onEstimateChange?.({ area: areaNum, totalNeeded, unitPrice: unitPrice ?? null, totalPrice: totalPrice ?? null });
   }, [areaNum, totalNeeded, unitPrice, totalPrice, onEstimateChange]);
 
-  const handleDimensionChange = (w: string, lh: string) => {
-    setWidth(w);
-    setLengthOrHeight(lh);
-    const wN = parseFloat(w) || 0;
-    const lN = parseFloat(lh) || 0;
-    if (wN > 0 && lN > 0) setArea((wN * lN).toFixed(1));
+  const handleDimensionChange = (d1: string, d2: string) => {
+    setDim1(d1);
+    setDim2(d2);
+    const v1 = parseFloat(d1) || 0;
+    const v2 = parseFloat(d2) || 0;
+    if (v1 > 0 && v2 > 0) setArea((v1 * v2).toFixed(1));
   };
 
-  const surfaceLabel = surfaceType === "floor" ? "Gólfflötur" : "Veggflötur";
+  const surfaceLabel = surfaceType === "floor" ? "G\u00F3lffl\u00F6tur" : "Veggfl\u00F6tur";
+  const dim1Label = surfaceType === "floor" ? "Breidd (m)" : "Vegglengd (m)";
+  const dim2Label = surfaceType === "floor" ? "Lengd (m)" : "H\u00E6\u00F0 (m)";
 
   return (
     <div className={compact ? "bg-white overflow-hidden" : "bg-white rounded-2xl border border-slate-200 overflow-hidden"}>
@@ -147,43 +154,43 @@ export function MaterialEstimate({
         {measuring ? (
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Loader2 className="w-3 h-3 animate-spin" />
-            Mæli…
+            M\u00E6li\u2026
           </div>
         ) : measured ? (
           <span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
-            Áætlun — breyttu ef þarf
+            \u00C1\u00E6tlun \u2014 breyttu ef \u00FEarf
           </span>
         ) : null}
       </div>
 
       {/* Body */}
       <div className="p-4 space-y-3">
-        {/* Dimensions — always visible, editable inline */}
+        {/* Dimensions \u2014 always visible, editable inline */}
         <div className="flex gap-2">
           <div className="flex-1">
-            <label className="text-[10px] text-slate-400 uppercase tracking-wider">Breidd (m)</label>
+            <label className="text-[10px] text-slate-400 uppercase tracking-wider">{dim1Label}</label>
             <input
               type="number"
               step="0.1"
               min="0"
-              placeholder="—"
-              value={width}
-              onChange={(e) => handleDimensionChange(e.target.value, lengthOrHeight)}
+              placeholder="\u2014"
+              value={dim1}
+              onChange={(e) => handleDimensionChange(e.target.value, dim2)}
               className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
             />
           </div>
-          <div className="flex items-end pb-1 text-slate-300">×</div>
+          <div className="flex items-end pb-1 text-slate-300">\u00D7</div>
           <div className="flex-1">
             <label className="text-[10px] text-slate-400 uppercase tracking-wider">
-              {surfaceType === "floor" ? "Lengd (m)" : "Hæð (m)"}
+              {dim2Label}
             </label>
             <input
               type="number"
               step="0.1"
               min="0"
-              placeholder="—"
-              value={lengthOrHeight}
-              onChange={(e) => handleDimensionChange(width, e.target.value)}
+              placeholder="\u2014"
+              value={dim2}
+              onChange={(e) => handleDimensionChange(dim1, e.target.value)}
               className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
             />
           </div>
@@ -194,7 +201,7 @@ export function MaterialEstimate({
               type="number"
               step="0.1"
               min="0"
-              placeholder="—"
+              placeholder="\u2014"
               value={area}
               onChange={(e) => setArea(e.target.value)}
               className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
@@ -203,30 +210,29 @@ export function MaterialEstimate({
           <div className="flex items-end pb-1.5 text-sm text-slate-500">{unit}</div>
         </div>
 
-        {/* Calculation summary — only when area is set */}
+        {/* Calculation summary \u2014 only when area is set */}
         {areaNum > 0 && (
           <>
             <div className="h-px bg-slate-100" />
 
             {/* Waste */}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-500">Sóun (10%)</span>
+              <span className="text-slate-500">S\u00F3un (10%)</span>
               <span className="text-slate-600">+{(areaNum * WASTE_FACTOR).toFixed(1)} {unit}</span>
             </div>
 
             {/* Total needed */}
             <div className="flex items-center justify-between text-sm font-semibold">
-              <span className="text-slate-800">Efni sem þarf</span>
+              <span className="text-slate-800">Efni sem \u00FEarf</span>
               <span style={{ color: "var(--brand-primary)" }}>{totalNeeded.toFixed(1)} {unit}</span>
             </div>
 
-            {/* Price breakdown */}
+            {/* Price per unit */}
             {unitPrice && unitPrice > 0 && (
               <>
                 <div className="h-px bg-slate-100" />
-
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Verð per {unit}</span>
+                  <span className="text-slate-500">Ver\u00F0 per {unit}</span>
                   <div className="text-right">
                     {product.discountPercent && product.price ? (
                       <div className="flex items-center gap-1.5">
@@ -239,25 +245,15 @@ export function MaterialEstimate({
                     )}
                   </div>
                 </div>
-
-                {/* Total price — hero number */}
-                <div className="bg-slate-50 -mx-4 px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-800">Áætlaður kostnaður</span>
-                  <span className="text-lg font-bold" style={{ color: "var(--brand-primary)" }}>
-                    {totalPrice != null ? `${formatPrice(Math.round(totalPrice))} kr` : "—"}
-                  </span>
-                </div>
               </>
             )}
 
             {/* No price message */}
             {(!unitPrice || unitPrice === 0) && (
               <p className="text-xs text-slate-400 text-center italic">
-                Verð ekki skráð
+                Ver\u00F0 ekki skr\u00E1\u00F0
               </p>
             )}
-
-            {/* Quote buttons removed — handled by the combined section in MultiResultGallery */}
           </>
         )}
       </div>

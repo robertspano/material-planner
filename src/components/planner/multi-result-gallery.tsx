@@ -844,9 +844,9 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
             </div>
           )}
 
-          {/* Mode switcher — straddles top edge */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-            <div className="relative flex bg-white rounded-full p-1 shadow-xl border border-slate-200">
+          {/* Mode switcher — inside image, bottom center */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+            <div className="relative flex bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg border border-white/50">
               <div
                 className="absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-out shadow-md"
                 style={{
@@ -858,7 +858,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
               <button
                 onClick={() => setShowComparison(false)}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
-                  !showComparison ? "text-white" : "text-slate-400 hover:text-slate-600"
+                  !showComparison ? "text-white" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -867,7 +867,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
               <button
                 onClick={() => setShowComparison(true)}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
-                  showComparison ? "text-white" : "text-slate-400 hover:text-slate-600"
+                  showComparison ? "text-white" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
                 <ArrowLeftRight className="w-3.5 h-3.5" />
