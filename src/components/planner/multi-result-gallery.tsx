@@ -655,11 +655,11 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companySlug, items, combinedTotal }),
       });
-      if (!pdfRes.ok) throw new Error("Villa vi\u00F0 a\u00F0 b\u00FAa til PDF");
+      if (!pdfRes.ok) throw new Error("Villa við að búa til PDF");
 
       // Get the PDF URL from the response header
       const pdfUrl = pdfRes.headers.get("X-Quote-Url");
-      if (!pdfUrl) throw new Error("PDF vistun t\u00F3kst ekki");
+      if (!pdfUrl) throw new Error("PDF vistun tókst ekki");
 
       // Now send the email with the PDF URL
       const sendRes = await fetch("/api/planner/quote/send", {
@@ -676,7 +676,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
 
       if (!sendRes.ok) {
         const errData = await sendRes.json().catch(() => ({}));
-        throw new Error(errData.error || "Villa vi\u00F0 a\u00F0 senda");
+        throw new Error(errData.error || "Villa við að senda");
       }
 
       setSendSuccess(true);
@@ -1199,7 +1199,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Send className="w-4 h-4 text-slate-500" />
-                <h3 className="text-base font-bold text-slate-900">Senda tilbo\u00F0</h3>
+                <h3 className="text-base font-bold text-slate-900">Senda tilboð</h3>
               </div>
               <button
                 onClick={() => { setShowSendModal(false); setSendError(""); setSendSuccess(false); }}
@@ -1218,13 +1218,13 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-base font-semibold text-slate-900">Tilbo\u00F0 sent!</p>
-                  <p className="text-sm text-slate-400 mt-1">PDF skjali\u00F0 hefur veri\u00F0 sent \u00E1 {sendEmail}</p>
+                  <p className="text-base font-semibold text-slate-900">Tilboð sent!</p>
+                  <p className="text-sm text-slate-400 mt-1">PDF skjalið hefur verið sent á {sendEmail}</p>
                 </div>
               ) : (
                 <>
                   <p className="text-sm text-slate-500">
-                    Tilbo\u00F0i\u00F0 ver\u00F0ur sent sem PDF skjal \u00E1 netfangi\u00F0 sem \u00FE\u00FA sl\u00E6r inn.
+                    Tilboðið verður sent sem PDF skjal á netfangið sem þú slær inn.
                   </p>
                   <div>
                     <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Netfang</label>
@@ -1254,7 +1254,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
                   onClick={() => { setShowSendModal(false); setSendError(""); }}
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  H\u00E6tta vi\u00F0
+                  Hætta við
                 </button>
                 <button
                   onClick={handleSendQuote}
@@ -1267,7 +1267,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                  Senda tilbo\u00F0
+                  Senda tilboð
                 </button>
               </div>
             )}

@@ -58,7 +58,7 @@ function formatDateHeading(iso: string) {
   const isYesterday = d.toDateString() === yesterday.toDateString();
 
   if (isToday) return "I dag";
-  if (isYesterday) return "I g\u00E6r";
+  if (isYesterday) return "Í gær";
 
   return d.toLocaleDateString("is-IS", {
     weekday: "long",
@@ -78,7 +78,7 @@ function formatPrice(n: number): string {
 }
 
 function formatUnit(unit: string): string {
-  const map: Record<string, string> = { m2: "m\u00B2", m3: "m\u00B3", stk: "stk" };
+  const map: Record<string, string> = { m2: "m²", m3: "m³", stk: "stk" };
   return map[unit] || unit;
 }
 
@@ -107,9 +107,9 @@ export default function TilbodPage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Tilbo\u00F0</h1>
+            <h1 className="text-xl font-bold text-slate-900">Tilboð</h1>
             <p className="text-xs text-slate-400 mt-0.5">
-              {totalCount > 0 ? `${totalCount} tilbo\u00F0 samtals` : "Engin tilbo\u00F0 enn"}
+              {totalCount > 0 ? `${totalCount} tilboð samtals` : "Engin tilboð enn"}
             </p>
           </div>
         </div>
@@ -133,9 +133,9 @@ export default function TilbodPage() {
       ) : grouped.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-16 text-center">
           <FileText className="w-14 h-14 text-slate-200 mx-auto mb-4" />
-          <p className="text-sm font-medium text-slate-500">Engin tilbo\u00F0 fundust</p>
+          <p className="text-sm font-medium text-slate-500">Engin tilboð fundust</p>
           <p className="text-xs text-slate-400 mt-1">
-            Tilbo\u00F0 birtast h\u00E9r \u00FEegar vi\u00F0skiptavinir \u00FDta \u00E1 &ldquo;S\u00E6kja tilbo\u00F0&rdquo;
+            Tilboð birtast hér þegar viðskiptavinir ýta á &ldquo;Sækja tilboð&rdquo;
           </p>
         </div>
       ) : (
@@ -149,7 +149,7 @@ export default function TilbodPage() {
                   <h2 className="text-sm font-bold text-slate-700">{formatDateHeading(date)}</h2>
                 </div>
                 <div className="flex-1 h-px bg-slate-100" />
-                <span className="text-[11px] text-slate-400 tabular-nums">{items.length} tilbo\u00F0</span>
+                <span className="text-[11px] text-slate-400 tabular-nums">{items.length} tilboð</span>
               </div>
 
               {/* Quotes for this date */}
@@ -178,7 +178,7 @@ export default function TilbodPage() {
                           <p className="text-sm font-medium text-slate-900 truncate">
                             {quote.productNames.length > 0
                               ? quote.productNames.join(", ")
-                              : "\u00D3\u00FEekkt vara"}
+                              : "Óþekkt vara"}
                           </p>
                           <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
                             <span>{formatTime(quote.createdAt)}</span>
@@ -189,7 +189,7 @@ export default function TilbodPage() {
                             )}
                             <span className="flex items-center gap-0.5">
                               <Package className="w-3 h-3" />
-                              {itemsData.length} {itemsData.length === 1 ? "vara" : "v\u00F6rur"}
+                              {itemsData.length} {itemsData.length === 1 ? "vara" : "vörur"}
                             </span>
                           </div>
                         </div>
@@ -211,7 +211,7 @@ export default function TilbodPage() {
                             download
                             onClick={(e) => e.stopPropagation()}
                             className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
-                            title="S\u00E6kja PDF"
+                            title="Sækja PDF"
                           >
                             <Download className="w-3.5 h-3.5 text-slate-500" />
                           </a>
@@ -229,17 +229,17 @@ export default function TilbodPage() {
                             <iframe
                               src={`${quote.pdfUrl}#toolbar=0`}
                               className="w-full h-[500px]"
-                              title="Tilbo\u00F0 PDF"
+                              title="Tilboð PDF"
                             />
                           </div>
 
                           {/* Items breakdown */}
                           <div>
-                            <p className="font-medium text-slate-400 uppercase tracking-wider text-[10px] mb-2">Sundurli\u00F0un</p>
+                            <p className="font-medium text-slate-400 uppercase tracking-wider text-[10px] mb-2">Sundurliðun</p>
                             <div className="space-y-2">
                               {itemsData.map((item, idx) => {
                                 const unit = formatUnit(item.unit || "m2");
-                                const surfLabel = item.surfaceType === "floor" ? "G\u00F3lf" : item.surfaceType === "both" ? "G\u00F3lf og veggir" : "Veggir";
+                                const surfLabel = item.surfaceType === "floor" ? "Gólf" : item.surfaceType === "both" ? "Gólf og veggir" : "Veggir";
                                 return (
                                   <div key={idx} className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
                                     <div className="flex items-center gap-3 min-w-0">
@@ -249,8 +249,8 @@ export default function TilbodPage() {
                                       <div className="min-w-0">
                                         <p className="text-sm font-medium text-slate-900 truncate">{item.productName}</p>
                                         <p className="text-xs text-slate-400">
-                                          {item.area > 0 ? `${item.area.toFixed(1)} ${unit}` : "\u2014"}
-                                          {item.unitPrice ? ` \u00D7 ${formatPrice(item.unitPrice)} kr/${unit}` : ""}
+                                          {item.area > 0 ? `${item.area.toFixed(1)} ${unit}` : "—"}
+                                          {item.unitPrice ? ` × ${formatPrice(item.unitPrice)} kr/${unit}` : ""}
                                         </p>
                                       </div>
                                     </div>
@@ -269,7 +269,7 @@ export default function TilbodPage() {
                           {quote.combinedTotal && quote.combinedTotal > 0 && (
                             <div className="flex items-center justify-between bg-slate-900 rounded-lg p-4">
                               <span className="text-sm font-bold text-white">
-                                {itemsData.length > 1 ? "Samtals" : "\u00C1\u00E6tla\u00F0ur kostna\u00F0ur"}
+                                {itemsData.length > 1 ? "Samtals" : "Áætlaður kostnaður"}
                               </span>
                               <span className="text-lg font-bold text-white">
                                 {formatPrice(Math.round(quote.combinedTotal))} kr
@@ -294,7 +294,7 @@ export default function TilbodPage() {
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
                             >
                               <Download className="w-4 h-4" />
-                              S\u00E6kja PDF
+                              Sækja PDF
                             </a>
                           </div>
                         </div>

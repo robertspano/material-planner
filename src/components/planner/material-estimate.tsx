@@ -49,7 +49,7 @@ interface MeasureResult {
 const WASTE_FACTOR = 0.10;
 
 function formatUnit(unit: string): string {
-  const map: Record<string, string> = { m2: "m\u00B2", m3: "m\u00B3", stk: "stk" };
+  const map: Record<string, string> = { m2: "m²", m3: "m³", stk: "stk" };
   return map[unit] || unit;
 }
 
@@ -101,7 +101,7 @@ export function MaterialEstimate({
         setDim2(data.roomLength?.toFixed(1) || "");
       } else {
         // Wall: wallArea is total wall area (all walls)
-        // Compute wall length = wallArea / height so dim1 \u00D7 dim2 = wallArea
+        // Compute wall length = wallArea / height so dim1 × dim2 = wallArea
         const wallArea = data.wallArea || 0;
         const height = data.roomHeight || 2.5;
         const wallLength = height > 0 ? wallArea / height : 0;
@@ -125,7 +125,7 @@ export function MaterialEstimate({
     ? Math.round(product.price * (1 - product.discountPercent / 100))
     : product.price;
   const totalPrice = unitPrice ? totalNeeded * unitPrice : null;
-  const unit = formatUnit(product.unit || "m\u00B2");
+  const unit = formatUnit(product.unit || "m²");
 
   // Report estimate data changes to parent
   useEffect(() => {
@@ -140,9 +140,9 @@ export function MaterialEstimate({
     if (v1 > 0 && v2 > 0) setArea((v1 * v2).toFixed(1));
   };
 
-  const surfaceLabel = surfaceType === "floor" ? "G\u00F3lffl\u00F6tur" : "Veggfl\u00F6tur";
+  const surfaceLabel = surfaceType === "floor" ? "Gólfflötur" : "Veggflötur";
   const dim1Label = surfaceType === "floor" ? "Breidd (m)" : "Vegglengd (m)";
-  const dim2Label = surfaceType === "floor" ? "Lengd (m)" : "H\u00E6\u00F0 (m)";
+  const dim2Label = surfaceType === "floor" ? "Lengd (m)" : "Hæð (m)";
 
   return (
     <div className={compact ? "bg-white overflow-hidden" : "bg-white rounded-2xl border border-slate-200 overflow-hidden"}>
@@ -154,18 +154,18 @@ export function MaterialEstimate({
         {measuring ? (
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Loader2 className="w-3 h-3 animate-spin" />
-            M\u00E6li\u2026
+            Mæli…
           </div>
         ) : measured ? (
           <span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
-            \u00C1\u00E6tlun \u2014 breyttu ef \u00FEarf
+            Áætlun — breyttu ef þarf
           </span>
         ) : null}
       </div>
 
       {/* Body */}
       <div className="p-4 space-y-3">
-        {/* Dimensions \u2014 always visible, editable inline */}
+        {/* Dimensions — always visible, editable inline */}
         <div className="flex gap-2">
           <div className="flex-1">
             <label className="text-[10px] text-slate-400 uppercase tracking-wider">{dim1Label}</label>
@@ -173,13 +173,13 @@ export function MaterialEstimate({
               type="number"
               step="0.1"
               min="0"
-              placeholder="\u2014"
+              placeholder="—"
               value={dim1}
               onChange={(e) => handleDimensionChange(e.target.value, dim2)}
               className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
             />
           </div>
-          <div className="flex items-end pb-1 text-slate-300">\u00D7</div>
+          <div className="flex items-end pb-1 text-slate-300">×</div>
           <div className="flex-1">
             <label className="text-[10px] text-slate-400 uppercase tracking-wider">
               {dim2Label}
@@ -188,7 +188,7 @@ export function MaterialEstimate({
               type="number"
               step="0.1"
               min="0"
-              placeholder="\u2014"
+              placeholder="—"
               value={dim2}
               onChange={(e) => handleDimensionChange(dim1, e.target.value)}
               className="w-full text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
@@ -201,7 +201,7 @@ export function MaterialEstimate({
               type="number"
               step="0.1"
               min="0"
-              placeholder="\u2014"
+              placeholder="—"
               value={area}
               onChange={(e) => setArea(e.target.value)}
               className="w-full text-sm font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mt-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
@@ -210,20 +210,20 @@ export function MaterialEstimate({
           <div className="flex items-end pb-1.5 text-sm text-slate-500">{unit}</div>
         </div>
 
-        {/* Calculation summary \u2014 only when area is set */}
+        {/* Calculation summary — only when area is set */}
         {areaNum > 0 && (
           <>
             <div className="h-px bg-slate-100" />
 
             {/* Waste */}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-500">S\u00F3un (10%)</span>
+              <span className="text-slate-500">Sóun (10%)</span>
               <span className="text-slate-600">+{(areaNum * WASTE_FACTOR).toFixed(1)} {unit}</span>
             </div>
 
             {/* Total needed */}
             <div className="flex items-center justify-between text-sm font-semibold">
-              <span className="text-slate-800">Efni sem \u00FEarf</span>
+              <span className="text-slate-800">Efni sem þarf</span>
               <span style={{ color: "var(--brand-primary)" }}>{totalNeeded.toFixed(1)} {unit}</span>
             </div>
 
@@ -232,7 +232,7 @@ export function MaterialEstimate({
               <>
                 <div className="h-px bg-slate-100" />
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Ver\u00F0 per {unit}</span>
+                  <span className="text-slate-500">Verð per {unit}</span>
                   <div className="text-right">
                     {product.discountPercent && product.price ? (
                       <div className="flex items-center gap-1.5">
@@ -251,7 +251,7 @@ export function MaterialEstimate({
             {/* No price message */}
             {(!unitPrice || unitPrice === 0) && (
               <p className="text-xs text-slate-400 text-center italic">
-                Ver\u00F0 ekki skr\u00E1\u00F0
+                Verð ekki skráð
               </p>
             )}
           </>

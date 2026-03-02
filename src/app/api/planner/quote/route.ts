@@ -40,7 +40,7 @@ interface QuoteRequest {
 }
 
 function fU(u: string): string {
-  return ({ m2: "m\u00B2", m3: "m\u00B3" } as Record<string, string>)[u] || u;
+  return ({ m2: "m²", m3: "m³" } as Record<string, string>)[u] || u;
 }
 
 function fP(n: number): string {
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
     const itemSections = items.map((item, idx) => {
       const unit = fU(item.unit || "m2");
       const hasDiscount = !!(item.discountPercent && item.price);
-      const surfLabel = item.surfaceType === "floor" ? "G\u00F3lf" : item.surfaceType === "both" ? "G\u00F3lf og veggir" : "Veggir";
+      const surfLabel = item.surfaceType === "floor" ? "Gólf" : item.surfaceType === "both" ? "Gólf og veggir" : "Veggir";
 
       return e(View, { key: idx, style: s.itemSection },
         // Item header
@@ -283,7 +283,7 @@ export async function POST(request: NextRequest) {
           e(View, { style: { flex: 1 } },
             e(Text, { style: s.itemTitle }, item.productName),
             e(Text, { style: s.itemSubtitle },
-              `${surfLabel}${item.tileWidth && item.tileHeight ? ` \u2022 ${item.tileWidth}\u00D7${item.tileHeight} cm` : ""}`
+              `${surfLabel}${item.tileWidth && item.tileHeight ? ` • ${item.tileWidth}×${item.tileHeight} cm` : ""}`
             )
           )
         ),
@@ -292,17 +292,17 @@ export async function POST(request: NextRequest) {
         e(View, { style: s.table },
           // Table header
           e(View, { style: s.tableHead },
-            e(Text, { style: { ...s.thText, flex: 1 } }, "L\u00CDSING"),
+            e(Text, { style: { ...s.thText, flex: 1 } }, "LÝSING"),
             e(Text, { style: s.thText }, "GILDI")
           ),
-          tableRow("Yfirbor\u00F0", surfLabel, false),
-          tableRow("Flatarm\u00E1l", item.area > 0 ? `${item.area.toFixed(1)} ${unit}` : "\u2014", true),
-          tableRow("S\u00F3un (10%)", item.area > 0 ? `+${(item.area * 0.1).toFixed(1)} ${unit}` : "\u2014", false),
-          tableRow("Efni sem \u00FEarf", item.totalNeeded > 0 ? `${item.totalNeeded.toFixed(1)} ${unit}` : "\u2014", true),
+          tableRow("Yfirborð", surfLabel, false),
+          tableRow("Flatarmál", item.area > 0 ? `${item.area.toFixed(1)} ${unit}` : "—", true),
+          tableRow("Sóun (10%)", item.area > 0 ? `+${(item.area * 0.1).toFixed(1)} ${unit}` : "—", false),
+          tableRow("Efni sem þarf", item.totalNeeded > 0 ? `${item.totalNeeded.toFixed(1)} ${unit}` : "—", true),
           // Unit price row
           item.unitPrice
             ? e(View, { style: s.row },
-                e(Text, { style: s.rowLabel }, `Ver\u00F0 per ${unit}`),
+                e(Text, { style: s.rowLabel }, `Verð per ${unit}`),
                 e(View, { style: { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "flex-end" as const } },
                   hasDiscount && item.price
                     ? e(Text, { style: s.strikePrice }, `${fP(item.price)} kr`)
@@ -314,14 +314,14 @@ export async function POST(request: NextRequest) {
           // Discount row
           hasDiscount
             ? e(View, { style: s.rowDiscount },
-                e(Text, { style: s.discountLabel }, "Afsl\u00E1ttur"),
+                e(Text, { style: s.discountLabel }, "Afsláttur"),
                 e(Text, { style: s.discountVal }, `-${item.discountPercent}%`)
               )
             : null,
           // Item total row
           item.totalPrice > 0
             ? e(View, { style: s.itemTotalRow },
-                e(Text, { style: s.itemTotalLabel }, "\u00C1\u00E6tla\u00F0 ver\u00F0"),
+                e(Text, { style: s.itemTotalLabel }, "Áætlað verð"),
                 e(Text, { style: s.itemTotalVal }, `${fP(Math.round(item.totalPrice))} kr`)
               )
             : null,
@@ -336,13 +336,13 @@ export async function POST(request: NextRequest) {
         // Top brand bar
         e(View, { style: s.topBar }),
 
-        // Header: logo left + "TILBO\u00D0" right
+        // Header: logo left + "TILBOÐ" right
         e(View, { style: s.header },
           logoB64
             ? e(Image, { src: logoB64, style: s.logoImg })
             : e(Text, { style: s.companyName }, company.name),
           e(View, { style: s.headerRight },
-            e(Text, { style: s.quoteLabel }, "Tilbo\u00F0"),
+            e(Text, { style: s.quoteLabel }, "Tilboð"),
             e(Text, { style: s.dateText }, today)
           )
         ),
@@ -357,7 +357,7 @@ export async function POST(request: NextRequest) {
         combinedTotal && combinedTotal > 0
           ? e(View, { style: s.totalBox },
               e(Text, { style: s.totalLabel },
-                items.length > 1 ? "Samtals \u00E1\u00E6tla\u00F0ur kostna\u00F0ur" : "\u00C1\u00E6tla\u00F0ur kostna\u00F0ur"
+                items.length > 1 ? "Samtals áætlaður kostnaður" : "Áætlaður kostnaður"
               ),
               e(Text, { style: s.totalVal }, `${fP(Math.round(combinedTotal))} kr`)
             )
@@ -368,7 +368,7 @@ export async function POST(request: NextRequest) {
           logoB64
             ? e(Image, { src: logoB64, style: s.footerLogoImg })
             : e(Text, { style: s.footerText }, company.name),
-          e(Text, { style: s.footerRight }, `Tilbo\u00F0 \u2022 ${today}`)
+          e(Text, { style: s.footerRight }, `Tilboð • ${today}`)
         )
       ),
 
@@ -380,7 +380,7 @@ export async function POST(request: NextRequest) {
 
             // Header
             e(View, { style: s.p2Header },
-              e(Text, { style: s.p2Title }, "Sj\u00F3nr\u00E6n s\u00FDn"),
+              e(Text, { style: s.p2Title }, "Sjónræn sýn"),
               e(Text, { style: s.p2Sub },
                 items.length === 1
                   ? `${items[0].productName}`
@@ -397,8 +397,8 @@ export async function POST(request: NextRequest) {
                 ? e(View, {},
                     e(Text, { style: s.imgLabel },
                       items.length > 1
-                        ? `NI\u00D0URSTA\u00D0A #1 \u2014 ${items[0]?.productName || ""}`
-                        : "NI\u00D0URSTA\u00D0A"
+                        ? `NIÐURSTAÐA #1 — ${items[0]?.productName || ""}`
+                        : "NIÐURSTAÐA"
                     ),
                     e(View, { style: s.imgBox },
                       e(Image, { src: result1B64, style: result2B64 || roomB64 ? s.imgSmall : s.img })
@@ -410,7 +410,7 @@ export async function POST(request: NextRequest) {
               result2B64
                 ? e(View, {},
                     e(Text, { style: s.imgLabel },
-                      `NI\u00D0URSTA\u00D0A #2 \u2014 ${items[1]?.productName || ""}`
+                      `NIÐURSTAÐA #2 — ${items[1]?.productName || ""}`
                     ),
                     e(View, { style: s.imgBox },
                       e(Image, { src: result2B64, style: s.imgSmall })
@@ -434,7 +434,7 @@ export async function POST(request: NextRequest) {
               logoB64
                 ? e(Image, { src: logoB64, style: s.footerLogoImg })
                 : e(Text, { style: s.footerText }, company.name),
-              e(Text, { style: s.footerRight }, `Tilbo\u00F0 \u2022 ${today}`)
+              e(Text, { style: s.footerRight }, `Tilboð • ${today}`)
             )
           )
         : null,
