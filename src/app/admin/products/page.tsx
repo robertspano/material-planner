@@ -43,6 +43,7 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
   const brandColor = brandColorProp || company?.primaryColor || "#2e7cff";
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
   const [showCreate, setShowCreate] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductEntry | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -251,6 +252,7 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
 
   const filtered = products
     .filter((p) => filterCat === "all" || p.categoryId === filterCat)
+    .filter((p) => filterStatus === "all" || (filterStatus === "active" ? p.isActive : !p.isActive))
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -284,6 +286,33 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
             <Plus className="w-4 h-4" /> Ný vara
           </button>
         </div>
+      </div>
+
+      {/* Status filter pills */}
+      <div className="flex gap-1">
+        {([
+          { value: "all" as const, label: "Allt" },
+          { value: "active" as const, label: "Virkt" },
+          { value: "inactive" as const, label: "Óvirkt" },
+        ]).map((f) => {
+          const count = f.value === "all"
+            ? products.filter((p) => (filterCat === "all" || p.categoryId === filterCat) && p.name.toLowerCase().includes(search.toLowerCase())).length
+            : products.filter((p) => (filterCat === "all" || p.categoryId === filterCat) && p.name.toLowerCase().includes(search.toLowerCase()) && (f.value === "active" ? p.isActive : !p.isActive)).length;
+          return (
+            <button
+              key={f.value}
+              onClick={() => setFilterStatus(f.value)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                filterStatus === f.value
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+            >
+              {f.label}
+              {count > 0 && <span className="ml-1 opacity-60">{count}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {isLoading ? (
