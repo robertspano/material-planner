@@ -72,9 +72,9 @@ function optimizeUrl(url: string, maxWidth = 800): string {
   return url;
 }
 
-async function fetchImageBase64(url: string, maxWidth = 800): Promise<string | null> {
+async function fetchImageBase64(url: string, maxWidth = 800, preserveAlpha = false): Promise<string | null> {
   try {
-    const optimized = optimizeUrl(url, maxWidth);
+    const optimized = preserveAlpha ? url : optimizeUrl(url, maxWidth);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(optimized, { signal: controller.signal });
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch logo + first result/room images in parallel
     const imagePromises: Promise<string | null>[] = [
-      company.logoUrl ? fetchImageBase64(company.logoUrl) : Promise.resolve(null),
+      company.logoUrl ? fetchImageBase64(company.logoUrl, 400, true) : Promise.resolve(null),
     ];
     // Fetch up to 2 result images and 1 room image for page 2
     const firstResult = items.find(it => it.resultImageUrl);
