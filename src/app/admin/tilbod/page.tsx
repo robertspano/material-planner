@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  FileText, Calendar, ExternalLink,
-  ArrowLeft, Search, Loader2, Mail,
+  FileText, Calendar, Eye,
+  ArrowLeft, Search, Loader2, Mail, X,
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminCompany } from "@/components/admin/admin-company-context";
@@ -77,6 +77,7 @@ export default function TilbodPage() {
   const [period, setPeriod] = useState<string>("month");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [viewingPdf, setViewingPdf] = useState<string | null>(null);
 
   const searchTimeout = useState<ReturnType<typeof setTimeout> | null>(null);
   const handleSearchChange = (val: string) => {
@@ -171,7 +172,7 @@ export default function TilbodPage() {
                 <span className="text-[11px] text-slate-400">{items.length}</span>
               </div>
 
-              {/* Quote cards — flat, no expand */}
+              {/* Quote cards */}
               <div className="space-y-1.5">
                 {items.map((quote) => {
                   const itemsData = Array.isArray(quote.items) ? quote.items as QuoteItemData[] : [];
@@ -181,7 +182,7 @@ export default function TilbodPage() {
                       key={quote.id}
                       className="bg-white rounded-xl border border-slate-200 px-4 py-3 space-y-2"
                     >
-                      {/* Top: product + time + email + price */}
+                      {/* Product + time + email + price */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-slate-900 truncate">
@@ -216,22 +217,52 @@ export default function TilbodPage() {
                         )}
                       </div>
 
-                      {/* Open PDF — centered */}
-                      <a
-                        href={quote.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors"
+                      {/* Open PDF — opens overlay */}
+                      <button
+                        onClick={() => setViewingPdf(quote.pdfUrl)}
+                        className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <Eye className="w-3.5 h-3.5" />
                         Opna PDF
-                      </a>
+                      </button>
                     </div>
                   );
                 })}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* PDF Viewer Overlay */}
+      {viewingPdf && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setViewingPdf(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl h-[85vh] flex flex-col overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <p className="text-sm font-semibold text-slate-900">Tilboð</p>
+              <button
+                onClick={() => setViewingPdf(null)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+            {/* PDF iframe via Google Docs Viewer */}
+            <div className="flex-1 bg-slate-100">
+              <iframe
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(viewingPdf)}&embedded=true`}
+                className="w-full h-full border-0"
+                title="PDF Tilboð"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
