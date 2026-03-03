@@ -61,28 +61,27 @@ function lightenColor(hex: string, amount: number): string {
 }
 
 /**
- * Optimize image URL via Cloudinary transformations (no native modules needed).
- * For Cloudinary URLs: insert w_800,q_auto,f_jpg transforms
- * For other URLs: fetch as-is
+ * Optimize image URL via Cloudinary transformations.
+ * format: "jpg" for photos (smaller), "png" for logos (preserves transparency)
  */
-function optimizeUrl(url: string, maxWidth = 800): string {
+function optimizeUrl(url: string, maxWidth = 800, format: "jpg" | "png" = "jpg"): string {
   const cloudinaryMatch = url.match(/^(https?:\/\/res\.cloudinary\.com\/.+\/upload\/)(v\d+\/.+)$/);
   if (cloudinaryMatch) {
-    return `${cloudinaryMatch[1]}w_${maxWidth},q_auto,f_jpg/${cloudinaryMatch[2]}`;
+    return `${cloudinaryMatch[1]}w_${maxWidth},q_auto,f_${format}/${cloudinaryMatch[2]}`;
   }
   return url;
 }
 
-async function fetchImageBase64(url: string, maxWidth = 800, preserveAlpha = false): Promise<string | null> {
+async function fetchImageBase64(url: string, maxWidth = 800, format: "jpg" | "png" = "jpg"): Promise<string | null> {
   try {
-    const optimized = preserveAlpha ? url : optimizeUrl(url, maxWidth);
+    const optimized = optimizeUrl(url, maxWidth, format);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(optimized, { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return null;
     const buf = Buffer.from(await res.arrayBuffer());
-    const mime = res.headers.get("content-type") || "image/jpeg";
+    const mime = res.headers.get("content-type") || (format === "png" ? "image/png" : "image/jpeg");
     return `data:${mime};base64,${buf.toString("base64")}`;
   } catch {
     return null;
@@ -131,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch logo + first result/room images in parallel
     const imagePromises: Promise<string | null>[] = [
-      company.logoUrl ? fetchImageBase64(company.logoUrl, 400, true) : Promise.resolve(null),
+      company.logoUrl ? fetchImageBase64(company.logoUrl, 400, "png") : Promise.resolve(null),
     ];
     // Fetch up to 2 result images and 1 room image for page 2
     const firstResult = items.find(it => it.resultImageUrl);
