@@ -164,7 +164,8 @@ export async function POST(request: NextRequest) {
         justifyContent: "space-between" as const,
         alignItems: "center" as const,
       },
-      logoImg: { height: 40, maxWidth: 200, backgroundColor: "#1e293b", borderRadius: 6, padding: 6 },
+      logoWrap: { backgroundColor: brandRgb, borderRadius: 6, padding: 8, alignItems: "center" as const, justifyContent: "center" as const },
+      logoImg: { height: 36, maxWidth: 190 },
       companyName: { fontSize: 20, fontWeight: 700, color: brandRgb },
       headerRight: { alignItems: "flex-end" as const },
       quoteLabel: { fontSize: 20, fontWeight: 700, color: brandRgb },
@@ -247,7 +248,8 @@ export async function POST(request: NextRequest) {
         paddingHorizontal: 40,
         borderTop: "1 solid #f1f5f9",
       },
-      footerLogoImg: { height: 18, maxWidth: 100, backgroundColor: "#1e293b", borderRadius: 4, padding: 3 },
+      footerLogoWrap: { backgroundColor: brandRgb, borderRadius: 4, padding: 4, alignItems: "center" as const, justifyContent: "center" as const },
+      footerLogoImg: { height: 14, maxWidth: 90 },
       footerText: { fontSize: 8, color: "#94a3b8" },
       footerRight: { fontSize: 7, color: "#cbd5e1" },
 
@@ -265,8 +267,8 @@ export async function POST(request: NextRequest) {
         marginBottom: 6,
       },
       imgBox: { borderRadius: 8, overflow: "hidden" as const, border: "1 solid #e2e8f0", marginBottom: 18 },
-      img: { width: "100%", height: 220, objectFit: "cover" as const },
-      imgSmall: { width: "100%", height: 180, objectFit: "cover" as const },
+      img: { width: "100%", height: 220, objectFit: "contain" as const },
+      imgSmall: { width: "100%", height: 180, objectFit: "contain" as const },
     });
 
     // Helper to build a table row
@@ -349,7 +351,9 @@ export async function POST(request: NextRequest) {
         // Header: logo left + "TILBOÐ" right
         e(View, { style: s.header },
           logoB64
-            ? e(Image, { src: logoB64, style: s.logoImg })
+            ? e(View, { style: s.logoWrap },
+                e(Image, { src: logoB64, style: s.logoImg })
+              )
             : e(Text, { style: s.companyName }, company.name),
           e(View, { style: s.headerRight },
             e(Text, { style: s.quoteLabel }, "Tilboð"),
@@ -376,7 +380,9 @@ export async function POST(request: NextRequest) {
         // Footer with logo
         e(View, { style: s.footer },
           logoB64
-            ? e(Image, { src: logoB64, style: s.footerLogoImg })
+            ? e(View, { style: s.footerLogoWrap },
+                e(Image, { src: logoB64, style: s.footerLogoImg })
+              )
             : e(Text, { style: s.footerText }, company.name),
           e(Text, { style: s.footerRight }, `Tilboð • ${today}`)
         )
