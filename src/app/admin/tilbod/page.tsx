@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileText, Calendar, ExternalLink,
-  ChevronDown, ArrowLeft, Package, Search,
-  Loader2, Mail,
+  ArrowLeft, Search, Loader2, Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminCompany } from "@/components/admin/admin-company-context";
@@ -18,8 +17,6 @@ interface QuoteItemData {
   unitPrice: number | null;
   totalPrice: number;
   unit: string;
-  discountPercent?: number | null;
-  price?: number | null;
 }
 
 interface QuoteRecord {
@@ -41,17 +38,13 @@ const PERIODS = [
   { value: "all", label: "Allt" },
 ] as const;
 
-// Group quotes by date
 function groupByDate(quotes: QuoteRecord[]) {
   const groups = new Map<string, QuoteRecord[]>();
-
   for (const q of quotes) {
-    const d = new Date(q.createdAt);
-    const key = d.toISOString().split("T")[0];
+    const key = new Date(q.createdAt).toISOString().split("T")[0];
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(q);
   }
-
   return [...groups.entries()]
     .sort((a, b) => b[0].localeCompare(a[0]))
     .map(([date, items]) => ({ date, items }));
@@ -62,33 +55,20 @@ function formatDateHeading(iso: string) {
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-
-  const isToday = d.toDateString() === today.toDateString();
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-
-  if (isToday) return "I dag";
-  if (isYesterday) return "I gær";
-
+  if (d.toDateString() === today.toDateString()) return "I dag";
+  if (d.toDateString() === yesterday.toDateString()) return "I gær";
   return d.toLocaleDateString("is-IS", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
+    weekday: "long", day: "numeric", month: "long",
     ...(d.getFullYear() !== today.getFullYear() ? { year: "numeric" } : {}),
   });
 }
 
 function formatTime(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit" });
 }
 
 function formatPrice(n: number): string {
   return n.toLocaleString("is-IS");
-}
-
-function formatUnit(unit: string): string {
-  const map: Record<string, string> = { m2: "m²", m3: "m³", stk: "stk" };
-  return map[unit] || unit;
 }
 
 export default function TilbodPage() {
@@ -97,9 +77,7 @@ export default function TilbodPage() {
   const [period, setPeriod] = useState<string>("month");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Debounce search
   const searchTimeout = useState<ReturnType<typeof setTimeout> | null>(null);
   const handleSearchChange = (val: string) => {
     setSearch(val);
@@ -119,7 +97,6 @@ export default function TilbodPage() {
   });
 
   const grouped = groupByDate(quotes);
-  const totalCount = quotes.length;
 
   return (
     <div className="max-w-3xl space-y-4">
@@ -134,14 +111,13 @@ export default function TilbodPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900">Tilboð</h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {totalCount > 0 ? `${totalCount} tilboð` : "Engin tilboð"}
+            {quotes.length > 0 ? `${quotes.length} tilboð` : "Engin tilboð"}
           </p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2">
-        {/* Period pills */}
         <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
           {PERIODS.map((p) => (
             <button
@@ -157,8 +133,6 @@ export default function TilbodPage() {
             </button>
           ))}
         </div>
-
-        {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
           <input
@@ -182,11 +156,6 @@ export default function TilbodPage() {
           <p className="text-sm font-medium text-slate-500">
             {debouncedSearch ? "Ekkert fannst" : "Engin tilboð enn"}
           </p>
-          <p className="text-xs text-slate-400 mt-1">
-            {debouncedSearch
-              ? `Engin tilboð passa við "${debouncedSearch}"`
-              : "Tilboð birtast hér þegar viðskiptavinir senda tilboð"}
-          </p>
         </div>
       ) : (
         <div className="space-y-5">
@@ -202,31 +171,25 @@ export default function TilbodPage() {
                 <span className="text-[11px] text-slate-400">{items.length}</span>
               </div>
 
-              {/* Quotes */}
+              {/* Quote cards — flat, no expand */}
               <div className="space-y-1.5">
                 {items.map((quote) => {
-                  const isExpanded = expandedId === quote.id;
                   const itemsData = Array.isArray(quote.items) ? quote.items as QuoteItemData[] : [];
 
                   return (
                     <div
                       key={quote.id}
-                      className={`bg-white rounded-xl border transition-all ${
-                        isExpanded ? "border-slate-300 shadow-sm" : "border-slate-200"
-                      }`}
+                      className="bg-white rounded-xl border border-slate-200 px-4 py-3 space-y-2"
                     >
-                      {/* Row */}
-                      <button
-                        onClick={() => setExpandedId(isExpanded ? null : quote.id)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50/50 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
+                      {/* Top: product + time + email + price */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
                           <p className="text-sm font-semibold text-slate-900 truncate">
                             {quote.productNames.length > 0
                               ? quote.productNames.join(", ")
                               : "Tilboð"}
                           </p>
-                          <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400 flex-wrap">
                             <span>{formatTime(quote.createdAt)}</span>
                             {quote.customerEmail && (
                               <>
@@ -237,104 +200,32 @@ export default function TilbodPage() {
                                 </span>
                               </>
                             )}
-                            {itemsData.length > 0 && (
+                            {itemsData.length > 1 && (
                               <>
                                 <span className="text-slate-200">·</span>
-                                <span className="flex items-center gap-0.5">
-                                  <Package className="w-3 h-3" />
-                                  {itemsData.length}
-                                </span>
+                                <span>{itemsData.length} vörur</span>
                               </>
                             )}
                           </div>
                         </div>
 
                         {quote.combinedTotal && quote.combinedTotal > 0 && (
-                          <span className="text-sm font-bold text-slate-800 flex-shrink-0">
+                          <span className="text-sm font-bold text-emerald-600 flex-shrink-0">
                             {formatPrice(Math.round(quote.combinedTotal))} kr
                           </span>
                         )}
+                      </div>
 
-                        <ChevronDown
-                          className={`w-4 h-4 text-slate-300 transition-transform flex-shrink-0 ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-
-                      {/* Expanded */}
-                      {isExpanded && (
-                        <div className="border-t border-slate-100 px-4 py-3 space-y-3">
-                          {/* Customer email */}
-                          {quote.customerEmail && (
-                            <div className="flex items-center gap-2 text-sm text-slate-600 bg-blue-50 rounded-lg px-3 py-2">
-                              <Mail className="w-4 h-4 text-blue-500" />
-                              <span className="font-medium">{quote.customerEmail}</span>
-                            </div>
-                          )}
-
-                          {/* Items */}
-                          {itemsData.map((item, idx) => {
-                            const unit = formatUnit(item.unit || "m2");
-                            const surfLabel =
-                              item.surfaceType === "floor"
-                                ? "Gólf"
-                                : item.surfaceType === "both"
-                                ? "Gólf + veggir"
-                                : "Veggir";
-
-                            return (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between py-2"
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0">
-                                    {surfLabel}
-                                  </span>
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-medium text-slate-800 truncate">
-                                      {item.productName}
-                                    </p>
-                                    <p className="text-[11px] text-slate-400">
-                                      {item.area > 0 ? `${item.area.toFixed(1)} ${unit}` : ""}
-                                      {item.unitPrice
-                                        ? `${item.area > 0 ? " × " : ""}${formatPrice(item.unitPrice)} kr/${unit}`
-                                        : ""}
-                                    </p>
-                                  </div>
-                                </div>
-                                {item.totalPrice > 0 && (
-                                  <span className="text-sm font-semibold text-slate-700 flex-shrink-0 ml-3">
-                                    {formatPrice(Math.round(item.totalPrice))} kr
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-
-                          {/* Total */}
-                          {quote.combinedTotal && quote.combinedTotal > 0 && (
-                            <div className="flex items-center justify-between bg-slate-900 rounded-lg px-4 py-3">
-                              <span className="text-sm font-semibold text-white">Samtals</span>
-                              <span className="text-base font-bold text-white">
-                                {formatPrice(Math.round(quote.combinedTotal))} kr
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Open PDF */}
-                          <a
-                            href={quote.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                            Opna PDF
-                          </a>
-                        </div>
-                      )}
+                      {/* Open PDF — centered */}
+                      <a
+                        href={quote.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Opna PDF
+                      </a>
                     </div>
                   );
                 })}
