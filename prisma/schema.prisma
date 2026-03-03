@@ -120,16 +120,17 @@ model GenerationProduct {
 }
 
 model Quote {
-  id            String   @id @default(cuid())
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id])
-  pdfUrl        String
-  items         Json
-  combinedTotal Float?
-  roomImageUrl  String?
+  id              String   @id @default(cuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id])
+  pdfUrl          String
+  items           Json
+  combinedTotal   Float?
+  customerEmail   String?
+  roomImageUrl    String?
   resultImageUrls String[]
-  productNames  String[]
-  createdAt     DateTime @default(now())
+  productNames    String[]
+  createdAt       DateTime @default(now())
 
   @@index([companyId])
   @@index([createdAt])

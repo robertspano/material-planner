@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileText, Calendar, ExternalLink,
-  Loader2, ChevronDown, ArrowLeft, Package,
+  ChevronDown, ArrowLeft, Package, Search,
+  Loader2, Mail,
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminCompany } from "@/components/admin/admin-company-context";
@@ -26,11 +27,19 @@ interface QuoteRecord {
   pdfUrl: string;
   items: QuoteItemData[];
   combinedTotal: number | null;
+  customerEmail: string | null;
   roomImageUrl: string | null;
   resultImageUrls: string[];
   productNames: string[];
   createdAt: string;
 }
+
+const PERIODS = [
+  { value: "week", label: "Vika" },
+  { value: "month", label: "Mánuður" },
+  { value: "3months", label: "3 mánuðir" },
+  { value: "all", label: "Allt" },
+] as const;
 
 // Group quotes by date
 function groupByDate(quotes: QuoteRecord[]) {
@@ -84,19 +93,36 @@ function formatUnit(unit: string): string {
 
 export default function TilbodPage() {
   const { adminApiUrl, companySlug } = useAdminCompany();
-  const quotesUrl = adminApiUrl("/api/admin/quotes");
+
+  const [period, setPeriod] = useState<string>("month");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Debounce search
+  const searchTimeout = useState<ReturnType<typeof setTimeout> | null>(null);
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (searchTimeout[0]) clearTimeout(searchTimeout[0]);
+    searchTimeout[1](setTimeout(() => setDebouncedSearch(val), 300));
+  };
+
+  const quotesUrl = `${adminApiUrl("/api/admin/quotes")}${period !== "all" ? `&period=${period}` : ""}${debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : ""}`;
 
   const { data: quotes = [], isLoading } = useQuery<QuoteRecord[]>({
-    queryKey: [quotesUrl],
+    queryKey: ["quotes", period, debouncedSearch, adminApiUrl("/api/admin/quotes")],
+    queryFn: async () => {
+      const res = await fetch(quotesUrl);
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
   });
-
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const grouped = groupByDate(quotes);
   const totalCount = quotes.length;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
@@ -108,26 +134,62 @@ export default function TilbodPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900">Tilboð</h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {totalCount > 0 ? `${totalCount} tilboð samtals` : "Engin tilboð enn"}
+            {totalCount > 0 ? `${totalCount} tilboð` : "Engin tilboð"}
           </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        {/* Period pills */}
+        <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
+          {PERIODS.map((p) => (
+            <button
+              key={p.value}
+              onClick={() => setPeriod(p.value)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                period === p.value
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
+          <input
+            type="text"
+            placeholder="Leita eftir netfangi..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white"
+          />
         </div>
       </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 text-slate-300 animate-spin" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-5 h-5 text-slate-300 animate-spin" />
         </div>
       ) : grouped.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-16 text-center">
-          <FileText className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-          <p className="text-sm font-medium text-slate-500">Engin tilboð enn</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+          <FileText className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+          <p className="text-sm font-medium text-slate-500">
+            {debouncedSearch ? "Ekkert fannst" : "Engin tilboð enn"}
+          </p>
           <p className="text-xs text-slate-400 mt-1">
-            Tilboð birtast hér þegar viðskiptavinir senda tilboð
+            {debouncedSearch
+              ? `Engin tilboð passa við "${debouncedSearch}"`
+              : "Tilboð birtast hér þegar viðskiptavinir senda tilboð"}
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {grouped.map(({ date, items }) => (
             <div key={date}>
               {/* Date heading */}
@@ -141,7 +203,7 @@ export default function TilbodPage() {
               </div>
 
               {/* Quotes */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {items.map((quote) => {
                   const isExpanded = expandedId === quote.id;
                   const itemsData = Array.isArray(quote.items) ? quote.items as QuoteItemData[] : [];
@@ -166,12 +228,21 @@ export default function TilbodPage() {
                           </p>
                           <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
                             <span>{formatTime(quote.createdAt)}</span>
+                            {quote.customerEmail && (
+                              <>
+                                <span className="text-slate-200">·</span>
+                                <span className="flex items-center gap-0.5 text-slate-500">
+                                  <Mail className="w-3 h-3" />
+                                  {quote.customerEmail}
+                                </span>
+                              </>
+                            )}
                             {itemsData.length > 0 && (
                               <>
                                 <span className="text-slate-200">·</span>
                                 <span className="flex items-center gap-0.5">
                                   <Package className="w-3 h-3" />
-                                  {itemsData.length} {itemsData.length === 1 ? "vara" : "vörur"}
+                                  {itemsData.length}
                                 </span>
                               </>
                             )}
@@ -194,6 +265,14 @@ export default function TilbodPage() {
                       {/* Expanded */}
                       {isExpanded && (
                         <div className="border-t border-slate-100 px-4 py-3 space-y-3">
+                          {/* Customer email */}
+                          {quote.customerEmail && (
+                            <div className="flex items-center gap-2 text-sm text-slate-600 bg-blue-50 rounded-lg px-3 py-2">
+                              <Mail className="w-4 h-4 text-blue-500" />
+                              <span className="font-medium">{quote.customerEmail}</span>
+                            </div>
+                          )}
+
                           {/* Items */}
                           {itemsData.map((item, idx) => {
                             const unit = formatUnit(item.unit || "m2");

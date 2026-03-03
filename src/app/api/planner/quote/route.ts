@@ -25,6 +25,7 @@ interface QuoteRequest {
   companySlug: string;
   items: QuoteItem[];
   combinedTotal: number | null;
+  customerEmail?: string;
   // Legacy single-item format (backwards compatible)
   product?: { name: string; price: number | null; discountPercent?: number | null; unit: string };
   surfaceType?: string;
@@ -510,6 +511,7 @@ export async function POST(request: NextRequest) {
               pdfUrl: savedPdfUrl,
               items: items as unknown as import("@prisma/client/runtime/library").JsonArray,
               combinedTotal: combinedTotal || null,
+              customerEmail: data.customerEmail || null,
               roomImageUrl: firstRoomImage,
               resultImageUrls,
               productNames,

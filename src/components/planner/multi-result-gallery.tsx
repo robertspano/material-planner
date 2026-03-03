@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useQueries } from "@tanstack/react-query";
-import { Loader2, Download, RotateCcw, AlertCircle, ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles, X, Maximize2, FileText, Send, Check, Mail } from "lucide-react";
+import { Loader2, Download, RotateCcw, AlertCircle, ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles, X, Maximize2, FileText, Send, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MaterialEstimate } from "@/components/planner/material-estimate";
 
@@ -604,39 +604,7 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
       });
   }, [resultItems, estimateDataMap]);
 
-  // Generate PDF for combined quote — sends ALL estimate data
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [quoteSent, setQuoteSent] = useState(false);
-
-  const handleSendQuoteToAdmin = useCallback(async () => {
-    setGeneratingPdf(true);
-    try {
-      const items = buildQuoteItems();
-      const res = await fetch("/api/planner/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companySlug,
-          items,
-          combinedTotal,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      // PDF is generated, uploaded to Cloudinary, and saved as Quote in background
-      // No download — just confirm success
-      const pdfUrl = res.headers.get("X-Quote-Url");
-      if (pdfUrl) {
-        setQuoteSent(true);
-        setTimeout(() => setQuoteSent(false), 4000);
-      }
-    } catch (err) {
-      console.error("Quote error:", err);
-    } finally {
-      setGeneratingPdf(false);
-    }
-  }, [buildQuoteItems, companySlug, combinedTotal]);
-
-  // Send quote via email
+  // Send quote flow — popup asks for email first
   const [showSendModal, setShowSendModal] = useState(false);
   const [sendEmail, setSendEmail] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -648,42 +616,24 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
     setSendingEmail(true);
     setSendError("");
     try {
-      // Generate the PDF (also uploads to Cloudinary, returns URL in header)
+      // Generate the PDF + save Quote with customer email
       const items = buildQuoteItems();
       const pdfRes = await fetch("/api/planner/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companySlug, items, combinedTotal }),
+        body: JSON.stringify({ companySlug, items, combinedTotal, customerEmail: sendEmail }),
       });
-      if (!pdfRes.ok) throw new Error("Villa við að búa til PDF");
+      if (!pdfRes.ok) throw new Error("Villa við að búa til tilboð");
 
       const pdfUrl = pdfRes.headers.get("X-Quote-Url");
-      if (!pdfUrl) throw new Error("PDF vistun tókst ekki");
-
-      // Send the email with the PDF URL
-      const sendRes = await fetch("/api/planner/quote/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companySlug,
-          email: sendEmail,
-          pdfUrl,
-          productNames: items.map(it => it.productName),
-          combinedTotal,
-        }),
-      });
-
-      if (!sendRes.ok) {
-        const errData = await sendRes.json().catch(() => ({}));
-        throw new Error(errData.error || "Villa við að senda");
-      }
+      if (!pdfUrl) throw new Error("Vistun tókst ekki");
 
       setSendSuccess(true);
       setTimeout(() => {
         setShowSendModal(false);
         setSendSuccess(false);
         setSendEmail("");
-      }, 2000);
+      }, 2500);
     } catch (err) {
       console.error("Send error:", err);
       setSendError(err instanceof Error ? err.message : "Villa kom upp");
@@ -1106,29 +1056,15 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
                   {formatPrice(Math.round(combinedTotal))} kr
                 </p>
               </div>
-              {/* Quote buttons */}
-              <div className="flex gap-2 p-3 bg-white">
-                <button
-                  onClick={handleSendQuoteToAdmin}
-                  disabled={generatingPdf || quoteSent}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-                  style={{ backgroundColor: quoteSent ? "#059669" : "var(--brand-primary)" }}
-                >
-                  {generatingPdf ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : quoteSent ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                  {quoteSent ? "Tilboð sent!" : "Senda tilboð"}
-                </button>
+              {/* Quote button */}
+              <div className="p-3 bg-white">
                 <button
                   onClick={() => setShowSendModal(true)}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all"
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
                 >
-                  <Mail className="w-4 h-4" />
-                  Tölvupóstur
+                  <Send className="w-4 h-4" />
+                  Senda tilboð
                 </button>
               </div>
             </div>
@@ -1186,88 +1122,65 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
         />
       )}
 
-      {/* Send Quote Modal */}
+      {/* Send Quote Modal — ask for email */}
       {showSendModal && createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) { setShowSendModal(false); setSendError(""); setSendSuccess(false); } }}
         >
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Send className="w-4 h-4 text-slate-500" />
-                <h3 className="text-base font-bold text-slate-900">Senda tilboð</h3>
-              </div>
-              <button
-                onClick={() => { setShowSendModal(false); setSendError(""); setSendSuccess(false); }}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4 text-slate-400" />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="p-5 space-y-4">
-              {sendSuccess ? (
-                <div className="text-center py-8">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <p className="text-base font-semibold text-slate-900">Tilboð sent!</p>
-                  <p className="text-sm text-slate-400 mt-1">PDF skjalið hefur verið sent á {sendEmail}</p>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm overflow-hidden">
+            {sendSuccess ? (
+              <div className="text-center py-10 px-5">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                  <Check className="w-6 h-6 text-emerald-600" />
                 </div>
-              ) : (
-                <>
-                  <p className="text-sm text-slate-500">
-                    Tilboðið verður sent sem PDF skjal á netfangið sem þú slær inn.
-                  </p>
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Netfang</label>
-                    <input
-                      type="email"
-                      placeholder="netfang@dæmi.is"
-                      value={sendEmail}
-                      onChange={(e) => setSendEmail(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleSendQuote(); }}
-                      className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30 focus:border-[var(--brand-primary)]"
-                      autoFocus
-                    />
-                  </div>
+                <p className="text-base font-bold text-slate-900">Tilboð sent!</p>
+                <p className="text-sm text-slate-400 mt-1">{sendEmail}</p>
+              </div>
+            ) : (
+              <>
+                <div className="px-5 pt-5 pb-2">
+                  <h3 className="text-base font-bold text-slate-900">Senda tilboð</h3>
+                  <p className="text-sm text-slate-400 mt-1">Sláðu inn netfangið þitt</p>
+                </div>
+                <div className="px-5 pb-3">
+                  <input
+                    type="email"
+                    placeholder="netfang@dæmi.is"
+                    value={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && sendEmail) handleSendQuote(); }}
+                    className="w-full px-3.5 py-3 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30 focus:border-[var(--brand-primary)]"
+                    autoFocus
+                  />
                   {sendError && (
-                    <p className="text-xs text-red-500 flex items-center gap-1">
+                    <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" /> {sendError}
                     </p>
                   )}
-                </>
-              )}
-            </div>
-
-            {/* Footer */}
-            {!sendSuccess && (
-              <div className="px-5 py-4 border-t border-slate-100 flex gap-2">
-                <button
-                  onClick={() => { setShowSendModal(false); setSendError(""); }}
-                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                >
-                  Hætta við
-                </button>
-                <button
-                  onClick={handleSendQuote}
-                  disabled={sendingEmail || !sendEmail}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-                  style={{ backgroundColor: "var(--brand-primary)" }}
-                >
-                  {sendingEmail ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                  Senda tilboð
-                </button>
-              </div>
+                </div>
+                <div className="px-5 pb-5 flex gap-2">
+                  <button
+                    onClick={() => { setShowSendModal(false); setSendError(""); }}
+                    className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    Hætta við
+                  </button>
+                  <button
+                    onClick={handleSendQuote}
+                    disabled={sendingEmail || !sendEmail}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                    style={{ backgroundColor: "var(--brand-primary)" }}
+                  >
+                    {sendingEmail ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    Senda
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>,
