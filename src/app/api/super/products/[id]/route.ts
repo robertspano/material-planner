@@ -49,6 +49,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         updateData.discountPercent = discountPercent ? parseFloat(discountPercent) : null;
       }
 
+      const patterns = formData.get("patterns") as string | null;
+      if (patterns) updateData.patterns = JSON.parse(patterns);
+
       // Handle image upload
       const image = formData.get("image") as File | null;
       if (image) {
@@ -98,6 +101,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(data.tileHeight !== undefined && { tileHeight: data.tileHeight }),
         ...(data.tileThickness !== undefined && { tileThickness: data.tileThickness }),
         ...(data.discountPercent !== undefined && { discountPercent: data.discountPercent }),
+        ...(data.patterns !== undefined && { patterns: data.patterns }),
       },
       include: { category: true },
     });

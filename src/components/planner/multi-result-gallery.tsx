@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useQueries } from "@tanstack/react-query";
-import { Loader2, Download, RotateCcw, AlertCircle, ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles, X, Maximize2, FileText, Send } from "lucide-react";
+import { Loader2, Download, RotateCcw, AlertCircle, ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles, X, Maximize2, FileText, Send, Check, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MaterialEstimate } from "@/components/planner/material-estimate";
 
@@ -606,7 +606,9 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
 
   // Generate PDF for combined quote — sends ALL estimate data
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const handleDownloadQuote = useCallback(async () => {
+  const [quoteSent, setQuoteSent] = useState(false);
+
+  const handleSendQuoteToAdmin = useCallback(async () => {
     setGeneratingPdf(true);
     try {
       const items = buildQuoteItems();
@@ -620,17 +622,15 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
         }),
       });
       if (!res.ok) throw new Error("Failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `tilbod.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // PDF is generated, uploaded to Cloudinary, and saved as Quote in background
+      // No download — just confirm success
+      const pdfUrl = res.headers.get("X-Quote-Url");
+      if (pdfUrl) {
+        setQuoteSent(true);
+        setTimeout(() => setQuoteSent(false), 4000);
+      }
     } catch (err) {
-      console.error("PDF error:", err);
+      console.error("Quote error:", err);
     } finally {
       setGeneratingPdf(false);
     }
@@ -1109,24 +1109,26 @@ export function MultiResultGallery({ groups, companySlug, onReset, company }: Mu
               {/* Quote buttons */}
               <div className="flex gap-2 p-3 bg-white">
                 <button
-                  onClick={handleDownloadQuote}
-                  disabled={generatingPdf}
+                  onClick={handleSendQuoteToAdmin}
+                  disabled={generatingPdf || quoteSent}
                   className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-                  style={{ backgroundColor: "var(--brand-primary)" }}
+                  style={{ backgroundColor: quoteSent ? "#059669" : "var(--brand-primary)" }}
                 >
                   {generatingPdf ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : quoteSent ? (
+                    <Check className="w-4 h-4" />
                   ) : (
-                    <FileText className="w-4 h-4" />
+                    <Send className="w-4 h-4" />
                   )}
-                  Sækja tilboð
+                  {quoteSent ? "Tilboð sent!" : "Senda tilboð"}
                 </button>
                 <button
                   onClick={() => setShowSendModal(true)}
                   className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all"
                 >
-                  <Send className="w-4 h-4" />
-                  Senda
+                  <Mail className="w-4 h-4" />
+                  Tölvupóstur
                 </button>
               </div>
             </div>

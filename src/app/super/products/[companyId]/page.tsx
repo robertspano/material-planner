@@ -32,6 +32,7 @@ interface ProductEntry {
   isActive: boolean;
   categoryId: string;
   sortOrder: number;
+  patterns: string[];
   category: { id: string; name: string; surfaceType: string };
 }
 
@@ -75,6 +76,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
   const [formTileH, setFormTileH] = useState("");
   const [formTileT, setFormTileT] = useState("");
   const [formDiscount, setFormDiscount] = useState("");
+  const [formPatterns, setFormPatterns] = useState<string[]>([]);
   const [formImage, setFormImage] = useState<File | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +120,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
       if (formTileH) fd.append("tileHeight", formTileH);
       if (formTileT) fd.append("tileThickness", formTileT);
       if (formDiscount) fd.append("discountPercent", formDiscount);
+      if (formPatterns.length > 0) fd.append("patterns", JSON.stringify(formPatterns));
       if (formImage) fd.append("image", formImage);
       const res = await fetch("/api/super/products", { method: "POST", body: fd, credentials: "include" });
       if (!res.ok) {
@@ -209,7 +212,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
     setFormName(""); setFormDesc(""); setFormPrice(""); setFormUnit("m2");
     setFormCatId(""); setFormFloor(true); setFormWall(false);
     setFormTileW(""); setFormTileH(""); setFormTileT(""); setFormDiscount("");
-    setFormImage(null);
+    setFormPatterns([]); setFormImage(null);
   };
 
   const startEdit = (p: ProductEntry) => {
@@ -225,6 +228,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
     setFormTileH(p.tileHeight?.toString() || "");
     setFormTileT(p.tileThickness?.toString() || "");
     setFormDiscount(p.discountPercent?.toString() || "");
+    setFormPatterns(p.patterns || []);
     setFormImage(null);
   };
 
@@ -245,6 +249,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
       if (formTileH) fd.append("tileHeight", formTileH);
       if (formTileT) fd.append("tileThickness", formTileT);
       fd.append("discountPercent", formDiscount || "");
+      fd.append("patterns", JSON.stringify(formPatterns));
       if (formImage) fd.append("image", formImage);
       updateWithImageMutation.mutate({ id: editingProduct.id, formData: fd });
     } else {
@@ -263,6 +268,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
         tileHeight: formTileH ? parseFloat(formTileH) : null,
         tileThickness: formTileT ? parseFloat(formTileT) : null,
         discountPercent: formDiscount ? parseFloat(formDiscount) : null,
+        patterns: formPatterns,
       });
       setEditingProduct(null);
     }
@@ -493,6 +499,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
               formTileH={formTileH} setFormTileH={setFormTileH}
               formTileT={formTileT} setFormTileT={setFormTileT}
               formDiscount={formDiscount} setFormDiscount={setFormDiscount}
+              formPatterns={formPatterns} setFormPatterns={setFormPatterns}
               formImage={formImage} setFormImage={setFormImage}
               imageInputRef={imageInputRef}
             />
@@ -535,6 +542,7 @@ export default function SuperProductsPage({ params }: { params: Promise<{ compan
               formTileH={formTileH} setFormTileH={setFormTileH}
               formTileT={formTileT} setFormTileT={setFormTileT}
               formDiscount={formDiscount} setFormDiscount={setFormDiscount}
+              formPatterns={formPatterns} setFormPatterns={setFormPatterns}
               formImage={formImage} setFormImage={setFormImage}
               imageInputRef={imageInputRef}
             />
@@ -753,6 +761,7 @@ function ProductForm({
   formTileW, setFormTileW, formTileH, setFormTileH,
   formTileT, setFormTileT,
   formDiscount, setFormDiscount,
+  formPatterns, setFormPatterns,
   formImage, setFormImage,
   imageInputRef,
 }: {
@@ -769,9 +778,27 @@ function ProductForm({
   formTileH: string; setFormTileH: (v: string) => void;
   formTileT: string; setFormTileT: (v: string) => void;
   formDiscount: string; setFormDiscount: (v: string) => void;
+  formPatterns: string[]; setFormPatterns: (v: string[]) => void;
   formImage: File | null; setFormImage: (v: File | null) => void;
   imageInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const ALL_PATTERNS = [
+    { value: "straight", label: "Bein lögn" },
+    { value: "brick", label: "Múrsteinslögn" },
+    { value: "herringbone", label: "Síldargrátslögn" },
+    { value: "diagonal", label: "Á ská (45°)" },
+    { value: "chevron", label: "Chevron" },
+    { value: "stacked", label: "Upprétt lögn" },
+    { value: "one-third", label: "Þriðjungslögn" },
+  ];
+
+  const togglePattern = (pattern: string) => {
+    setFormPatterns(
+      formPatterns.includes(pattern)
+        ? formPatterns.filter(p => p !== pattern)
+        : [...formPatterns, pattern]
+    );
+  };
   return (
     <div className="space-y-3">
       <div>
@@ -883,6 +910,28 @@ function ProductForm({
             <span className="text-sm text-slate-900">Veggur</span>
           </label>
         </div>
+      </div>
+
+      {/* Laying patterns */}
+      <div>
+        <Label className="text-xs">Leggingarmunstur</Label>
+        <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+          {ALL_PATTERNS.map(({ value, label }) => (
+            <label key={value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formPatterns.includes(value)}
+                onChange={() => togglePattern(value)}
+                className="w-4 h-4 rounded border-slate-300"
+                style={{ accentColor: brandColor }}
+              />
+              <span className="text-sm text-slate-700">{label}</span>
+            </label>
+          ))}
+        </div>
+        {formPatterns.length === 0 && (
+          <p className="text-[10px] text-slate-400 mt-1">Ekkert valið — öll munstur verða í boði</p>
+        )}
       </div>
 
       {/* Tile dimensions */}

@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         justifyContent: "space-between" as const,
         alignItems: "center" as const,
       },
-      logoImg: { height: 40, maxWidth: 200 },
+      logoImg: { height: 40, maxWidth: 200, backgroundColor: "#1e293b", borderRadius: 6, padding: 6 },
       companyName: { fontSize: 20, fontWeight: 700, color: brandRgb },
       headerRight: { alignItems: "flex-end" as const },
       quoteLabel: { fontSize: 20, fontWeight: 700, color: brandRgb },
@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
         paddingHorizontal: 40,
         borderTop: "1 solid #f1f5f9",
       },
-      footerLogoImg: { height: 18, maxWidth: 100 },
+      footerLogoImg: { height: 18, maxWidth: 100, backgroundColor: "#1e293b", borderRadius: 4, padding: 3 },
       footerText: { fontSize: 8, color: "#94a3b8" },
       footerRight: { fontSize: 7, color: "#cbd5e1" },
 

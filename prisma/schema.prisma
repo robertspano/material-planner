@@ -74,6 +74,7 @@ model Product {
   tileThickness      Float?
   tileWidth          Float?
   discountPercent    Float?
+  patterns           String[]            @default([])
   generationProducts GenerationProduct[]
   category           Category            @relation(fields: [categoryId], references: [id])
   company            Company             @relation(fields: [companyId], references: [id])

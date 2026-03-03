@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
     const tileHeight = formData.get("tileHeight") ? parseFloat(formData.get("tileHeight") as string) : null;
     const tileThickness = formData.get("tileThickness") ? parseFloat(formData.get("tileThickness") as string) : null;
     const discountPercent = formData.get("discountPercent") ? parseFloat(formData.get("discountPercent") as string) : null;
+    const patterns = formData.get("patterns")
+      ? JSON.parse(formData.get("patterns") as string) as string[]
+      : [];
     const image = formData.get("image") as File | null;
     const swatch = formData.get("swatch") as File | null;
 
@@ -88,6 +91,7 @@ export async function POST(request: NextRequest) {
         tileHeight,
         tileThickness,
         discountPercent,
+        patterns,
       },
       include: { category: true },
     });
