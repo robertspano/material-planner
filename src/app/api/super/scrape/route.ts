@@ -428,6 +428,31 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // --- Priority 3.5: SPA JS bundle logo references ---
+      // For React/Vue/Angular SPAs, the logo path is often in the JS bundle
+      const scriptSrcs = [...rawHtml.matchAll(/<script[^>]*src=["']([^"']+\.js)["']/gi)]
+        .map(m => m[1])
+        .filter(s => /main|app|bundle|index|chunk/i.test(s))
+        .slice(0, 3);
+      for (const scriptSrc of scriptSrcs) {
+        try {
+          let jsUrl = scriptSrc;
+          if (jsUrl.startsWith("/")) jsUrl = origin + jsUrl;
+          else if (!jsUrl.startsWith("http")) jsUrl = origin + "/" + jsUrl;
+          const jsRes = await fetch(jsUrl, { signal: AbortSignal.timeout(5000) });
+          if (jsRes.ok) {
+            const jsText = await jsRes.text();
+            // Look for logo image paths in the JS bundle
+            const logoRefs = [...jsText.matchAll(/["']([^"']*[Ll]ogo[^"']*\.(?:svg|png|jpg|webp))["']/g)];
+            for (const ref of logoRefs) {
+              let logoPath = ref[1];
+              if (logoPath.includes("node_modules") || logoPath.includes("webpack")) continue;
+              logoCandidates.push({ url: logoPath, priority: 1, source: "Logo úr JS kóða (SPA)" });
+            }
+          }
+        } catch { /* skip */ }
+      }
+
       // --- Priority 4: SVG favicon (high quality) ---
       const svgIconPatterns = [
         /<link[^>]*rel=["']icon["'][^>]*type=["']image\/svg\+xml["'][^>]*href=["']([^"']+)["']/i,
