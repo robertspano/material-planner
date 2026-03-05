@@ -210,13 +210,13 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                     : "border-slate-200 hover:border-slate-400"
                 }`}
               >
-                {/* Hover popup — room scene photo (swatchUrl) or product photo */}
-                {(product.swatchUrl || (product.imageUrl && product.imageUrl !== "/placeholder-product.jpg")) && (
+                {/* Hover popup — room/installation photo */}
+                {product.imageUrl && product.imageUrl !== "/placeholder-product.jpg" && (
                   <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom hidden group-hover:block">
                     <div className="w-96 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white ring-1 ring-black/5">
                       <img
-                        src={product.swatchUrl || product.imageUrl}
-                        alt={product.name}
+                        src={product.imageUrl}
+                        alt={`${product.name} - uppsetning`}
                         className="w-full aspect-[4/3] object-cover rounded-t-xl"
                       />
                       <div className="px-3 py-2.5">
@@ -256,8 +256,8 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                   </div>
                 )}
                 <div className="aspect-square bg-slate-100 relative rounded-t-[10px] overflow-hidden">
-                  {product.imageUrl && product.imageUrl !== "/placeholder-product.jpg" ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  {(product.swatchUrl || product.imageUrl) && product.imageUrl !== "/placeholder-product.jpg" ? (
+                    <img src={product.swatchUrl || product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <ImageIcon className="w-8 h-8 text-slate-300" />

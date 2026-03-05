@@ -553,9 +553,26 @@ function ProductCard({
 
   return (
     <div className={`bg-white rounded-xl border border-slate-200 overflow-hidden transition-all hover:shadow-lg group ${!p.isActive ? "opacity-50" : ""}`}>
-      <div className="aspect-square bg-slate-100 relative">
-        {p.imageUrl && p.imageUrl !== "/placeholder-product.jpg" && p.imageUrl !== "" ? (
-          <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+      <div className="aspect-square bg-slate-100 relative overflow-hidden">
+        {(p.swatchUrl || p.imageUrl) && p.imageUrl !== "/placeholder-product.jpg" && p.imageUrl !== "" ? (
+          <>
+            {/* Default: swatch/material image */}
+            <img
+              src={p.swatchUrl || p.imageUrl}
+              alt={p.name}
+              className="w-full h-full object-cover absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
+              loading="lazy"
+            />
+            {/* Hover: room/installation image */}
+            {p.swatchUrl && p.imageUrl && p.imageUrl !== "/placeholder-product.jpg" && (
+              <img
+                src={p.imageUrl}
+                alt={`${p.name} - uppsetning`}
+                className="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                loading="lazy"
+              />
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-10 h-10 text-slate-300" /></div>
         )}
