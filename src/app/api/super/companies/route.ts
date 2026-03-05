@@ -35,29 +35,29 @@ export async function POST(request: NextRequest) {
     const { name, slug, kennitala, logoUrl, logoIsLight, primaryColor, secondaryColor, monthlyGenerationLimit, adminName, adminEmail, adminPassword } = await request.json();
 
     if (!name || !slug) {
-      return NextResponse.json({ error: "Name and slug are required" }, { status: 400 });
+      return NextResponse.json({ error: "Nafn og slug eru nauðsynleg" }, { status: 400 });
     }
 
     // Validate slug format
     if (!/^[a-z0-9-]+$/.test(slug)) {
-      return NextResponse.json({ error: "Slug must contain only lowercase letters, numbers, and hyphens" }, { status: 400 });
+      return NextResponse.json({ error: "Slug má aðeins innihalda lágstafi, tölustafi og bandstrik" }, { status: 400 });
     }
 
     // Check for reserved slugs
     if (["admin", "api", "www", "app", "demo"].includes(slug)) {
-      return NextResponse.json({ error: "This slug is reserved" }, { status: 400 });
+      return NextResponse.json({ error: "Þetta slug er frátekið" }, { status: 400 });
     }
 
     const existing = await prisma.company.findUnique({ where: { slug } });
     if (existing) {
-      return NextResponse.json({ error: "A company with this slug already exists" }, { status: 409 });
+      return NextResponse.json({ error: "Fyrirtæki með þessu slugi er þegar til" }, { status: 409 });
     }
 
     // Check admin email uniqueness if provided
     if (adminEmail) {
       const existingAdmin = await prisma.companyAdmin.findUnique({ where: { email: adminEmail } });
       if (existingAdmin) {
-        return NextResponse.json({ error: "An admin with this email already exists" }, { status: 409 });
+        return NextResponse.json({ error: "Admin með þessu netfangi er þegar til" }, { status: 409 });
       }
     }
 

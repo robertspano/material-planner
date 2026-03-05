@@ -467,6 +467,7 @@ export default function SuperDashboardPage() {
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [scraping, setScraping] = useState(false);
   const [scrapeError, setScrapeError] = useState("");
+  const [createError, setCreateError] = useState("");
   const [scrapeFeedback, setScrapeFeedback] = useState<Record<string, { found: boolean; confidence?: string; message: string }> | null>(null);
 
   const handleScrape = async () => {
@@ -534,8 +535,14 @@ export default function SuperDashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/super/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/super/admins"] });
       setShowCreate(false);
+      setCreateError("");
       setCName(""); setCKennitala(""); setCPrimary("#2e7cff"); setCSecondary("#1e293b"); setCLogoUrl(""); setCLogoIsLight(false);
       setAName(""); setAEmail(""); setAPassword(""); setScrapeUrl(""); setScrapeError(""); setScrapeFeedback(null);
+    },
+    onError: (err: Error) => {
+      // Extract message from "409: {"error":"..."}" format
+      const match = err.message.match(/\{.*"error"\s*:\s*"([^"]+)"/);
+      setCreateError(match ? match[1] : err.message);
     },
   });
 
@@ -778,19 +785,29 @@ export default function SuperDashboardPage() {
                 <Input type="password" value={aPassword} onChange={(e) => setAPassword(e.target.value)} placeholder="Lágmark 8 stafir" className="mt-1" />
               </div>
 
+              {createError && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{createError}</p>
+                </div>
+              )}
+
               <Button
-                onClick={() => createMutation.mutate({
-                  name: cName,
-                  slug: autoSlug,
-                  kennitala: cKennitala || undefined,
-                  primaryColor: cPrimary,
-                  secondaryColor: cSecondary,
-                  logoUrl: cLogoUrl || undefined,
-                  logoIsLight: cLogoIsLight,
-                  adminName: aName,
-                  adminEmail: aEmail,
-                  adminPassword: aPassword,
-                })}
+                onClick={() => {
+                  setCreateError("");
+                  createMutation.mutate({
+                    name: cName,
+                    slug: autoSlug,
+                    kennitala: cKennitala || undefined,
+                    primaryColor: cPrimary,
+                    secondaryColor: cSecondary,
+                    logoUrl: cLogoUrl || undefined,
+                    logoIsLight: cLogoIsLight,
+                    adminName: aName,
+                    adminEmail: aEmail,
+                    adminPassword: aPassword,
+                  });
+                }}
                 disabled={!cName || createMutation.isPending}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white"
               >
