@@ -99,15 +99,26 @@ export default function LoginForm({ company }: { company: CompanyBranding | null
   }
 
   // ----- Branded login with background image -----
+  // Full-bleed background with floating card overlay (Landsbankinn-style)
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left: Form panel */}
-      <div className="flex flex-col justify-center items-center p-8 lg:w-[480px] lg:min-w-[480px] bg-white">
-        <div className="w-full max-w-sm">
-          {/* Company logo */}
-          <div className="flex items-center justify-center mb-10">
+    <div
+      className="min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
+      style={{
+        backgroundImage: `url(${company.loginBackgroundUrl})`,
+        backgroundColor: company.primaryColor,
+      }}
+    >
+      {/* Floating login card */}
+      <div className="min-h-screen flex items-center px-4 sm:px-8 lg:px-24">
+        <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-2xl p-8 sm:p-10 my-8">
+          {/* Company logo — always dark/black */}
+          <div className="flex items-center justify-center mb-8">
             {company.logoUrl ? (
-              <img src={company.logoUrl} alt={company.name} className="h-12 max-w-[240px] object-contain" />
+              <img
+                src={company.logoUrl}
+                alt={company.name}
+                className="h-10 max-w-[180px] object-contain brightness-0"
+              />
             ) : (
               <h1 className="text-2xl font-bold text-slate-900">{company.name}</h1>
             )}
@@ -115,25 +126,25 @@ export default function LoginForm({ company }: { company: CompanyBranding | null
 
           {/* Welcome text */}
           <div className="text-center mb-8">
-            <h2 className="text-xl font-semibold text-slate-900">Velkomin</h2>
-            <p className="text-sm text-slate-500 mt-1">Skráðu þig inn á stjórnborð</p>
+            <h2 className="text-2xl font-semibold text-slate-900">Velkomin</h2>
+            <p className="text-sm text-slate-500 mt-2">Skráðu þig inn á Snið</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <Label htmlFor="email">Netfang</Label>
-              <Input id="email" type="email" placeholder="admin@fyrirtæki.is" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1 h-11" />
+              <Input id="email" type="email" placeholder="admin@fyrirtæki.is" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1.5 h-12" />
             </div>
             <div>
               <Label htmlFor="password">Lykilorð</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1 h-11" />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1.5 h-12" />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 text-base"
+              className="w-full h-12 text-base font-medium"
               style={{ backgroundColor: company.primaryColor }}
             >
               {loading ? "Skrái inn..." : "Skrá inn"}
@@ -141,24 +152,6 @@ export default function LoginForm({ company }: { company: CompanyBranding | null
           </form>
         </div>
       </div>
-
-      {/* Right: Background image (desktop only) */}
-      <div
-        className="hidden lg:block flex-1 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${company.loginBackgroundUrl})`,
-          backgroundColor: company.primaryColor,
-        }}
-      />
-
-      {/* Mobile: show a small strip of the background */}
-      <div
-        className="lg:hidden h-32 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${company.loginBackgroundUrl})`,
-          backgroundColor: company.primaryColor,
-        }}
-      />
     </div>
   );
 }
