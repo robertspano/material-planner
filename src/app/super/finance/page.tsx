@@ -75,7 +75,7 @@ export default function FinancePage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  const { data, isLoading } = useQuery<FinanceData>({
+  const { data, isLoading, error } = useQuery<FinanceData>({
     queryKey: [`/api/super/finance?range=${range}`],
   });
 
@@ -102,10 +102,24 @@ export default function FinancePage() {
     setDateTo(toDateStr(now));
   };
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+        <p className="text-sm text-red-500">{error?.message || "Villa við að sækja gögn"}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="text-xs text-purple-600 hover:underline"
+        >
+          Reyna aftur
+        </button>
       </div>
     );
   }
