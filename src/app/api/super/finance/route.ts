@@ -256,7 +256,8 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof Response) return error;
-    console.error("Finance API error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Finance API error:", msg, error);
+    return NextResponse.json({ error: msg || "Internal server error" }, { status: 500 });
   }
 }
