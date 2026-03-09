@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { LogOut, Settings, FileText, ExternalLink, X, Upload, Save, Loader2, ImageIcon } from "lucide-react";
+import { LogOut, Settings, FileText, ExternalLink, X, Upload, Save, Loader2, ImageIcon, User, Mail, Lock, Eye, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,6 +139,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           brandColor={brandColor}
           companySlug={companySlug}
           adminApiUrl={adminApiUrl}
+          admin={admin}
           onClose={() => setSettingsOpen(false)}
         />
       )}
@@ -153,17 +154,61 @@ function SettingsModal({
   brandColor,
   companySlug,
   adminApiUrl,
+  admin,
   onClose,
 }: {
   company: CompanyBranding | undefined;
   brandColor: string;
   companySlug: string;
   adminApiUrl: (path: string) => string;
+  admin: { id: string; name: string; email: string; role: string } | null;
   onClose: () => void;
 }) {
   const brandingKey = `/api/planner/company?company=${companySlug}`;
   const companyUrl = adminApiUrl("/api/planner/company");
 
+  // ── Profile state ──
+  const [email, setEmail] = useState(admin?.email || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState(false);
+
+  const profileMutation = useMutation({
+    mutationFn: async () => {
+      setProfileError("");
+      setProfileSuccess(false);
+      const body: Record<string, string> = { currentPassword };
+      if (email !== admin?.email) body.email = email;
+      if (newPassword) body.newPassword = newPassword;
+
+      const res = await fetch(adminApiUrl("/api/admin/profile"), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Villa kom upp");
+      return data;
+    },
+    onSuccess: () => {
+      setProfileSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      setTimeout(() => setProfileSuccess(false), 3000);
+    },
+    onError: (err: Error) => {
+      setProfileError(err.message);
+    },
+  });
+
+  const hasProfileChanges = (email !== (admin?.email || "") || newPassword.length > 0) && currentPassword.length > 0;
+
+  // ── Branding state ──
   const [primary, setPrimary] = useState(company?.primaryColor || "");
   const [secondary, setSecondary] = useState(company?.secondaryColor || "");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -222,6 +267,114 @@ function SettingsModal({
         </div>
 
         <div className="space-y-5">
+          {/* ── My Account Section ── */}
+          <div>
+            <Label className="text-xs text-slate-400 uppercase tracking-wider">Minn aðgangur</Label>
+            <div className="mt-3 space-y-3">
+              {/* Name (read-only) */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">{admin?.name}</p>
+                  <p className="text-[11px] text-slate-400">Nafn</p>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Mail className="w-3 h-3 text-slate-400" />
+                  <label className="text-xs text-slate-500 font-medium">Netfang</label>
+                </div>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setProfileError(""); }}
+                  className="h-9 text-sm"
+                  placeholder="netfang@dæmi.is"
+                />
+              </div>
+
+              {/* Current password */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Lock className="w-3 h-3 text-slate-400" />
+                  <label className="text-xs text-slate-500 font-medium">Núverandi lykilorð</label>
+                </div>
+                <div className="relative">
+                  <Input
+                    type={showCurrentPw ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => { setCurrentPassword(e.target.value); setProfileError(""); }}
+                    className="h-9 text-sm pr-9"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPw(!showCurrentPw)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showCurrentPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* New password */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Lock className="w-3 h-3 text-slate-400" />
+                  <label className="text-xs text-slate-500 font-medium">Nýtt lykilorð <span className="text-slate-300 font-normal">(valfrjálst)</span></label>
+                </div>
+                <div className="relative">
+                  <Input
+                    type={showNewPw ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => { setNewPassword(e.target.value); setProfileError(""); }}
+                    className="h-9 text-sm pr-9"
+                    placeholder="Nýtt lykilorð..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPw(!showNewPw)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showNewPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error / Success message */}
+              {profileError && (
+                <p className="text-xs text-red-500 font-medium">{profileError}</p>
+              )}
+              {profileSuccess && (
+                <p className="text-xs text-emerald-500 font-medium flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Aðgangur uppfærður
+                </p>
+              )}
+
+              {/* Save profile */}
+              <Button
+                onClick={() => profileMutation.mutate()}
+                disabled={!hasProfileChanges || profileMutation.isPending}
+                variant="outline"
+                className="w-full h-9 text-sm"
+              >
+                {profileMutation.isPending ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Vista...</>
+                ) : (
+                  <><Save className="w-3.5 h-3.5 mr-1.5" /> Vista aðgang</>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-slate-100" />
+
+          {/* ── Company Branding Section ── */}
           {/* Company name + kennitala */}
           <div>
             <Label className="text-xs text-slate-400 uppercase tracking-wider">Fyrirtæki</Label>
