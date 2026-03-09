@@ -124,6 +124,8 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
       if (!res.ok) throw new Error("Upload failed");
       const { url } = await res.json();
       setEditLogoUrl(url);
+      // Auto-save logo immediately
+      onUpdate(company.id, { logoUrl: url });
     } catch (err) {
       console.error("Logo upload error:", err);
     } finally {
@@ -142,6 +144,8 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
       if (!res.ok) throw new Error("Upload failed");
       const { url } = await res.json();
       setEditLoginBgUrl(url);
+      // Auto-save background immediately
+      onUpdate(company.id, { loginBackgroundUrl: url });
     } catch (err) {
       console.error("Background upload error:", err);
     } finally {
@@ -357,7 +361,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
                     >
                       <img src={editLogoUrl} alt="Logo" className="h-5 max-w-[120px] object-contain" />
                     </div>
-                    <button onClick={() => setEditLogoUrl("")} className="text-red-400 hover:text-red-300" title="Fjarlægja logo">
+                    <button onClick={() => { setEditLogoUrl(""); onUpdate(company.id, { logoUrl: null }); }} className="text-red-400 hover:text-red-300" title="Fjarlægja logo">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -396,7 +400,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
                     >
                       <img src={editLoginBgUrl} alt="Login background" className="w-full h-full object-cover" />
                     </div>
-                    <button onClick={() => setEditLoginBgUrl("")} className="text-red-400 hover:text-red-300" title="Fjarlægja bakgrunn">
+                    <button onClick={() => { setEditLoginBgUrl(""); onUpdate(company.id, { loginBackgroundUrl: null }); }} className="text-red-400 hover:text-red-300" title="Fjarlægja bakgrunn">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
