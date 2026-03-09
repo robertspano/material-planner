@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { is } from "date-fns/locale";
 import {
   Loader2, Zap, ImageIcon, Package,
-  ChevronDown, Calendar,
+  ChevronDown, Calendar as CalendarIcon,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 // ── Types ──
 type Range = "day" | "week" | "month" | "6months" | "year" | "all";
@@ -66,6 +71,51 @@ function formatDay(iso: string) {
     month: "long",
     ...(d.getFullYear() !== new Date().getFullYear() ? { year: "numeric" } : {}),
   });
+}
+
+// ── Date Picker Button ──
+function DatePickerButton({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (date: string) => void;
+  label: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = value ? new Date(value + "T12:00:00") : undefined;
+
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs text-slate-500 font-medium">{label}</label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="h-8 px-3 text-xs font-normal justify-start gap-2"
+          >
+            <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+            {selected ? format(selected, "d. MMM yyyy", { locale: is }) : "Veldu dag"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={selected}
+            onSelect={(day) => {
+              if (day) {
+                onChange(toDateStr(day));
+              }
+              setOpen(false);
+            }}
+            locale={is}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 }
 
 // ── Main Page ──
@@ -204,32 +254,10 @@ export default function FinancePage() {
               {/* Expanded — date picker + detail */}
               {isExpanded && (
                 <div className="border-t border-slate-100">
-                  {/* All-time summary */}
-                  <div className="px-4 py-3 bg-slate-50/50 flex items-center gap-5 text-[11px] text-slate-400 flex-wrap">
-                    <span>Samtals: <span className="font-semibold text-slate-600">{c.totalGenerates} framl.</span></span>
-                    <span>Samtals myndir: <span className="font-semibold text-slate-600">{c.totalImages}</span></span>
-                  </div>
-
                   {/* Date range picker */}
-                  <div className="px-4 py-3 flex items-center gap-4 flex-wrap border-b border-slate-50">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-slate-500 font-medium">Frá</label>
-                      <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
-                        className="h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-slate-500 font-medium">Til</label>
-                      <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
-                        className="h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
-                      />
-                    </div>
+                  <div className="px-4 py-3 flex items-center gap-4 flex-wrap">
+                    <DatePickerButton label="Frá" value={dateFrom} onChange={setDateFrom} />
+                    <DatePickerButton label="Til" value={dateTo} onChange={setDateTo} />
                   </div>
 
                   {/* Results */}
@@ -239,26 +267,12 @@ export default function FinancePage() {
                     </div>
                   ) : detail && detail.daily.length > 0 ? (
                     <div>
-                      {/* Period summary */}
-                      <div className="px-4 py-3 flex items-center gap-5 text-sm">
-                        <span className="flex items-center gap-1.5">
-                          <Zap className="w-4 h-4 text-blue-500" />
-                          <span className="font-bold text-slate-900">{detail.totalGenerates}</span>
-                          <span className="text-slate-400">framleiðslur</span>
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <ImageIcon className="w-4 h-4 text-amber-500" />
-                          <span className="font-bold text-slate-900">{detail.totalImages}</span>
-                          <span className="text-slate-400">myndir</span>
-                        </span>
-                      </div>
-
                       {/* Daily rows */}
                       <div className="divide-y divide-slate-50 max-h-[320px] overflow-y-auto">
                         {detail.daily.map(day => (
                           <div key={day.date} className="flex items-center justify-between px-4 py-2.5 text-xs hover:bg-slate-50/50">
                             <div className="flex items-center gap-2">
-                              <Calendar className="w-3 h-3 text-slate-300" />
+                              <CalendarIcon className="w-3 h-3 text-slate-300" />
                               <span className="font-medium text-slate-600">{formatDay(day.date)}</span>
                             </div>
                             <div className="flex items-center gap-4 tabular-nums">
