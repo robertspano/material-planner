@@ -17,6 +17,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(data.secondaryColor !== undefined && { secondaryColor: data.secondaryColor }),
         ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
         ...(data.logoIsLight !== undefined && { logoIsLight: data.logoIsLight }),
+        ...(data.loginBackgroundUrl !== undefined && { loginBackgroundUrl: data.loginBackgroundUrl }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         ...(data.monthlyGenerationLimit !== undefined && { monthlyGenerationLimit: data.monthlyGenerationLimit }),
         ...(data.plan !== undefined && { plan: data.plan }),

@@ -23,6 +23,7 @@ model Company {
   updatedAt              DateTime       @updatedAt
   kennitala              String?
   logoIsLight            Boolean        @default(false)
+  loginBackgroundUrl     String?
   pricePerGeneration     Float          @default(50)
   categories             Category[]
   admins                 CompanyAdmin[]

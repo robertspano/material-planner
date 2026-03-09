@@ -15,6 +15,7 @@ export async function GET() {
       slug: company.slug,
       kennitala: company.kennitala,
       logoUrl: company.logoUrl,
+      loginBackgroundUrl: company.loginBackgroundUrl,
       primaryColor: company.primaryColor,
       secondaryColor: company.secondaryColor,
     }, {

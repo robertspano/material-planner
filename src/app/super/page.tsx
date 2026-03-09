@@ -34,6 +34,7 @@ interface CompanyWithCounts {
   kennitala: string | null;
   logoUrl: string | null;
   logoIsLight: boolean;
+  loginBackgroundUrl: string | null;
   primaryColor: string;
   secondaryColor: string;
   isActive: boolean;
@@ -67,9 +68,12 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
   const [editPrimary, setEditPrimary] = useState(company.primaryColor);
   const [editSecondary, setEditSecondary] = useState(company.secondaryColor);
   const [editLogoUrl, setEditLogoUrl] = useState(company.logoUrl || "");
+  const [editLoginBgUrl, setEditLoginBgUrl] = useState(company.loginBackgroundUrl || "");
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPasswordFor, setShowPasswordFor] = useState<string | null>(null);
 
@@ -86,6 +90,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
     setEditPrimary(company.primaryColor);
     setEditSecondary(company.secondaryColor);
     setEditLogoUrl(company.logoUrl || "");
+    setEditLoginBgUrl(company.loginBackgroundUrl || "");
   }, [company]);
 
   const hasChanges =
@@ -93,7 +98,8 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
     editKennitala !== (company.kennitala || "") ||
     editPrimary !== company.primaryColor ||
     editSecondary !== company.secondaryColor ||
-    editLogoUrl !== (company.logoUrl || "");
+    editLogoUrl !== (company.logoUrl || "") ||
+    editLoginBgUrl !== (company.loginBackgroundUrl || "");
 
   const handleSave = () => {
     setSaving(true);
@@ -103,6 +109,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
       primaryColor: editPrimary,
       secondaryColor: editSecondary,
       logoUrl: editLogoUrl || null,
+      loginBackgroundUrl: editLoginBgUrl || null,
     });
     setTimeout(() => setSaving(false), 500);
   };
@@ -121,6 +128,24 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
       console.error("Logo upload error:", err);
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  const handleBgUpload = async (file: File) => {
+    setUploadingBg(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "login-backgrounds");
+      fd.append("type", "background");
+      const res = await fetch("/api/super/upload", { method: "POST", body: fd, credentials: "include" });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = await res.json();
+      setEditLoginBgUrl(url);
+    } catch (err) {
+      console.error("Background upload error:", err);
+    } finally {
+      setUploadingBg(false);
     }
   };
 
@@ -352,6 +377,45 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleLogoUpload(file);
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Login Background */}
+            <div>
+              <Label className="text-xs">Innskráningarmynd</Label>
+              <div className="flex items-center gap-3 mt-1">
+                {uploadingBg ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : editLoginBgUrl ? (
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-[180px] h-[100px] rounded-lg overflow-hidden cursor-pointer hover:opacity-70 transition-opacity bg-slate-100"
+                      onClick={() => bgInputRef.current?.click()}
+                    >
+                      <img src={editLoginBgUrl} alt="Login background" className="w-full h-full object-cover" />
+                    </div>
+                    <button onClick={() => setEditLoginBgUrl("")} className="text-red-400 hover:text-red-300" title="Fjarlægja bakgrunn">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => bgInputRef.current?.click()}
+                    className="text-xs text-slate-500 bg-slate-100 px-3 py-2 rounded-lg hover:opacity-80 flex items-center gap-2"
+                  >
+                    <Upload className="w-3.5 h-3.5" /> Hlaða upp bakgrunni
+                  </button>
+                )}
+                <input
+                  ref={bgInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleBgUpload(file);
                   }}
                 />
               </div>
