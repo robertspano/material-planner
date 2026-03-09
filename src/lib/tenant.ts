@@ -4,16 +4,17 @@ import { headers } from "next/headers";
 
 /**
  * Resolve company from the x-company-slug header set by middleware.
- * Returns null if company not found or inactive.
+ * By default only returns active companies. Pass includeInactive=true
+ * for pages like login that should show branding regardless.
  */
-export async function getCompanyFromRequest(): Promise<Company | null> {
+export async function getCompanyFromRequest(opts?: { includeInactive?: boolean }): Promise<Company | null> {
   const headersList = await headers();
   const slug = headersList.get("x-company-slug");
 
   if (!slug) return null;
 
   const company = await prisma.company.findUnique({
-    where: { slug, isActive: true },
+    where: opts?.includeInactive ? { slug } : { slug, isActive: true },
   });
 
   return company || null;

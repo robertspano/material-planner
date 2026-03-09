@@ -2,7 +2,7 @@ import { getCompanyFromRequest } from "@/lib/tenant";
 import LoginForm from "./LoginForm";
 
 export default async function LoginPage() {
-  const company = await getCompanyFromRequest();
+  const company = await getCompanyFromRequest({ includeInactive: true });
 
   const branding = company
     ? {
