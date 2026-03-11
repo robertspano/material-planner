@@ -3,7 +3,8 @@ import { getCompanyFromRequest } from "@/lib/tenant";
 
 export async function GET() {
   try {
-    const company = await getCompanyFromRequest();
+    // Always return company data (even inactive) for branding on lock screen
+    const company = await getCompanyFromRequest({ includeInactive: true });
 
     if (!company) {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
@@ -18,6 +19,7 @@ export async function GET() {
       loginBackgroundUrl: company.loginBackgroundUrl,
       primaryColor: company.primaryColor,
       secondaryColor: company.secondaryColor,
+      isActive: company.isActive,
     }, {
       headers: { "Cache-Control": "private, no-cache" },
     });

@@ -13,8 +13,13 @@ export async function getCompanyFromRequest(opts?: { includeInactive?: boolean }
 
   if (!slug) return null;
 
+  // Check for planner-unlock cookie — allows access to inactive companies
+  const cookieHeader = headersList.get("cookie") || "";
+  const hasUnlockCookie = cookieHeader.includes("planner-unlock=1");
+  const includeInactive = opts?.includeInactive || hasUnlockCookie;
+
   const company = await prisma.company.findUnique({
-    where: opts?.includeInactive ? { slug } : { slug, isActive: true },
+    where: includeInactive ? { slug } : { slug, isActive: true },
   });
 
   return company || null;

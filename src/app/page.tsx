@@ -91,6 +91,11 @@ export default function PlannerPage() {
     }
   }, [company, companySlug]);
 
+  // --- Planner lock state ---
+  const [lockPassword, setLockPassword] = useState("");
+  const [lockError, setLockError] = useState(false);
+  const [lockLoading, setLockLoading] = useState(false);
+
   // --- State ---
   const [step, setStep] = useState<Step>("upload");
   const [imageConfigs, setImageConfigs] = useState<ImageConfig[]>([]);
@@ -293,7 +298,7 @@ export default function PlannerPage() {
     { value: "both", label: "Bæði" },
   ];
 
-  // Company deactivated or not found — clear cache and show lock screen
+  // Company not found (404) — show error
   if (companyError) {
     if (typeof window !== "undefined" && companySlug) {
       localStorage.removeItem(`company_${companySlug}`);
@@ -309,6 +314,73 @@ export default function PlannerPage() {
           </div>
           <h1 className="text-xl font-bold text-slate-700">Þjónusta ekki virk</h1>
           <p className="text-sm text-slate-500 max-w-xs">Þessi sjónræna sýn er ekki virk eins og er. Hafðu samband við þjónustuaðila fyrir frekari upplýsingar.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Company inactive — show password lock with company branding
+  if (company && company.isActive === false) {
+    const handleUnlock = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLockLoading(true);
+      setLockError(false);
+      try {
+        const res = await fetch(`/api/planner/unlock?company=${companySlug}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: lockPassword }),
+          credentials: "include",
+        });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          setLockError(true);
+          setTimeout(() => setLockError(false), 1500);
+        }
+      } catch {
+        setLockError(true);
+      } finally {
+        setLockLoading(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-[#eeeeee] relative flex items-center justify-center">
+        <div className="absolute inset-0 backdrop-blur-md bg-white/60" />
+        <div className="relative z-10 flex flex-col items-center gap-5 text-center px-6">
+          {company.logoUrl ? (
+            <img src={company.logoUrl} alt={company.name} className="h-12 object-contain" />
+          ) : (
+            <h2 className="text-lg font-bold" style={{ color: company.primaryColor }}>{company.name}</h2>
+          )}
+          <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+          </div>
+          <p className="text-sm text-slate-500">Sláðu inn kóða til að opna</p>
+          <form onSubmit={handleUnlock} className="flex flex-col items-center gap-3">
+            <input
+              type="password"
+              value={lockPassword}
+              onChange={(e) => setLockPassword(e.target.value)}
+              placeholder="Kóði"
+              autoFocus
+              disabled={lockLoading}
+              className={`w-48 px-4 py-2.5 text-sm text-center bg-white border rounded-lg outline-none transition-colors ${
+                lockError ? "border-red-400" : "border-slate-200 focus:border-slate-400"
+              }`}
+            />
+            <button
+              type="submit"
+              disabled={lockLoading || !lockPassword}
+              className="px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
+              style={{ backgroundColor: company.primaryColor }}
+            >
+              {lockLoading ? "..." : "Opna"}
+            </button>
+          </form>
         </div>
       </div>
     );

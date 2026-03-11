@@ -19,6 +19,7 @@ export interface CompanyBranding {
   logoUrl: string | null;
   primaryColor: string;
   secondaryColor: string;
+  isActive?: boolean;
 }
 
 export interface AdminStats {
