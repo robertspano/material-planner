@@ -18,7 +18,7 @@ export async function GET() {
     // All queries in parallel — single DB round trip via connection pool
     const [totalProducts, totalCategories, totalGenerations, generationsThisMonth, companyData, generateResult] =
       await Promise.all([
-        prisma.product.count({ where: { companyId } }),
+        prisma.product.count({ where: { companyId, parentProductId: null } }),
         prisma.category.count({ where: { companyId } }),
         prisma.generation.count({ where: { companyId } }),
         prisma.generation.count({ where: { companyId, createdAt: { gte: startOfMonth } } }),

@@ -10,7 +10,7 @@ export async function GET() {
       include: {
         _count: {
           select: {
-            products: true,
+            products: { where: { parentProductId: null } },
             generations: true,
             admins: true,
           },

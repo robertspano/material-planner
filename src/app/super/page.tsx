@@ -251,7 +251,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
         <div className="border-t border-slate-200 p-4 space-y-5">
           {/* Quick links */}
           <div className="flex gap-2">
-            <a href={companyUrl(company.slug, "/admin")} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
+            <a href={`/admin?company=${company.slug}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
               <Settings className="w-4 h-4" /> Stjórnborð
             </a>
             <a href={`/super/products/${company.id}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">

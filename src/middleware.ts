@@ -107,8 +107,13 @@ export function middleware(request: NextRequest) {
   } else {
     // No subdomain: snid.is
     // snid.is/admin → redirect to /super (super admin)
+    // BUT if ?company= param present, allow admin page (super admin viewing company dashboard)
     if (pathname === "/admin" || pathname.startsWith("/admin/")) {
       response.headers.set("x-is-super-admin", "true");
+      if (companyParam) {
+        response.headers.set("x-company-slug", companyParam);
+        return response;
+      }
       return NextResponse.redirect(new URL(pathname.replace("/admin", "/super"), request.url));
     }
 

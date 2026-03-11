@@ -28,6 +28,7 @@ interface SelectedProduct {
   tileWidth: number | null;
   tileHeight: number | null;
   discountPercent: number | null;
+  sizeLabel: string | null;
   category: { name: string };
 }
 

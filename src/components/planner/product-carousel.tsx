@@ -31,7 +31,9 @@ interface Product {
   tileWidth: number | null;
   tileHeight: number | null;
   discountPercent: number | null;
+  sizeLabel: string | null;
   category: { name: string };
+  variants: Product[];
 }
 
 interface ProductCarouselProps {
@@ -199,7 +201,15 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
       ) : (
         <div className={`relative grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2 lg:gap-3 overflow-visible transition-opacity duration-150 ${isPlaceholderData ? "opacity-50 pointer-events-none" : ""}`}>
           {products.map((product) => {
-            const isSelected = selectedProductId === product.id;
+            const hasVariants = product.variants && product.variants.length > 0;
+            const isSelected = selectedProductId === product.id ||
+              (hasVariants && product.variants.some(v => v.id === selectedProductId));
+            const activeVariant = hasVariants ? product.variants.find(v => v.id === selectedProductId) : null;
+            const activePrice = activeVariant?.price ?? product.price;
+            const activeTileW = activeVariant?.tileWidth ?? product.tileWidth;
+            const activeTileH = activeVariant?.tileHeight ?? product.tileHeight;
+            const activeDiscount = activeVariant?.discountPercent ?? product.discountPercent;
+            const activeUnit = activeVariant?.unit ?? product.unit;
             return (
               <button
                 key={product.id}
@@ -224,28 +234,28 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                         {product.description && (
                           <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{product.description}</p>
                         )}
-                        {product.tileWidth && product.tileHeight && (
+                        {activeTileW && activeTileH && (
                           <p className="text-xs text-slate-400 font-medium mt-0.5">
-                            {product.tileWidth}×{product.tileHeight} cm
+                            {activeTileW}×{activeTileH} cm
                           </p>
                         )}
-                        {product.price ? (
+                        {activePrice ? (
                           <div className="flex items-center gap-1.5 mt-1">
-                            {product.discountPercent ? (
+                            {activeDiscount ? (
                               <>
                                 <span className="text-xs text-slate-400 line-through">
-                                  {formatPrice(product.price)} kr/{formatUnit(product.unit)}
+                                  {formatPrice(activePrice)} kr/{formatUnit(activeUnit)}
                                 </span>
                                 <span className="text-xs font-bold text-emerald-600">
-                                  {formatPrice(Math.round(product.price * (1 - product.discountPercent / 100)))} kr/{formatUnit(product.unit)}
+                                  {formatPrice(Math.round(activePrice * (1 - activeDiscount / 100)))} kr/{formatUnit(activeUnit)}
                                 </span>
                                 <span className="text-[10px] font-bold text-white bg-emerald-500 px-1.5 py-0.5 rounded-full">
-                                  -{product.discountPercent}%
+                                  -{activeDiscount}%
                                 </span>
                               </>
                             ) : (
                               <span className="text-xs text-slate-500">
-                                {formatPrice(product.price)} kr/{formatUnit(product.unit)}
+                                {formatPrice(activePrice)} kr/{formatUnit(activeUnit)}
                               </span>
                             )}
                           </div>
@@ -270,29 +280,60 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                       </div>
                     </div>
                   )}
-                  {product.discountPercent && (
+                  {activeDiscount && (
                     <span className="absolute top-1.5 right-1.5 text-[10px] font-bold text-white bg-emerald-500 px-1.5 py-0.5 rounded-full shadow-sm">
-                      -{product.discountPercent}%
+                      -{activeDiscount}%
                     </span>
                   )}
                 </div>
                 <div className="px-2 py-1.5">
                   <p className="text-xs font-semibold text-slate-900 truncate">{product.name}</p>
-                  {product.tileWidth && product.tileHeight && (
-                    <p className="text-[11px] text-slate-500">{product.tileWidth}×{product.tileHeight} cm</p>
+                  {!hasVariants && activeTileW && activeTileH && (
+                    <p className="text-[11px] text-slate-500">{activeTileW}×{activeTileH} cm</p>
                   )}
-                  {product.price && (
+                  {activePrice && (
                     <p className="text-[11px] font-bold text-slate-800 mt-0.5">
-                      {product.discountPercent ? (
+                      {activeDiscount ? (
                         <>
-                          <span className="line-through text-slate-400 font-normal">{formatPrice(product.price)}</span>
+                          <span className="line-through text-slate-400 font-normal">{formatPrice(activePrice)}</span>
                           {" "}
-                          <span className="text-emerald-600">{formatPrice(Math.round(product.price * (1 - product.discountPercent / 100)))} kr/{formatUnit(product.unit)}</span>
+                          <span className="text-emerald-600">{formatPrice(Math.round(activePrice * (1 - activeDiscount / 100)))} kr/{formatUnit(activeUnit)}</span>
                         </>
                       ) : (
-                        <>{formatPrice(product.price)} kr/{formatUnit(product.unit)}</>
+                        <>{formatPrice(activePrice)} kr/{formatUnit(activeUnit)}</>
                       )}
                     </p>
+                  )}
+                  {hasVariants && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); onSelect(product); }}
+                        className={`text-[10px] px-1.5 py-0.5 rounded-md cursor-pointer font-medium transition-colors ${
+                          isSelected && !activeVariant
+                            ? "bg-[var(--brand-primary)] text-white"
+                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        {product.sizeLabel || (product.tileWidth && product.tileHeight ? `${product.tileWidth}×${product.tileHeight}` : "")}
+                      </span>
+                      {product.variants.map(v => (
+                        <span
+                          key={v.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); onSelect({ ...v, category: product.category, variants: [] } as Product); }}
+                          className={`text-[10px] px-1.5 py-0.5 rounded-md cursor-pointer font-medium transition-colors ${
+                            selectedProductId === v.id
+                              ? "bg-[var(--brand-primary)] text-white"
+                              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                          }`}
+                        >
+                          {v.sizeLabel || (v.tileWidth && v.tileHeight ? `${v.tileWidth}×${v.tileHeight}` : "")}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
               </button>

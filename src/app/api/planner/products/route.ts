@@ -16,10 +16,17 @@ export async function GET(request: NextRequest) {
       where: {
         companyId: company.id,
         isActive: true,
+        parentProductId: null, // Only show parent products (variants nested)
         ...(categoryId && { categoryId }),
         ...(surfaceType && { surfaceTypes: { has: surfaceType } }),
       },
-      include: { category: true },
+      include: {
+        category: true,
+        variants: {
+          where: { isActive: true },
+          orderBy: { price: "asc" },
+        },
+      },
       orderBy: { sortOrder: "asc" },
     });
 

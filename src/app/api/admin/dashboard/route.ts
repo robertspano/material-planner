@@ -41,10 +41,10 @@ export async function GET() {
         }),
         prisma.category.findMany({
           where: { companyId },
-          include: { _count: { select: { products: true } } },
+          include: { _count: { select: { products: { where: { parentProductId: null } } } } },
           orderBy: { sortOrder: "asc" },
         }),
-        prisma.product.count({ where: { companyId } }),
+        prisma.product.count({ where: { companyId, parentProductId: null } }),
         prisma.generation.count({ where: { companyId } }),
         prisma.generation.count({ where: { companyId, createdAt: { gte: startOfMonth } } }),
         prisma.company.findUnique({

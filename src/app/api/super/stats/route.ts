@@ -13,7 +13,7 @@ export async function GET() {
       await Promise.all([
         prisma.company.count(),
         prisma.company.count({ where: { isActive: true } }),
-        prisma.product.count(),
+        prisma.product.count({ where: { parentProductId: null } }),
         prisma.generation.count(),
         prisma.generation.count({ where: { createdAt: { gte: startOfMonth } } }),
         prisma.company.findMany({

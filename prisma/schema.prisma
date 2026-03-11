@@ -76,12 +76,17 @@ model Product {
   tileWidth          Float?
   discountPercent    Float?
   patterns           String[]            @default([])
+  parentProductId    String?
+  sizeLabel          String?
   generationProducts GenerationProduct[]
   category           Category            @relation(fields: [categoryId], references: [id])
   company            Company             @relation(fields: [companyId], references: [id])
+  parent             Product?            @relation("ProductVariants", fields: [parentProductId], references: [id])
+  variants           Product[]           @relation("ProductVariants")
 
   @@index([companyId])
   @@index([categoryId])
+  @@index([parentProductId])
 }
 
 model Generation {
