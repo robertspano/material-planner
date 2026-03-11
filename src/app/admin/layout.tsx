@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { LogOut, Settings, FileText, ExternalLink, X, Upload, Save, Loader2, ImageIcon, User, Mail, Lock, Eye, EyeOff, Check } from "lucide-react";
+import { LogOut, Settings, FileText, ExternalLink, X, Upload, Save, Loader2, ImageIcon, User, Mail, Lock, Eye, EyeOff, Check, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,8 +52,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     >
       {/* Top bar — logo | nav buttons | logout */}
       <div className="flex items-center justify-between px-4 lg:px-8 pt-4 lg:pt-6">
-        {/* Left: Logo */}
+        {/* Left: Back + Logo */}
         <div className="flex items-center gap-3">
+          {isSuperAdmin && (
+            <a
+              href="/super"
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors mr-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Til baka</span>
+            </a>
+          )}
           {company?.logoUrl ? (
             <div
               className="h-10 px-5 rounded-xl flex items-center"

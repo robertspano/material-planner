@@ -42,13 +42,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const isProduction = process.env.NODE_ENV === "production";
+
+    // In production, set domain to .snid.is so cookie works on all subdomains
     response.cookies.set(COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
+      ...(isProduction && { domain: ".snid.is" }),
     });
+
+    // Clear any legacy cookie (set without domain) so it doesn't conflict
+    if (isProduction) {
+      response.headers.append(
+        "Set-Cookie",
+        `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`
+      );
+    }
 
     return response;
   } catch (error) {

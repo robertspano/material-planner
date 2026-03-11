@@ -194,12 +194,12 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* Logo / icon */}
           {company.logoUrl ? (
-            <img src={company.logoUrl} alt={company.name} className="h-7 max-w-[120px] object-contain flex-shrink-0" />
+            <img src={company.logoUrl} alt={company.name} className="h-9 max-w-[160px] object-contain flex-shrink-0" />
           ) : (
             <h3 className="font-semibold text-white truncate">{company.name}</h3>
           )}
           {company.kennitala && (
-            <p className="text-xs text-white/50 font-mono">kt. {company.kennitala}</p>
+            <p className="text-xs text-white/80 font-mono">kt. {company.kennitala}</p>
           )}
         </div>
 
@@ -251,7 +251,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
         <div className="border-t border-slate-200 p-4 space-y-5">
           {/* Quick links */}
           <div className="flex gap-2">
-            <a href={`/admin?company=${company.slug}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
+            <a href={companyUrl(company.slug, "/admin")} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">
               <Settings className="w-4 h-4" /> Stjórnborð
             </a>
             <a href={`/super/products/${company.id}`} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-100 text-sm text-slate-700 hover:opacity-80 transition-opacity">

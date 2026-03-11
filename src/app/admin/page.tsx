@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Package, ImageIcon, Layers } from "lucide-react";
+import { Package, ImageIcon, Layers, LayoutDashboard } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { useAdminCompany } from "@/components/admin/admin-company-context";
 import type { CompanyStats, CompanyBranding } from "@/types";
@@ -47,7 +47,20 @@ export default function AdminDashboard() {
   const brandColor = company?.primaryColor || "#2e7cff";
 
   return (
-    <div className="max-w-6xl space-y-10">
+    <div className="max-w-6xl space-y-8">
+      {/* Dashboard header */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: brandColor + "15" }}>
+          <LayoutDashboard className="w-5 h-5" style={{ color: brandColor }} />
+        </div>
+        <div>
+          <h1 className="text-lg font-bold text-slate-900">
+            {company?.name || <span className="inline-block h-5 w-32 bg-slate-100 rounded animate-pulse align-middle" />}
+          </h1>
+          <p className="text-xs text-slate-400">Stjórnborð</p>
+        </div>
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard icon={Package} color="blue" value={stats?.totalProducts} label="Vörur" />

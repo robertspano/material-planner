@@ -35,9 +35,22 @@ const AdminCompanyContext = createContext<AdminCompanyContextValue>({
   isLoading: true,
 });
 
+/** Extract company slug from subdomain: husasmidjan.snid.is → "husasmidjan" */
+function getSubdomainSlug(): string {
+  if (typeof window === "undefined") return "";
+  const hostname = window.location.hostname;
+  // Production: slug.snid.is
+  if (hostname.endsWith(".snid.is") && hostname !== "snid.is") {
+    const sub = hostname.split(".")[0];
+    if (sub !== "admin") return sub;
+  }
+  return "";
+}
+
 export function AdminCompanyProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const companyParam = searchParams.get("company") || "";
+  const subdomainSlug = useMemo(() => getSubdomainSlug(), []);
 
   const { data: authData, isLoading } = useQuery<{ admin: AdminAuth }>({
     queryKey: ["/api/auth/me"],
@@ -46,9 +59,11 @@ export function AdminCompanyProvider({ children }: { children: React.ReactNode }
   const admin = authData?.admin || null;
   const isSuperAdmin = admin?.role === "super_admin";
 
-  // For super_admin: use URL ?company= param
+  // For super_admin: use URL ?company= param, or subdomain slug as fallback
   // For company admin: use their assigned company slug from JWT
-  const companySlug = isSuperAdmin ? companyParam : (admin?.companySlug || companyParam);
+  const companySlug = isSuperAdmin
+    ? (companyParam || subdomainSlug)
+    : (admin?.companySlug || companyParam || subdomainSlug);
 
   const adminApiUrl = useMemo(() => {
     return (path: string) => {
