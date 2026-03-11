@@ -20,33 +20,33 @@ export default function LandingPage() {
       </div>
 
       {/* Main content - centered, nudged up */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-44">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-8 -mt-20 sm:-mt-44">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-slate-900 text-center leading-[1.1] max-w-2xl tracking-[-0.02em]">
           Velkomin til Snið
         </h1>
-        <p className="mt-6 text-lg sm:text-xl font-normal text-slate-900 text-center max-w-3xl whitespace-nowrap tracking-[-0.01em]">
+        <p className="mt-4 sm:mt-6 text-base sm:text-xl font-normal text-slate-900 text-center max-w-3xl tracking-[-0.01em]">
           Sjónræn lausn sem gerir viðskiptavinum kleift að sjá efnisval á gólfi og veggjum í eigin rýmum.
         </p>
         <a
           href="mailto:info@snid.is"
-          className="mt-12 text-base font-bold text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
+          className="mt-8 sm:mt-12 text-base font-bold text-slate-900 hover:text-slate-600 transition-colors underline underline-offset-4"
         >
           Hafðu samband
         </a>
       </div>
 
       {/* Treysta okkur */}
-      <div className="flex flex-col items-center gap-8 pb-12 -mt-40">
+      <div className="flex flex-col items-center gap-6 sm:gap-8 pb-8 sm:pb-12 -mt-12 sm:-mt-40">
         <p className="text-[11px] text-slate-900 uppercase tracking-[0.25em] font-bold">
           Treysta okkur
         </p>
-        <div className="flex items-center gap-12">
+        <div className="flex items-center gap-6 sm:gap-12">
           <Image
             src="https://res.cloudinary.com/dgrig52h7/image/upload/v1772054190/company-logos/mxjcs8hikmbee0qoefle.svg"
             alt="Álfaborg"
             width={180}
             height={56}
-            className="brightness-0"
+            className="brightness-0 w-[120px] sm:w-[180px] h-auto"
           />
         </div>
       </div>

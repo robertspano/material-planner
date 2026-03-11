@@ -12,6 +12,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Material Planner - AI Visual Designer",
   description: "Visualize interior materials in your space with AI",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({

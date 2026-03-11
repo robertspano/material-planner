@@ -128,7 +128,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main content — centered */}
-      <main className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6">
         {showContent ? children : null}
       </main>
 
@@ -436,7 +436,7 @@ function SettingsModal({
           </div>
 
           {/* Colors */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <Label className="text-xs text-slate-400 uppercase tracking-wider">Aðallitur</Label>
               <div className="flex gap-2 mt-1.5">

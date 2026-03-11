@@ -49,7 +49,7 @@ export default function LandingLockPage() {
         </div>
         <span className="text-base font-medium tracking-tight text-slate-900">snið</span>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 px-6 w-full max-w-xs">
         <input
           type="password"
           value={input}
@@ -57,7 +57,7 @@ export default function LandingLockPage() {
           placeholder="Lykilorð"
           autoFocus
           disabled={loading}
-          className={`w-48 px-4 py-2 text-sm text-center bg-white border rounded-lg outline-none transition-colors appearance-none ${
+          className={`w-full px-4 py-2.5 text-sm text-center bg-white border rounded-lg outline-none transition-colors appearance-none ${
             error ? "border-red-400" : "border-slate-200 focus:border-slate-400"
           }`}
           style={{ WebkitAppearance: "none", color: "#94a3b8", backgroundColor: "#ffffff", caretColor: "#94a3b8", WebkitTextSecurity: "disc" } as React.CSSProperties}

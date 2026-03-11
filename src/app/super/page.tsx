@@ -816,7 +816,7 @@ export default function SuperDashboardPage() {
                 <Label className="text-xs">Kennitala</Label>
                 <Input value={cKennitala} onChange={(e) => setCKennitala(e.target.value)} placeholder="000000-0000" className="mt-1 font-mono" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Aðallitur</Label>
                   <div className="flex gap-2 mt-1">

@@ -86,8 +86,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       </header>
 
       <div className="flex">
-        {/* Fixed Sidebar */}
-        <aside className="fixed left-0 top-1/2 -translate-y-1/2 w-[180px] z-20">
+        {/* Fixed Sidebar — hidden on mobile, shown from md up */}
+        <aside className="hidden md:block fixed left-0 top-1/2 -translate-y-1/2 w-[180px] z-20">
           <nav className="p-3 space-y-1.5">
             {navItems.map(item => {
               const active = isActive(item.href);
@@ -122,8 +122,28 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           </nav>
         </aside>
 
-        {/* Main content — offset by sidebar width */}
-        <main className="ml-[180px] flex-1 max-w-5xl px-4 py-6">
+        {/* Mobile bottom nav */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-slate-200 flex items-center justify-around py-2 px-4">
+          {navItems.map(item => {
+            const active = isActive(item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  active ? "text-purple-700" : "text-slate-400"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Main content — offset by sidebar on desktop, full width on mobile */}
+        <main className="ml-0 md:ml-[180px] flex-1 max-w-5xl px-3 sm:px-4 py-4 sm:py-6 pb-20 md:pb-6">
           {children}
         </main>
       </div>

@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-6xl space-y-10">
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard icon={Package} color="blue" value={stats?.totalProducts} label="Vörur" />
         <StatCard icon={Layers} color="emerald" value={stats?.generationsUsed} label="Framleiðslur" />
         <StatCard icon={ImageIcon} color="orange" value={stats?.totalGenerations} label="Myndir" />
@@ -76,7 +76,7 @@ function StatCard({ icon: Icon, color, value, label }: {
 }) {
   const c = colorMap[color];
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
       <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0`}>
         <Icon className={`w-5 h-5 ${c.text}`} />
       </div>
