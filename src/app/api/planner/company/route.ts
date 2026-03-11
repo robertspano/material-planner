@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { getCompanyFromRequest } from "@/lib/tenant";
 
 export async function GET() {
@@ -10,6 +11,12 @@ export async function GET() {
       return NextResponse.json({ error: "Company not found" }, { status: 404 });
     }
 
+    // If company is inactive but user has the unlock cookie, treat as active
+    const headersList = await headers();
+    const cookieHeader = headersList.get("cookie") || "";
+    const hasUnlockCookie = cookieHeader.includes("planner-unlock=1");
+    const effectivelyActive = company.isActive || hasUnlockCookie;
+
     return NextResponse.json({
       id: company.id,
       name: company.name,
@@ -19,7 +26,7 @@ export async function GET() {
       loginBackgroundUrl: company.loginBackgroundUrl,
       primaryColor: company.primaryColor,
       secondaryColor: company.secondaryColor,
-      isActive: company.isActive,
+      isActive: effectivelyActive,
     }, {
       headers: { "Cache-Control": "private, no-cache" },
     });
