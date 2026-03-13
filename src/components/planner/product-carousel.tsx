@@ -274,7 +274,7 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
           Engar vörur í þessum flokki
         </div>
       ) : (
-        <div className={`relative grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2 lg:gap-3 overflow-visible transition-opacity duration-150 ${isPlaceholderData ? "opacity-50 pointer-events-none" : ""}`}>
+        <div className={`relative grid grid-cols-2 min-[400px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 lg:gap-3 transition-opacity duration-150 ${isPlaceholderData ? "opacity-50 pointer-events-none" : ""}`}>
           {products.map((product) => {
             const hasVariants = product.variants && product.variants.length > 0;
             const isSelected = selectedProductId === product.id ||
