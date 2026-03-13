@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Loader2, ImageIcon, Check } from "lucide-react";
+import { Loader2, ImageIcon, Check, ChevronDown } from "lucide-react";
 
 function formatUnit(unit: string): string {
   const map: Record<string, string> = { m2: "m²", m3: "m³", stk: "stk" };
@@ -77,6 +77,97 @@ function groupCategories(cats: Category[]): CategoryGroup[] {
   }
 
   return groups.filter(g => g.categories.length > 0);
+}
+
+// ---------- Size Dropdown ----------
+function SizeDropdown({
+  product,
+  selectedProductId,
+  activeVariant,
+  onSelect,
+}: {
+  product: Product;
+  selectedProductId: string | null;
+  activeVariant: Product | null | undefined;
+  onSelect: (p: Product) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const allSizes = [
+    { id: product.id, label: product.sizeLabel || (product.tileWidth && product.tileHeight ? `${product.tileWidth}×${product.tileHeight}` : ""), isParent: true },
+    ...product.variants.map(v => ({
+      id: v.id,
+      label: v.sizeLabel || (v.tileWidth && v.tileHeight ? `${v.tileWidth}×${v.tileHeight}` : ""),
+      isParent: false,
+      variant: v,
+    })),
+  ].filter(s => s.label);
+
+  const selectedLabel = activeVariant
+    ? (activeVariant.sizeLabel || (activeVariant.tileWidth && activeVariant.tileHeight ? `${activeVariant.tileWidth}×${activeVariant.tileHeight}` : ""))
+    : allSizes[0]?.label || "";
+
+  if (allSizes.length === 0) return null;
+
+  return (
+    <div ref={ref} className="relative mt-1">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        className="flex items-center gap-1 w-full text-left text-[10px] px-1.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 transition-colors"
+      >
+        <span className="font-medium text-slate-600 truncate">{selectedLabel} cm</span>
+        {allSizes.length > 1 && (
+          <span className="ml-auto flex items-center gap-0.5 text-slate-400 flex-shrink-0">
+            <span className="text-[9px]">+{allSizes.length - 1}</span>
+            <ChevronDown className={`w-2.5 h-2.5 transition-transform ${open ? "rotate-180" : ""}`} />
+          </span>
+        )}
+      </button>
+
+      {open && allSizes.length > 1 && (
+        <div className="absolute left-0 right-0 bottom-full mb-1 z-50 bg-white rounded-lg shadow-xl border border-slate-200 py-1 max-h-40 overflow-y-auto">
+          {allSizes.map((s) => {
+            const isSel = selectedProductId === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if ("variant" in s && s.variant) {
+                    onSelect({ ...s.variant, category: product.category, variants: [] } as Product);
+                  } else {
+                    onSelect(product);
+                  }
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                  isSel
+                    ? "bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {s.label} cm
+                {isSel && <Check className="w-3 h-3 inline ml-1.5 -mt-0.5" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ProductCarousel({ companySlug, surfaceType, selectedProductId, onSelect }: ProductCarouselProps) {
@@ -305,35 +396,12 @@ export function ProductCarousel({ companySlug, surfaceType, selectedProductId, o
                     </p>
                   )}
                   {hasVariants && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); onSelect(product); }}
-                        className={`text-[10px] px-1.5 py-0.5 rounded-md cursor-pointer font-medium transition-colors ${
-                          isSelected && !activeVariant
-                            ? "bg-[var(--brand-primary)] text-white"
-                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                        }`}
-                      >
-                        {product.sizeLabel || (product.tileWidth && product.tileHeight ? `${product.tileWidth}×${product.tileHeight}` : "")}
-                      </span>
-                      {product.variants.map(v => (
-                        <span
-                          key={v.id}
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => { e.stopPropagation(); onSelect({ ...v, category: product.category, variants: [] } as Product); }}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-md cursor-pointer font-medium transition-colors ${
-                            selectedProductId === v.id
-                              ? "bg-[var(--brand-primary)] text-white"
-                              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                          }`}
-                        >
-                          {v.sizeLabel || (v.tileWidth && v.tileHeight ? `${v.tileWidth}×${v.tileHeight}` : "")}
-                        </span>
-                      ))}
-                    </div>
+                    <SizeDropdown
+                      product={product}
+                      selectedProductId={selectedProductId}
+                      activeVariant={activeVariant}
+                      onSelect={onSelect}
+                    />
                   )}
                 </div>
               </button>

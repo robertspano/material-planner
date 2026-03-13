@@ -88,7 +88,7 @@ function CameraCapture({ onCapture, onClose }: { onCapture: (file: File) => void
       const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
       onCapture(file);
       setPhotoCount(prev => prev + 1);
-    }, "image/jpeg", 0.92);
+    }, "image/jpeg", 0.80);
   };
 
   return (
@@ -155,10 +155,11 @@ function CameraCapture({ onCapture, onClose }: { onCapture: (file: File) => void
 }
 
 // ---------- Image compression ----------
-function compressImage(file: File, maxDimension = 2048, quality = 0.85): Promise<File> {
+/** Target: fast upload. Compress aggressively — AI only needs ~1600px max. */
+function compressImage(file: File, maxDimension = 1600, quality = 0.75): Promise<File> {
   return new Promise((resolve) => {
-    // If already small enough, skip compression
-    if (file.size <= 4 * 1024 * 1024) {
+    // Only skip very small files (< 300KB) — everything else gets compressed
+    if (file.size <= 300 * 1024) {
       resolve(file);
       return;
     }
@@ -169,13 +170,27 @@ function compressImage(file: File, maxDimension = 2048, quality = 0.85): Promise
       URL.revokeObjectURL(url);
       let { width, height } = img;
 
-      // Scale down if needed
+      // Scale down to max 1600px (plenty for AI visualization)
       if (width > maxDimension || height > maxDimension) {
         const ratio = Math.min(maxDimension / width, maxDimension / height);
         width = Math.round(width * ratio);
         height = Math.round(height * ratio);
       }
 
+      // Use OffscreenCanvas if available for better performance (no DOM thrashing)
+      if (typeof OffscreenCanvas !== "undefined") {
+        const oc = new OffscreenCanvas(width, height);
+        const ctx = oc.getContext("2d");
+        if (!ctx) { resolve(file); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        oc.convertToBlob({ type: "image/jpeg", quality }).then((blob) => {
+          if (!blob || blob.size >= file.size) { resolve(file); return; }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        }).catch(() => resolve(file));
+        return;
+      }
+
+      // Fallback: regular canvas
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
@@ -189,8 +204,7 @@ function compressImage(file: File, maxDimension = 2048, quality = 0.85): Promise
             resolve(file); // Compression didn't help, use original
             return;
           }
-          const compressed = new File([blob], file.name, { type: "image/jpeg" });
-          resolve(compressed);
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
         },
         "image/jpeg",
         quality

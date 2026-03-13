@@ -194,7 +194,7 @@ function CompanyCard({ company, admins, onUpdate, onToggle, onDelete }: {
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* Logo / icon */}
           {company.logoUrl ? (
-            <img src={company.logoUrl} alt={company.name} className="h-9 max-w-[160px] object-contain flex-shrink-0" />
+            <img src={company.logoUrl} alt={company.name} className="h-10 max-w-[200px] object-contain flex-shrink-0" />
           ) : (
             <h3 className="font-semibold text-white truncate">{company.name}</h3>
           )}

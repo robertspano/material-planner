@@ -494,6 +494,7 @@ async function main() {
           price: p.price,
           unit: 'm2',
           imageUrl,
+          swatchUrl: p.imageUrl || null,  // Same as imageUrl (source doesn't distinguish swatch vs room)
           surfaceTypes,
           tileWidth: p.tileWidth,
           tileHeight: p.tileHeight,
