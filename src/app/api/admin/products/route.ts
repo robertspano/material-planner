@@ -54,6 +54,11 @@ export async function POST(request: NextRequest) {
       ? JSON.parse(formData.get("surfaceTypes") as string)
       : ["floor"];
     const discountPercent = formData.get("discountPercent") ? parseFloat(formData.get("discountPercent") as string) : null;
+    const tileWidth = formData.get("tileWidth") ? parseFloat(formData.get("tileWidth") as string) : null;
+    const tileHeight = formData.get("tileHeight") ? parseFloat(formData.get("tileHeight") as string) : null;
+    const tileThickness = formData.get("tileThickness") ? parseFloat(formData.get("tileThickness") as string) : null;
+    const sizeLabel = (formData.get("sizeLabel") as string) || null;
+    const parentProductId = (formData.get("parentProductId") as string) || null;
     const image = formData.get("image") as File | null;
     const swatch = formData.get("swatch") as File | null;
 
@@ -91,6 +96,11 @@ export async function POST(request: NextRequest) {
         swatchUrl,
         surfaceTypes,
         discountPercent,
+        tileWidth,
+        tileHeight,
+        tileThickness,
+        sizeLabel,
+        parentProductId,
       },
       include: { category: true },
     });

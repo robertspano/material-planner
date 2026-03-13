@@ -40,6 +40,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         updateData.discountPercent = discountPercent ? parseFloat(discountPercent) : null;
       }
 
+      // Tile dimensions
+      if (formData.has("tileWidth")) {
+        const tw = formData.get("tileWidth") as string;
+        updateData.tileWidth = tw ? parseFloat(tw) : null;
+      }
+      if (formData.has("tileHeight")) {
+        const th = formData.get("tileHeight") as string;
+        updateData.tileHeight = th ? parseFloat(th) : null;
+      }
+      if (formData.has("tileThickness")) {
+        const tt = formData.get("tileThickness") as string;
+        updateData.tileThickness = tt ? parseFloat(tt) : null;
+      }
+      if (formData.has("sizeLabel")) {
+        updateData.sizeLabel = (formData.get("sizeLabel") as string) || null;
+      }
+
       // Handle image upload
       const image = formData.get("image") as File | null;
       if (image) {
@@ -86,6 +103,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
         ...(data.discountPercent !== undefined && { discountPercent: data.discountPercent }),
+        ...(data.tileWidth !== undefined && { tileWidth: data.tileWidth }),
+        ...(data.tileHeight !== undefined && { tileHeight: data.tileHeight }),
+        ...(data.tileThickness !== undefined && { tileThickness: data.tileThickness }),
+        ...(data.sizeLabel !== undefined && { sizeLabel: data.sizeLabel }),
       },
       include: { category: true },
     });

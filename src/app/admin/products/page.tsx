@@ -62,12 +62,16 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
   const [formFloor, setFormFloor] = useState(true);
   const [formWall, setFormWall] = useState(false);
   const [formDiscount, setFormDiscount] = useState("");
-  const [formTileW, setFormTileW] = useState("");
-  const [formTileH, setFormTileH] = useState("");
-  const [formTileT, setFormTileT] = useState("");
+  const [formSizes, setFormSizes] = useState<{ width: string; height: string; thickness: string }[]>([{ width: "", height: "", thickness: "" }]);
   const [formImage, setFormImage] = useState<File | null>(null);
   const [formSwatch, setFormSwatch] = useState<File | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const swatchInputRef = useRef<HTMLInputElement>(null);
+
+  // Legacy single-size aliases for backwards compat
+  const formTileW = formSizes[0]?.width || "";
+  const formTileH = formSizes[0]?.height || "";
+  const formTileT = formSizes[0]?.thickness || "";
 
   const productsUrl = adminApiUrl("/api/admin/products");
   const categoriesUrl = adminApiUrl("/api/admin/categories");
@@ -87,23 +91,54 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const st: string[] = []; if (formFloor) st.push("floor"); if (formWall) st.push("wall");
+      const validSizes = formSizes.filter(s => s.width || s.height);
+      const firstSize = validSizes[0] || { width: "", height: "", thickness: "" };
+
+      // Create parent product with first size
       const fd = new FormData();
       fd.append("name", formName);
       fd.append("categoryId", formCatId);
       if (formDesc) fd.append("description", formDesc);
       if (formPrice) fd.append("price", formPrice);
       fd.append("unit", formUnit);
-      const st: string[] = []; if (formFloor) st.push("floor"); if (formWall) st.push("wall");
       fd.append("surfaceTypes", JSON.stringify(st));
       if (formDiscount) fd.append("discountPercent", formDiscount);
-      if (formTileW) fd.append("tileWidth", formTileW);
-      if (formTileH) fd.append("tileHeight", formTileH);
-      if (formTileT) fd.append("tileThickness", formTileT);
-      if (formImage) fd.append("image", formImage);
+      if (firstSize.width) fd.append("tileWidth", firstSize.width);
+      if (firstSize.height) fd.append("tileHeight", firstSize.height);
+      if (firstSize.thickness) fd.append("tileThickness", firstSize.thickness);
+      if (firstSize.width && firstSize.height) fd.append("sizeLabel", `${firstSize.width}x${firstSize.height} cm`);
       if (formSwatch) fd.append("swatch", formSwatch);
+      if (formImage) fd.append("image", formImage);
       const res = await fetch(productsUrl, { method: "POST", body: fd, credentials: "include" });
       if (!res.ok) throw new Error("Failed");
-      return res.json();
+      const parent = await res.json();
+
+      // Create variant products for additional sizes
+      if (validSizes.length > 1) {
+        for (let i = 1; i < validSizes.length; i++) {
+          const size = validSizes[i];
+          const vfd = new FormData();
+          vfd.append("name", formName);
+          vfd.append("categoryId", formCatId);
+          if (formDesc) vfd.append("description", formDesc);
+          if (formPrice) vfd.append("price", formPrice);
+          vfd.append("unit", formUnit);
+          vfd.append("surfaceTypes", JSON.stringify(st));
+          if (formDiscount) vfd.append("discountPercent", formDiscount);
+          if (size.width) vfd.append("tileWidth", size.width);
+          if (size.height) vfd.append("tileHeight", size.height);
+          if (size.thickness) vfd.append("tileThickness", size.thickness);
+          if (size.width && size.height) vfd.append("sizeLabel", `${size.width}x${size.height} cm`);
+          vfd.append("parentProductId", parent.id);
+          if (formSwatch) vfd.append("swatch", formSwatch);
+          if (formImage) vfd.append("image", formImage);
+          const vRes = await fetch(productsUrl, { method: "POST", body: vfd, credentials: "include" });
+          if (!vRes.ok) console.error("Failed to create variant", i);
+        }
+      }
+
+      return parent;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [productsUrl] });
@@ -181,7 +216,7 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
   const resetForm = () => {
     setFormName(""); setFormDesc(""); setFormPrice(""); setFormUnit("m2");
     setFormCatId(""); setFormFloor(true); setFormWall(false); setFormDiscount("");
-    setFormTileW(""); setFormTileH(""); setFormTileT("");
+    setFormSizes([{ width: "", height: "", thickness: "" }]);
     setFormImage(null); setFormSwatch(null);
   };
 
@@ -195,15 +230,18 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
     setFormFloor(p.surfaceTypes.includes("floor"));
     setFormWall(p.surfaceTypes.includes("wall"));
     setFormDiscount(p.discountPercent?.toString() || "");
-    setFormTileW(p.tileWidth?.toString() || "");
-    setFormTileH(p.tileHeight?.toString() || "");
-    setFormTileT(p.tileThickness?.toString() || "");
+    setFormSizes([{
+      width: p.tileWidth?.toString() || "",
+      height: p.tileHeight?.toString() || "",
+      thickness: p.tileThickness?.toString() || "",
+    }]);
     setFormImage(null);
     setFormSwatch(null);
   };
 
   const handleSaveEdit = () => {
     if (!editingProduct) return;
+    const firstSize = formSizes[0] || { width: "", height: "", thickness: "" };
     if (formImage || formSwatch) {
       const fd = new FormData();
       fd.append("name", formName);
@@ -215,9 +253,9 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
       if (formFloor) st.push("floor");
       if (formWall) st.push("wall");
       fd.append("surfaceTypes", JSON.stringify(st));
-      if (formTileW) fd.append("tileWidth", formTileW);
-      if (formTileH) fd.append("tileHeight", formTileH);
-      if (formTileT) fd.append("tileThickness", formTileT);
+      if (firstSize.width) fd.append("tileWidth", firstSize.width);
+      if (firstSize.height) fd.append("tileHeight", firstSize.height);
+      if (firstSize.thickness) fd.append("tileThickness", firstSize.thickness);
       fd.append("discountPercent", formDiscount || "");
       if (formImage) fd.append("image", formImage);
       if (formSwatch) fd.append("swatch", formSwatch);
@@ -234,9 +272,9 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
         unit: formUnit,
         categoryId: formCatId,
         surfaceTypes: st,
-        tileWidth: formTileW ? parseFloat(formTileW) : null,
-        tileHeight: formTileH ? parseFloat(formTileH) : null,
-        tileThickness: formTileT ? parseFloat(formTileT) : null,
+        tileWidth: firstSize.width ? parseFloat(firstSize.width) : null,
+        tileHeight: firstSize.height ? parseFloat(firstSize.height) : null,
+        tileThickness: firstSize.thickness ? parseFloat(firstSize.thickness) : null,
         discountPercent: formDiscount ? parseFloat(formDiscount) : null,
       });
       setEditingProduct(null);
@@ -402,11 +440,11 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
               formFloor={formFloor} setFormFloor={setFormFloor}
               formWall={formWall} setFormWall={setFormWall}
               formDiscount={formDiscount} setFormDiscount={setFormDiscount}
-              formTileW={formTileW} setFormTileW={setFormTileW}
-              formTileH={formTileH} setFormTileH={setFormTileH}
-              formTileT={formTileT} setFormTileT={setFormTileT}
+              formSizes={formSizes} setFormSizes={setFormSizes}
               formImage={formImage} setFormImage={setFormImage}
+              formSwatch={formSwatch} setFormSwatch={setFormSwatch}
               imageInputRef={imageInputRef}
+              swatchInputRef={swatchInputRef}
             />
             <Button
               onClick={() => createMutation.mutate()}
@@ -445,11 +483,11 @@ export default function ProductsPage({ brandColor: brandColorProp }: { brandColo
               formFloor={formFloor} setFormFloor={setFormFloor}
               formWall={formWall} setFormWall={setFormWall}
               formDiscount={formDiscount} setFormDiscount={setFormDiscount}
-              formTileW={formTileW} setFormTileW={setFormTileW}
-              formTileH={formTileH} setFormTileH={setFormTileH}
-              formTileT={formTileT} setFormTileT={setFormTileT}
+              formSizes={formSizes} setFormSizes={setFormSizes}
               formImage={formImage} setFormImage={setFormImage}
+              formSwatch={formSwatch} setFormSwatch={setFormSwatch}
               imageInputRef={imageInputRef}
+              swatchInputRef={swatchInputRef}
             />
             <Button
               onClick={handleSaveEdit}
@@ -701,10 +739,10 @@ function ProductForm({
   formCatId, setFormCatId,
   formFloor, setFormFloor, formWall, setFormWall,
   formDiscount, setFormDiscount,
-  formTileW, setFormTileW, formTileH, setFormTileH,
-  formTileT, setFormTileT,
+  formSizes, setFormSizes,
   formImage, setFormImage,
-  imageInputRef,
+  formSwatch, setFormSwatch,
+  imageInputRef, swatchInputRef,
 }: {
   categories: CategoryEntry[];
   brandColor: string;
@@ -716,15 +754,31 @@ function ProductForm({
   formFloor: boolean; setFormFloor: (v: boolean) => void;
   formWall: boolean; setFormWall: (v: boolean) => void;
   formDiscount: string; setFormDiscount: (v: string) => void;
-  formTileW: string; setFormTileW: (v: string) => void;
-  formTileH: string; setFormTileH: (v: string) => void;
-  formTileT: string; setFormTileT: (v: string) => void;
+  formSizes: { width: string; height: string; thickness: string }[];
+  setFormSizes: (v: { width: string; height: string; thickness: string }[]) => void;
   formImage: File | null; setFormImage: (v: File | null) => void;
+  formSwatch: File | null; setFormSwatch: (v: File | null) => void;
   imageInputRef: React.RefObject<HTMLInputElement | null>;
+  swatchInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const discountedPrice = formPrice && formDiscount
     ? Math.round(parseFloat(formPrice) * (1 - parseFloat(formDiscount) / 100))
     : null;
+
+  const updateSize = (index: number, field: "width" | "height" | "thickness", value: string) => {
+    const updated = [...formSizes];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormSizes(updated);
+  };
+
+  const addSize = () => {
+    setFormSizes([...formSizes, { width: "", height: "", thickness: "" }]);
+  };
+
+  const removeSize = (index: number) => {
+    if (formSizes.length <= 1) return;
+    setFormSizes(formSizes.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="space-y-3">
@@ -823,42 +877,111 @@ function ProductForm({
         </div>
       </div>
 
-      {/* Tile dimensions */}
+      {/* Multi-size tile dimensions */}
       <div>
-        <Label className="text-xs">Stærð flísa (cm / mm)</Label>
-        <div className="grid grid-cols-3 gap-2 mt-1">
-          <div>
-            <Input type="number" value={formTileW} onChange={(e) => setFormTileW(e.target.value)} placeholder="Breidd" className="h-9 text-sm" />
-            <span className="text-[10px] text-slate-400 mt-0.5 block">Breidd cm</span>
-          </div>
-          <div>
-            <Input type="number" value={formTileH} onChange={(e) => setFormTileH(e.target.value)} placeholder="Hæð" className="h-9 text-sm" />
-            <span className="text-[10px] text-slate-400 mt-0.5 block">Hæð cm</span>
-          </div>
-          <div>
-            <Input type="number" value={formTileT} onChange={(e) => setFormTileT(e.target.value)} placeholder="Þykkt" className="h-9 text-sm" />
-            <span className="text-[10px] text-slate-400 mt-0.5 block">Þykkt mm</span>
-          </div>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Stærðir (cm / mm)</Label>
+          <button
+            type="button"
+            onClick={addSize}
+            className="text-[10px] px-2 py-0.5 rounded-md font-medium transition-colors hover:opacity-80"
+            style={{ backgroundColor: brandColor + "15", color: brandColor }}
+          >
+            + Bæta við stærð
+          </button>
+        </div>
+        <div className="space-y-2 mt-1.5">
+          {formSizes.map((size, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <div className="flex-1 grid grid-cols-3 gap-1.5">
+                <Input
+                  type="number"
+                  value={size.width}
+                  onChange={(e) => updateSize(i, "width", e.target.value)}
+                  placeholder="Breidd"
+                  className="h-8 text-xs"
+                />
+                <Input
+                  type="number"
+                  value={size.height}
+                  onChange={(e) => updateSize(i, "height", e.target.value)}
+                  placeholder="Hæð"
+                  className="h-8 text-xs"
+                />
+                <Input
+                  type="number"
+                  value={size.thickness}
+                  onChange={(e) => updateSize(i, "thickness", e.target.value)}
+                  placeholder="Þykkt"
+                  className="h-8 text-xs"
+                />
+              </div>
+              {formSizes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSize(i)}
+                  className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+          {formSizes.length === 1 && (
+            <div className="grid grid-cols-3 gap-1.5">
+              <span className="text-[10px] text-slate-400">Breidd cm</span>
+              <span className="text-[10px] text-slate-400">Hæð cm</span>
+              <span className="text-[10px] text-slate-400">Þykkt mm</span>
+            </div>
+          )}
+          {formSizes.length > 1 && (
+            <p className="text-[10px] text-slate-400">
+              {formSizes.filter(s => s.width || s.height).length} stærðir — fyrsta stærð er aðalvara, aðrar verða stærðar-variant
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Image upload */}
+      {/* Swatch / material image upload */}
       <div>
-        <Label className="text-xs">Vörumynd</Label>
+        <Label className="text-xs">Vörumynd (efni / litur)</Label>
+        <div
+          className="mt-1 flex items-center justify-center w-full h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
+          onClick={() => swatchInputRef.current?.click()}
+        >
+          {formSwatch ? (
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-slate-500" />
+              <span className="text-sm text-slate-700 truncate max-w-[200px]">{formSwatch.name}</span>
+              <button onClick={(e) => { e.stopPropagation(); setFormSwatch(null); }} className="text-red-400 hover:text-red-300"><X className="w-3.5 h-3.5" /></button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <Upload className="w-5 h-5 mx-auto text-slate-400" />
+              <span className="text-xs text-slate-400">Mynd af efninu / litnum</span>
+            </div>
+          )}
+          <input ref={swatchInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => setFormSwatch(e.target.files?.[0] || null)} />
+        </div>
+      </div>
+
+      {/* Room / hover image upload */}
+      <div>
+        <Label className="text-xs">Hover mynd (herbergi / uppsetning)</Label>
         <div
           className="mt-1 flex items-center justify-center w-full h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
           onClick={() => imageInputRef.current?.click()}
         >
           {formImage ? (
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4 text-slate-500" />
               <span className="text-sm text-slate-700 truncate max-w-[200px]">{formImage.name}</span>
               <button onClick={(e) => { e.stopPropagation(); setFormImage(null); }} className="text-red-400 hover:text-red-300"><X className="w-3.5 h-3.5" /></button>
             </div>
           ) : (
             <div className="text-center">
               <Upload className="w-5 h-5 mx-auto text-slate-400" />
-              <span className="text-xs text-slate-400">Smelltu til að hlaða upp</span>
+              <span className="text-xs text-slate-400">Mynd af efni í herbergi (valfrjáls)</span>
             </div>
           )}
           <input ref={imageInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => setFormImage(e.target.files?.[0] || null)} />
