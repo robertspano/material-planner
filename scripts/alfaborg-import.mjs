@@ -239,7 +239,8 @@ async function main() {
           update: {
             name: product.name,
             description: product.description || null,
-            imageUrl: localImageUrl,
+            swatchUrl: localImageUrl,  // Listing image = material/swatch close-up
+            imageUrl: localImageUrl,   // Default to same; gallery scraper will overwrite with room photo
             surfaceTypes,
           },
           create: {
@@ -248,7 +249,8 @@ async function main() {
             categoryId,
             name: product.name,
             description: product.description || null,
-            imageUrl: localImageUrl,
+            swatchUrl: localImageUrl,  // Listing image = material/swatch close-up
+            imageUrl: localImageUrl,   // Default to same; gallery scraper will overwrite with room photo
             surfaceTypes,
             sortOrder: idx,
           },

@@ -288,9 +288,11 @@ async function main() {
       const dbProduct = dbMap.get(key);
 
       if (dbProduct) {
+        // Gallery images = room/installation photos → store as imageUrl
+        // The original listing swatch image stays in swatchUrl
         await prisma.product.update({
           where: { id: dbProduct.id },
-          data: { swatchUrl: bestUrl },
+          data: { imageUrl: bestUrl },
         });
         updatedCount++;
         updated++;
