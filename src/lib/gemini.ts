@@ -121,6 +121,20 @@ export async function generateWithGemini(params: {
     const originalHeight = roomMeta.height || 768;
     console.log(`[Gemini] Room image dimensions: ${originalWidth}x${originalHeight}${surfaceType === "both" ? " (both surfaces)" : ""}`);
 
+    // ---- START MASK GENERATION IN PARALLEL ----
+    // Generates a B/W mask of the floor/wall surface so we can composite
+    // the Gemini output onto the original image, preserving all non-surface areas.
+    // This prevents Gemini from changing furniture, layout, colors, etc.
+    const maskPromise = generateSurfaceMask(
+      roomImageData,
+      surfaceType as "floor" | "wall" | "both",
+      originalWidth,
+      originalHeight,
+    ).catch((err: Error) => {
+      console.warn("[Gemini] Mask generation failed, compositing will be skipped:", err.message);
+      return null as Buffer | null;
+    });
+
     const model = genAI.getGenerativeModel({
       model: "gemini-3-pro-image-preview",
       generationConfig: {
@@ -200,16 +214,34 @@ export async function generateWithGemini(params: {
       geminiQueue.release();
     }
 
-    // Resize the generated image to match the original room image dimensions
-    const generatedMeta = await sharp(generatedImageBuffer).metadata();
-    console.log(`[Gemini] Generated image: ${generatedMeta.width}x${generatedMeta.height} → resizing to ${originalWidth}x${originalHeight}`);
+    // ---- WAIT FOR MASK AND COMPOSITE ----
+    // Instead of just resizing, we composite the generated floor/wall onto the
+    // original image using the mask. This ensures furniture, walls, layout etc.
+    // stay IDENTICAL to the original — only the surface material changes.
+    const maskBuffer = await maskPromise;
 
-    const resizedBuffer = await sharp(generatedImageBuffer)
-      .resize(originalWidth, originalHeight, {
-        fit: "fill", // exact dimensions, no cropping
-      })
-      .png({ quality: 95 })
-      .toBuffer();
+    const generatedMeta = await sharp(generatedImageBuffer).metadata();
+    console.log(`[Gemini] Generated image: ${generatedMeta.width}x${generatedMeta.height}`);
+
+    let resizedBuffer: Buffer;
+    if (maskBuffer) {
+      console.log(`[Gemini] Compositing with surface mask → preserving room identity`);
+      resizedBuffer = await compositeWithMask(
+        roomBuffer,
+        generatedImageBuffer,
+        maskBuffer,
+        originalWidth,
+        originalHeight,
+      );
+    } else {
+      console.log(`[Gemini] No mask available → using raw Gemini output (resizing to ${originalWidth}x${originalHeight})`);
+      resizedBuffer = await sharp(generatedImageBuffer)
+        .resize(originalWidth, originalHeight, {
+          fit: "fill",
+        })
+        .png({ quality: 95 })
+        .toBuffer();
+    }
 
     // Save the generated image (Cloudinary if configured, otherwise S3)
     let savedUrl: string;
@@ -548,6 +580,140 @@ function buildBothPrompt(
     `## OUTPUT`,
     `A single photorealistic image at exactly ${width}x${height} pixels. No text, no labels, no watermarks. The SAME room from Image 1 with ONLY floor and walls changed.`,
   ].filter(Boolean).join("\n");
+}
+
+/**
+ * Generate a segmentation mask for the floor/wall surfaces using Gemini.
+ * Uses the text model to get polygon coordinates, then renders them as an SVG mask.
+ * This runs in parallel with the main generation to avoid extra latency.
+ * Returns a Buffer containing a B/W PNG mask (white = surface, black = keep).
+ */
+async function generateSurfaceMask(
+  roomImageData: { base64: string; mimeType: string },
+  surfaceType: "floor" | "wall" | "both",
+  width: number,
+  height: number,
+): Promise<Buffer> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const surfaceDesc = surfaceType === "floor"
+    ? "FLOOR surface only (the horizontal surface people walk on)"
+    : surfaceType === "wall"
+    ? "all visible WALL surfaces (vertical surfaces)"
+    : "FLOOR surface AND all visible WALL surfaces";
+
+  const prompt = [
+    `Analyze this ${width}×${height} pixel room photograph. Output the POLYGON boundaries of the ${surfaceDesc}.`,
+    ``,
+    `For each surface area, output a polygon as an array of [x, y] coordinate pairs in PIXELS.`,
+    `x ranges from 0 (left) to ${width - 1} (right). y ranges from 0 (top) to ${height - 1} (bottom).`,
+    ``,
+    `RULES:`,
+    `- Trace the VISIBLE boundary of each surface precisely.`,
+    `- Use 12-30 points per polygon to accurately follow edges and curves.`,
+    `- Points go CLOCKWISE around each surface area.`,
+    surfaceType === "floor"
+      ? `- Include ONLY the floor. Exclude: furniture legs, rugs, mats, objects ON the floor, walls, doors.`
+      : surfaceType === "wall"
+      ? `- Include ONLY walls. Exclude: doors, door frames, windows, window frames, outlets, switches, shelves, artwork, mirrors, furniture against walls.`
+      : `- Include floor AND walls as separate polygons. Exclude: doors, windows, furniture, ceiling, objects.`,
+    `- If there are multiple disconnected areas of ${surfaceType === "floor" ? "floor" : "surface"}, output separate polygons for each.`,
+    `- Be generous with the surface area — better to include slightly too much than too little.`,
+    ``,
+    `Output ONLY valid JSON:`,
+    `{"polygons": [[[x1,y1],[x2,y2],[x3,y3],...], ...]}`,
+  ].join("\n");
+
+  const result = await model.generateContent([
+    prompt,
+    { inlineData: { mimeType: roomImageData.mimeType, data: roomImageData.base64 } },
+  ]);
+
+  const text = result.response.text().trim();
+  let jsonStr = text;
+  const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) jsonStr = fenceMatch[1].trim();
+
+  const data = JSON.parse(jsonStr);
+  const polygons: number[][][] = data.polygons || [];
+
+  if (polygons.length === 0) throw new Error("No surface polygons detected");
+
+  // Create SVG mask from polygons
+  const svgPolygons = polygons.map(poly => {
+    const points = poly.map(([x, y]) => {
+      const px = Math.max(0, Math.min(width, Math.round(x)));
+      const py = Math.max(0, Math.min(height, Math.round(y)));
+      return `${px},${py}`;
+    }).join(" ");
+    return `<polygon points="${points}" fill="white"/>`;
+  }).join("\n    ");
+
+  const svg = Buffer.from(
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${width}" height="${height}" fill="black"/>
+    ${svgPolygons}
+  </svg>`
+  );
+
+  // Render SVG to PNG, then blur for smooth compositing edges
+  const rawMask = await sharp(svg).png().toBuffer();
+  return sharp(rawMask)
+    .blur(8) // Gaussian blur for soft transitions at edges
+    .toBuffer();
+}
+
+/**
+ * Composite the generated image onto the original using a mask.
+ * Where mask is white → use generated pixel (new floor/wall).
+ * Where mask is black → use original pixel (furniture, walls, etc.).
+ * The mask's blur creates smooth transitions at edges.
+ */
+async function compositeWithMask(
+  originalBuffer: Buffer,
+  generatedBuffer: Buffer,
+  maskBuffer: Buffer,
+  width: number,
+  height: number,
+): Promise<Buffer> {
+  // 1. Resize generated image to target dimensions (RGB, no alpha)
+  const resizedGenerated = await sharp(generatedBuffer)
+    .resize(width, height, { fit: "fill" })
+    .removeAlpha()
+    .toBuffer();
+
+  // 2. Process mask: resize to match, ensure grayscale, normalize range, blur
+  const processedMask = await sharp(maskBuffer)
+    .resize(width, height, { fit: "fill" })
+    .greyscale()
+    .normalize() // stretch values to full 0-255 range
+    .toBuffer();
+
+  // 3. Add processed mask as alpha channel to the generated image
+  //    alpha=255 (white mask) → generated pixel is opaque (floor/wall from Gemini)
+  //    alpha=0 (black mask) → generated pixel is transparent (original shows through)
+  const generatedWithAlpha = await sharp(resizedGenerated)
+    .joinChannel(processedMask)
+    .png()
+    .toBuffer();
+
+  // 4. Composite: generated (with mask as alpha) OVER original
+  const result = await sharp(originalBuffer)
+    .resize(width, height, { fit: "fill" })
+    .composite([{
+      input: generatedWithAlpha,
+      blend: 'over',
+    }])
+    .png()
+    .toBuffer();
+
+  return result;
 }
 
 /**
