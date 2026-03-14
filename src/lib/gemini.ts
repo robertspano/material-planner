@@ -58,11 +58,11 @@ class GenerationQueue {
   }
 }
 
-// High default — all requests go to Gemini in parallel simultaneously.
-// The queue only kicks in as a safety net when Gemini returns 429 (rate limit).
-// Normal flow: 20 images → 20 parallel calls → all finish at ~same time (~30s).
-// Overload flow: 429 detected → queue pauses → retries after cooldown.
-const MAX_CONCURRENT = parseInt(process.env.GEMINI_MAX_CONCURRENT || "50", 10);
+// Default: 8 concurrent image generations across all planners.
+// Tier 1 Google AI allows ~10 IPM (images/min), so 8 is a safe parallel limit.
+// Each generation = 1 mask call (text model, no IPM) + 1 image call (counts IPM).
+// Override with GEMINI_MAX_CONCURRENT env var if you upgrade to Tier 2+.
+const MAX_CONCURRENT = parseInt(process.env.GEMINI_MAX_CONCURRENT || "8", 10);
 const geminiQueue = new GenerationQueue(MAX_CONCURRENT);
 
 /**
