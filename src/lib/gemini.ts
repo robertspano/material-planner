@@ -60,7 +60,6 @@ class GenerationQueue {
 
 // Default: 8 concurrent image generations across all planners.
 // Tier 1 Google AI allows ~10 IPM (images/min), so 8 is a safe parallel limit.
-// Each generation = 1 mask call (text model, no IPM) + 1 image call (counts IPM).
 // Override with GEMINI_MAX_CONCURRENT env var if you upgrade to Tier 2+.
 const MAX_CONCURRENT = parseInt(process.env.GEMINI_MAX_CONCURRENT || "8", 10);
 const geminiQueue = new GenerationQueue(MAX_CONCURRENT);
@@ -120,20 +119,6 @@ export async function generateWithGemini(params: {
     const originalWidth = roomMeta.width || 1024;
     const originalHeight = roomMeta.height || 768;
     console.log(`[Gemini] Room image dimensions: ${originalWidth}x${originalHeight}${surfaceType === "both" ? " (both surfaces)" : ""}`);
-
-    // ---- START MASK GENERATION IN PARALLEL ----
-    // Generates a B/W mask of the floor/wall surface so we can composite
-    // the Gemini output onto the original image, preserving all non-surface areas.
-    // This prevents Gemini from changing furniture, layout, colors, etc.
-    const maskPromise = generateSurfaceMask(
-      roomImageData,
-      surfaceType as "floor" | "wall" | "both",
-      originalWidth,
-      originalHeight,
-    ).catch((err: Error) => {
-      console.warn("[Gemini] Mask generation failed, compositing will be skipped:", err.message);
-      return null as Buffer | null;
-    });
 
     const model = genAI.getGenerativeModel({
       model: "gemini-3-pro-image-preview",
@@ -214,34 +199,14 @@ export async function generateWithGemini(params: {
       geminiQueue.release();
     }
 
-    // ---- WAIT FOR MASK AND COMPOSITE ----
-    // Instead of just resizing, we composite the generated floor/wall onto the
-    // original image using the mask. This ensures furniture, walls, layout etc.
-    // stay IDENTICAL to the original — only the surface material changes.
-    const maskBuffer = await maskPromise;
-
+    // Resize Gemini output to match original room dimensions
     const generatedMeta = await sharp(generatedImageBuffer).metadata();
-    console.log(`[Gemini] Generated image: ${generatedMeta.width}x${generatedMeta.height}`);
+    console.log(`[Gemini] Generated image: ${generatedMeta.width}x${generatedMeta.height} → resizing to ${originalWidth}x${originalHeight}`);
 
-    let resizedBuffer: Buffer;
-    if (maskBuffer) {
-      console.log(`[Gemini] Compositing with surface mask → preserving room identity`);
-      resizedBuffer = await compositeWithMask(
-        roomBuffer,
-        generatedImageBuffer,
-        maskBuffer,
-        originalWidth,
-        originalHeight,
-      );
-    } else {
-      console.log(`[Gemini] No mask available → using raw Gemini output (resizing to ${originalWidth}x${originalHeight})`);
-      resizedBuffer = await sharp(generatedImageBuffer)
-        .resize(originalWidth, originalHeight, {
-          fit: "fill",
-        })
-        .png({ quality: 95 })
-        .toBuffer();
-    }
+    const resizedBuffer = await sharp(generatedImageBuffer)
+      .resize(originalWidth, originalHeight, { fit: "fill" })
+      .png({ quality: 95 })
+      .toBuffer();
 
     // Save the generated image (Cloudinary if configured, otherwise S3)
     let savedUrl: string;
@@ -325,46 +290,47 @@ function buildPrompt(
 
   if (surfaceType === "floor") {
     return [
-      `You are an image EDITING tool. You do NOT generate new images. You EDIT the provided photograph by replacing ONLY the floor surface material. This is an INPAINTING task.`,
+      `# STRICT IMAGE EDITING — FLOOR REPLACEMENT ONLY`,
       ``,
-      `## RULE #1 — IDENTITY PRESERVATION (MOST IMPORTANT RULE)`,
-      `This is NOT image generation. You are EDITING Image 1. The output must be the SAME photograph with ONLY the floor pixels changed.`,
-      `- The room structure, walls, ceiling, furniture, appliances, objects, doors, windows, cabinets, shelves — ALL must be IDENTICAL to Image 1`,
-      `- Do NOT reimagine, redesign, rearrange, or regenerate the room`,
-      `- Do NOT change the wall color, wall material, or any wall appearance`,
-      `- Do NOT move, remove, add, resize, reshape, or alter ANY object in the room`,
-      `- Do NOT change lighting, shadows, color temperature, or exposure`,
-      `- Every single pixel that is NOT floor surface must be copied EXACTLY from Image 1`,
-      `- If you cannot preserve the room exactly, it is better to make minimal floor changes than to alter the room`,
+      `You are a PHOTO EDITOR performing a SURGICAL edit on an existing photograph. You MUST return the EXACT SAME photograph with ONLY the floor material swapped. This is NOT image generation — it is INPAINTING.`,
+      ``,
+      `## ⚠️ CRITICAL RULE — DO NOT REGENERATE THE ROOM ⚠️`,
+      `You MUST preserve the EXACT room from Image 1. If your output shows a DIFFERENT room, different furniture, different layout, different walls, or different perspective — YOU HAVE FAILED.`,
+      ``,
+      `FORBIDDEN actions (violating ANY of these = failure):`,
+      `- ❌ Generating a new room or a "similar-looking" room — KEEP THE EXACT ROOM from Image 1`,
+      `- ❌ Changing, moving, removing, adding, or resizing ANY furniture or object`,
+      `- ❌ Changing wall color, wall texture, wall material, or wall appearance in any way`,
+      `- ❌ Changing the ceiling, doors, windows, cabinets, or any architectural element`,
+      `- ❌ Changing camera angle, perspective, field of view, or composition`,
+      `- ❌ Changing lighting, shadows, color temperature, white balance, or exposure`,
+      `- ❌ Adding or removing any objects, people, pets, plants, or decorations`,
+      `- ❌ Changing the style, era, or aesthetic of the room`,
+      ``,
+      `REQUIRED: Every pixel that is NOT floor must be IDENTICAL to Image 1. The room layout, furniture positions, wall colors, objects, lighting — ALL must match Image 1 exactly.`,
       ``,
       `## INPUT`,
-      `- IMAGE 1: The photograph to edit — ${width}x${height} pixels`,
-      `- IMAGE 2: Material swatch "${productName}" to apply on the floor`,
+      `- IMAGE 1 (FIRST IMAGE): The room photograph to edit — ${width}x${height} pixels. THIS is the room you must preserve.`,
+      `- IMAGE 2 (SECOND IMAGE): Material/texture swatch "${productName}" — the new floor material to apply.`,
       opts?.productDescription ? `- Product info: "${opts.productDescription}"` : ``,
       ``,
       `## TASK`,
-      `Edit Image 1: replace ONLY the floor surface with the material shown in Image 2. Everything else stays EXACTLY the same.`,
+      `Take Image 1 and replace ONLY the visible floor surface with the material texture from Image 2. Return the SAME photo with the new floor. Nothing else changes.`,
       ``,
       `${sizeInstruction}`,
       ``,
-      `## WHAT YOU MAY CHANGE (nothing else)`,
-      `- Floor surface → replace with material from Image 2`,
-      `- Baseboard COLOR ONLY → recolor to match the new floor tone (keep shape/size identical)`,
+      `## ALLOWED CHANGES (absolutely nothing else)`,
+      `1. Floor surface pixels → replace with material texture from Image 2`,
+      `2. Baseboard color → may adjust to complement new floor (shape/size stay identical)`,
       ``,
-      `## WHAT YOU MUST NOT CHANGE (absolute)`,
-      `Walls, ceiling, wall color, wall material, furniture, appliances, kitchen cabinets, countertops, tables, chairs, sofas, beds, rugs, decor, curtains, windows, window frames, window sills, doors, door frames, radiators, outlets, switches, shelves, artwork, mirrors, plants, people, pets, lamps, light fixtures, baseboards shape/size, room layout, camera angle, perspective, lighting. ALL of these must remain PIXEL-IDENTICAL to Image 1.`,
+      `## NEVER CHANGE (keep pixel-identical to Image 1)`,
+      `Walls, wall color, wall material, ceiling, furniture (every piece), appliances, kitchen cabinets, countertops, tables, chairs, sofas, beds, rugs, decor items, curtains, windows, window frames, window sills, doors, door frames, radiators, outlets, switches, shelves, artwork, mirrors, plants, people, pets, lamps, light fixtures, baseboard shape/position, room layout, camera angle, perspective, focal length, lighting direction, shadow positions, color temperature, exposure level.`,
       ``,
-      `## COLOR ACCURACY`,
-      `- Floor color MUST EXACTLY match Image 2. Do NOT shift hue/saturation/brightness.`,
-      `- Every tile/plank must be the SAME color as Image 2. No invented colors or random variation.`,
-      `- Only lighting effects (shadows, reflections) may cause subtle variation — base color stays identical to Image 2.`,
-      ``,
-      `## FLOOR MATERIAL`,
-      `- Identify material type from Image 2 (wood planks, ceramic tiles, stone, vinyl, etc.)`,
-      `- Wood/parquet: render planks with grain matching Image 2, realistic joints, same color`,
-      `- Tile/ceramic: render with proper grout lines, correct proportions, uniform color matching Image 2`,
-      `- Stone/marble: render with veining matching Image 2, proper joints, same color`,
-      `- Must tile seamlessly — no visible repetition or mirroring artifacts`,
+      `## FLOOR MATERIAL RENDERING`,
+      `- Match the EXACT color and texture of Image 2 — do NOT invent colors or shift the hue`,
+      `- Identify material type: wood planks, ceramic tiles, stone, vinyl, etc.`,
+      `- Render with appropriate joints/grout lines for the material type`,
+      `- Tile seamlessly — no visible repetition patterns or mirror artifacts`,
       dimensionInfo
         ? `- EXACT DIMENSIONS: ${dimensionInfo}`
         : `- Scale realistically: tiles ~30-60cm, wood planks ~10-20cm wide × 60-200cm long`,
@@ -372,67 +338,62 @@ function buildPrompt(
       `## LAYING PATTERN`,
       `${patternInstruction}`,
       ``,
-      `## BOUNDARIES`,
-      `- Floor stops exactly where it meets the wall — clean boundary`,
-      `- Baseboards: keep shape/size, ONLY recolor to match new floor tone`,
-      `- Do NOT touch door frames, window frames, or any other trim`,
+      `## PERSPECTIVE & BOUNDARIES`,
+      `- Floor material follows the room's vanishing point(s) with proper foreshortening`,
+      `- Floor stops exactly at the wall boundary — clean edge`,
+      `- Clean transitions where floor meets furniture legs and objects`,
       ``,
-      `## PERSPECTIVE`,
-      `- Floor material follows the room's vanishing point(s)`,
-      `- Tiles closer to camera appear larger (proper foreshortening)`,
-      `- Clean transitions where floor meets furniture legs, walls, objects`,
-      ``,
-      `## LIGHTING`,
-      `- Cast existing shadows from furniture onto new floor naturally`,
-      `- Apply reflections appropriate to material finish`,
-      `- Match brightness/exposure of floor area to rest of room`,
+      `## LIGHTING ON FLOOR`,
+      `- Keep existing shadows from furniture/objects on the new floor`,
+      `- Apply reflections appropriate to material finish (matte vs glossy)`,
+      `- Match floor brightness to rest of room`,
       ``,
       `## OUTPUT`,
-      `A single photorealistic image at exactly ${width}x${height} pixels. No text, no labels, no watermarks. The SAME room from Image 1 with ONLY the floor changed.`,
+      `A single photorealistic image at ${width}x${height} pixels. No text, labels, or watermarks. The IDENTICAL room from Image 1 with ONLY the floor material changed to match Image 2.`,
     ].filter(Boolean).join("\n");
   }
 
   return [
-    `You are an image EDITING tool. You do NOT generate new images. You EDIT the provided photograph by replacing ONLY the wall surface materials. This is an INPAINTING task.`,
+    `# STRICT IMAGE EDITING — WALL REPLACEMENT ONLY`,
     ``,
-    `## RULE #1 — IDENTITY PRESERVATION (MOST IMPORTANT RULE)`,
-    `This is NOT image generation. You are EDITING Image 1. The output must be the SAME photograph with ONLY the wall pixels changed.`,
-    `- The room structure, floor, ceiling, furniture, appliances, objects, doors, windows, cabinets, shelves — ALL must be IDENTICAL to Image 1`,
-    `- Do NOT reimagine, redesign, rearrange, or regenerate the room`,
-    `- Do NOT change the floor color, floor material, or any floor appearance`,
-    `- Do NOT move, remove, add, resize, reshape, or alter ANY object in the room`,
-    `- Do NOT change lighting, shadows, color temperature, or exposure`,
-    `- Every single pixel that is NOT wall surface must be copied EXACTLY from Image 1`,
-    `- If you cannot preserve the room exactly, it is better to make minimal wall changes than to alter the room`,
+    `You are a PHOTO EDITOR performing a SURGICAL edit on an existing photograph. You MUST return the EXACT SAME photograph with ONLY the wall material swapped. This is NOT image generation — it is INPAINTING.`,
+    ``,
+    `## ⚠️ CRITICAL RULE — DO NOT REGENERATE THE ROOM ⚠️`,
+    `You MUST preserve the EXACT room from Image 1. If your output shows a DIFFERENT room, different furniture, different layout, different floor, or different perspective — YOU HAVE FAILED.`,
+    ``,
+    `FORBIDDEN actions (violating ANY of these = failure):`,
+    `- ❌ Generating a new room or a "similar-looking" room — KEEP THE EXACT ROOM from Image 1`,
+    `- ❌ Changing, moving, removing, adding, or resizing ANY furniture or object`,
+    `- ❌ Changing floor color, floor texture, floor material, or floor appearance in any way`,
+    `- ❌ Changing the ceiling, doors, windows, cabinets, or any architectural element`,
+    `- ❌ Changing camera angle, perspective, field of view, or composition`,
+    `- ❌ Changing lighting, shadows, color temperature, white balance, or exposure`,
+    `- ❌ Adding or removing any objects, people, pets, plants, or decorations`,
+    `- ❌ Changing the style, era, or aesthetic of the room`,
+    ``,
+    `REQUIRED: Every pixel that is NOT a wall surface must be IDENTICAL to Image 1. The room layout, furniture positions, floor material, objects, lighting — ALL must match Image 1 exactly.`,
     ``,
     `## INPUT`,
-    `- IMAGE 1: The photograph to edit — ${width}x${height} pixels`,
-    `- IMAGE 2: Material swatch "${productName}" to apply on the walls`,
+    `- IMAGE 1 (FIRST IMAGE): The room photograph to edit — ${width}x${height} pixels. THIS is the room you must preserve.`,
+    `- IMAGE 2 (SECOND IMAGE): Material/texture swatch "${productName}" — the new wall material to apply.`,
     opts?.productDescription ? `- Product info: "${opts.productDescription}"` : ``,
     ``,
     `## TASK`,
-    `Edit Image 1: replace ONLY the wall surfaces with the material shown in Image 2. Everything else stays EXACTLY the same.`,
+    `Take Image 1 and replace ONLY the visible wall surfaces with the material texture from Image 2. Return the SAME photo with the new walls. Nothing else changes.`,
     ``,
     `${sizeInstruction}`,
     ``,
-    `## WHAT YOU MAY CHANGE (nothing else)`,
-    `- Wall surfaces → replace with material from Image 2`,
+    `## ALLOWED CHANGES (absolutely nothing else)`,
+    `1. Wall surface pixels → replace with material texture from Image 2`,
     ``,
-    `## WHAT YOU MUST NOT CHANGE (absolute)`,
-    `Floor, floor material, floor color, ceiling, furniture, appliances, kitchen cabinets, countertops, tables, chairs, sofas, beds, rugs, decor, curtains, windows, window frames, window sills, doors, door frames, radiators, outlets, switches, shelves, artwork, mirrors, plants, people, pets, lamps, light fixtures, baseboards (keep EXACTLY as in Image 1 — same color, shape, material), room layout, camera angle, perspective, lighting. ALL of these must remain PIXEL-IDENTICAL to Image 1.`,
+    `## NEVER CHANGE (keep pixel-identical to Image 1)`,
+    `Floor, floor material, floor color, ceiling, furniture (every piece), appliances, kitchen cabinets, countertops, tables, chairs, sofas, beds, rugs, decor items, curtains, windows, window frames, window sills, doors, door frames, radiators, outlets, switches, shelves, artwork, mirrors, plants, people, pets, lamps, light fixtures, baseboards (keep EXACTLY as in Image 1), room layout, camera angle, perspective, focal length, lighting direction, shadow positions, color temperature, exposure level.`,
     ``,
-    `## COLOR ACCURACY`,
-    `- Wall color MUST EXACTLY match Image 2. Do NOT shift hue/saturation/brightness.`,
-    `- Every tile/panel must be the SAME color as Image 2. No invented colors or random variation.`,
-    `- Only lighting effects (shadows, reflections) may cause subtle variation — base color stays identical to Image 2.`,
-    ``,
-    `## WALL MATERIAL`,
-    `- Identify material type from Image 2 (ceramic tiles, stone, paint, wood panels, wallpaper, etc.)`,
-    `- Tile/ceramic: render with proper grout lines, correct dimensions, uniform color matching Image 2`,
-    `- Stone/marble: render with veining matching Image 2, realistic depth, proper joints`,
-    `- Wood panels: render with grain matching Image 2, proper panel joints, same color`,
-    `- Solid/paint: apply uniformly matching Image 2's exact color and finish`,
-    `- Must tile seamlessly — no visible repetition or mirroring artifacts`,
+    `## WALL MATERIAL RENDERING`,
+    `- Match the EXACT color and texture of Image 2 — do NOT invent colors or shift the hue`,
+    `- Identify material type: ceramic tiles, stone, paint, wood panels, wallpaper, etc.`,
+    `- Render with appropriate joints/grout lines for the material type`,
+    `- Tile seamlessly — no visible repetition patterns or mirror artifacts`,
     dimensionInfo
       ? `- EXACT DIMENSIONS: ${dimensionInfo}`
       : `- Scale realistically: wall tiles ~10-30cm × 30-60cm`,
@@ -444,23 +405,16 @@ function buildPrompt(
     `- Replace ALL visible wall surfaces`,
     `- Stop at: ceiling, floor, door frames, window frames, built-in fixtures`,
     `- Do NOT cover outlets, switches, vents, shelves, artwork, mirrors — they remain on top`,
-    `- Baseboards: keep COMPLETELY unchanged — same color, shape, material as Image 1`,
-    `- Do NOT touch door frames, window frames, or any other trim`,
+    `- Keep baseboards EXACTLY as in Image 1 — same color, shape, material, position`,
     `- Clean material edge at wall corners`,
     ``,
-    `## PERSPECTIVE`,
-    `- Wall material follows each wall's flat geometry`,
-    `- Side walls: material converges toward vanishing point`,
-    `- Front walls: material appears face-on with minimal distortion`,
-    `- Consistent material scale across all walls`,
-    ``,
-    `## LIGHTING`,
-    `- Preserve existing shadow patterns on walls`,
-    `- Apply gradients matching original (darker in corners, brighter near windows)`,
+    `## PERSPECTIVE & LIGHTING`,
+    `- Wall material follows each wall's flat geometry (side walls converge to vanishing point)`,
+    `- Preserve existing shadow patterns and light gradients on walls`,
     `- Match surface finish: glossy → specular highlights, matte → absorb light`,
     ``,
     `## OUTPUT`,
-    `A single photorealistic image at exactly ${width}x${height} pixels. No text, no labels, no watermarks. The SAME room from Image 1 with ONLY the walls changed.`,
+    `A single photorealistic image at ${width}x${height} pixels. No text, labels, or watermarks. The IDENTICAL room from Image 1 with ONLY the wall material changed to match Image 2.`,
   ].filter(Boolean).join("\n");
 }
 
@@ -507,205 +461,74 @@ function buildBothPrompt(
     : null;
 
   return [
-    `You are an image EDITING tool. You do NOT generate new images. You EDIT the provided photograph by replacing ONLY the floor and wall surface materials. This is an INPAINTING task.`,
+    `# STRICT IMAGE EDITING — FLOOR AND WALL REPLACEMENT ONLY`,
     ``,
-    `## RULE #1 — IDENTITY PRESERVATION (MOST IMPORTANT RULE)`,
-    `This is NOT image generation. You are EDITING Image 1. The output must be the SAME photograph with ONLY floor and wall pixels changed.`,
-    `- The room structure, ceiling, furniture, appliances, objects, doors, windows, cabinets, shelves — ALL must be IDENTICAL to Image 1`,
-    `- Do NOT reimagine, redesign, rearrange, or regenerate the room`,
-    `- Do NOT move, remove, add, resize, reshape, or alter ANY object in the room`,
-    `- Do NOT change lighting, shadows, color temperature, or exposure`,
-    `- Every single pixel that is NOT floor or wall surface must be copied EXACTLY from Image 1`,
-    `- If you cannot preserve the room exactly, it is better to make minimal surface changes than to alter the room`,
+    `You are a PHOTO EDITOR performing a SURGICAL edit on an existing photograph. You MUST return the EXACT SAME photograph with ONLY the floor and wall materials swapped. This is NOT image generation — it is INPAINTING.`,
+    ``,
+    `## ⚠️ CRITICAL RULE — DO NOT REGENERATE THE ROOM ⚠️`,
+    `You MUST preserve the EXACT room from Image 1. If your output shows a DIFFERENT room, different furniture, different layout, or different perspective — YOU HAVE FAILED.`,
+    ``,
+    `FORBIDDEN actions (violating ANY of these = failure):`,
+    `- ❌ Generating a new room or a "similar-looking" room — KEEP THE EXACT ROOM from Image 1`,
+    `- ❌ Changing, moving, removing, adding, or resizing ANY furniture or object`,
+    `- ❌ Changing the ceiling, doors, windows, cabinets, or any architectural element`,
+    `- ❌ Changing camera angle, perspective, field of view, or composition`,
+    `- ❌ Changing lighting, shadows, color temperature, white balance, or exposure`,
+    `- ❌ Adding or removing any objects, people, pets, plants, or decorations`,
+    `- ❌ Changing the style, era, or aesthetic of the room`,
+    ``,
+    `REQUIRED: Every pixel that is NOT floor or wall must be IDENTICAL to Image 1. The room layout, furniture positions, ceiling, objects, lighting — ALL must match Image 1 exactly.`,
     ``,
     `## INPUT`,
-    `- IMAGE 1: The photograph to edit — ${width}x${height} pixels`,
-    `- IMAGE 2: Floor material swatch "${floorProductName}"`,
+    `- IMAGE 1 (FIRST IMAGE): The room photograph to edit — ${width}x${height} pixels. THIS is the room you must preserve.`,
+    `- IMAGE 2 (SECOND IMAGE): Floor material swatch "${floorProductName}" — the new floor material.`,
     opts?.floorProductDescription ? `  Floor product info: "${opts.floorProductDescription}"` : ``,
-    `- IMAGE 3: Wall material swatch "${wallProductName}"`,
+    `- IMAGE 3 (THIRD IMAGE): Wall material swatch "${wallProductName}" — the new wall material.`,
     opts?.wallProductDescription ? `  Wall product info: "${opts.wallProductDescription}"` : ``,
     ``,
     `## TASK`,
-    `Edit Image 1: replace ONLY the floor surface with Image 2 material AND wall surfaces with Image 3 material. Everything else stays EXACTLY the same.`,
+    `Take Image 1 and replace ONLY the floor with Image 2 material AND walls with Image 3 material. Return the SAME photo with new surfaces. Nothing else changes.`,
     ``,
     `${sizeInstruction}`,
     ``,
-    `## WHAT YOU MAY CHANGE (nothing else)`,
-    `- Floor surface → replace with material from Image 2`,
-    `- Wall surfaces → replace with material from Image 3`,
-    `- Baseboard COLOR ONLY → recolor to match the new floor tone (keep shape/size identical)`,
+    `## ALLOWED CHANGES (absolutely nothing else)`,
+    `1. Floor surface pixels → replace with material texture from Image 2`,
+    `2. Wall surface pixels → replace with material texture from Image 3`,
+    `3. Baseboard color → may adjust to complement new floor (shape/size stay identical)`,
     ``,
-    `## WHAT YOU MUST NOT CHANGE (absolute)`,
-    `Ceiling, furniture, appliances, kitchen cabinets, countertops, tables, chairs, sofas, beds, rugs, decor, curtains, windows, window frames, window sills, doors, door frames, radiators, outlets, switches, shelves, artwork, mirrors, plants, people, pets, lamps, light fixtures, baseboards shape/size, room layout, camera angle, perspective, lighting. ALL of these must remain PIXEL-IDENTICAL to Image 1.`,
-    ``,
-    `## COLOR ACCURACY`,
-    `- Floor color MUST EXACTLY match Image 2. Wall color MUST EXACTLY match Image 3.`,
-    `- Do NOT shift hue/saturation/brightness of either material.`,
-    `- Every tile/plank must match its source image. No invented colors or random variation.`,
-    `- Only lighting effects (shadows, reflections) may cause subtle variation.`,
+    `## NEVER CHANGE (keep pixel-identical to Image 1)`,
+    `Ceiling, furniture (every piece), appliances, kitchen cabinets, countertops, tables, chairs, sofas, beds, rugs, decor items, curtains, windows, window frames, window sills, doors, door frames, radiators, outlets, switches, shelves, artwork, mirrors, plants, people, pets, lamps, light fixtures, baseboard shape/position, room layout, camera angle, perspective, focal length, lighting direction, shadow positions, color temperature, exposure level.`,
     ``,
     `## FLOOR MATERIAL (Image 2: "${floorProductName}")`,
-    `- Identify material type from Image 2 (wood, ceramic, stone, vinyl, etc.)`,
-    `- Render with correct texture, joints/grout, and uniform color matching Image 2`,
-    `- Must tile seamlessly — no visible repetition or mirroring`,
+    `- Match EXACT color and texture of Image 2 — do NOT invent colors or shift hue`,
+    `- Render with correct texture, joints/grout for the material type`,
+    `- Tile seamlessly — no visible repetition or mirror artifacts`,
     floorDim ? `- ${floorDim}` : `- Scale realistically: tiles ~30-60cm, planks ~10-20cm wide × 60-200cm long`,
     `- LAYING PATTERN: ${floorPattern}`,
     `- Floor stops where it meets the wall`,
     ``,
     `## WALL MATERIAL (Image 3: "${wallProductName}")`,
-    `- Identify material type from Image 3 (ceramic, stone, wood, paint, wallpaper, etc.)`,
-    `- Render with correct texture, joints/grout, and uniform color matching Image 3`,
-    `- Must tile seamlessly — no visible repetition or mirroring`,
+    `- Match EXACT color and texture of Image 3 — do NOT invent colors or shift hue`,
+    `- Render with correct texture, joints/grout for the material type`,
+    `- Tile seamlessly — no visible repetition or mirror artifacts`,
     wallDim ? `- ${wallDim}` : `- Scale realistically: wall tiles ~10-30cm × 30-60cm`,
     `- LAYING PATTERN: ${wallPattern}`,
     `- Replace ALL visible wall surfaces. Stop at ceiling, floor, door frames, window frames`,
     `- Do NOT cover outlets, switches, vents, shelves, artwork, mirrors`,
     ``,
     `## BASEBOARDS`,
-    `- Keep shape/size/position EXACTLY as in Image 1 — do NOT remove`,
-    `- ONLY recolor to match the dominant tone of the new floor material (Image 2)`,
-    `- Do NOT touch door frames, window frames, or any other trim`,
+    `- Keep shape/size/position EXACTLY as in Image 1`,
+    `- May recolor to match new floor tone, but keep geometry identical`,
     ``,
-    `## PERSPECTIVE`,
-    `- Floor material follows room vanishing point(s) — proper foreshortening`,
-    `- Wall material follows each wall's flat geometry — side walls converge to vanishing point`,
-    `- Consistent material scale across all surfaces`,
-    ``,
-    `## LIGHTING`,
-    `- Cast existing shadows onto new surfaces naturally`,
-    `- Preserve shadow patterns from furniture, window frames, etc.`,
+    `## PERSPECTIVE & LIGHTING`,
+    `- Floor follows room vanishing point(s) with proper foreshortening`,
+    `- Wall material follows each wall's flat geometry`,
+    `- Preserve existing shadows and light gradients on all surfaces`,
     `- Apply reflections appropriate to material finish`,
-    `- Match brightness/exposure to the rest of the room`,
     ``,
     `## OUTPUT`,
-    `A single photorealistic image at exactly ${width}x${height} pixels. No text, no labels, no watermarks. The SAME room from Image 1 with ONLY floor and walls changed.`,
+    `A single photorealistic image at ${width}x${height} pixels. No text, labels, or watermarks. The IDENTICAL room from Image 1 with ONLY floor and wall materials changed.`,
   ].filter(Boolean).join("\n");
-}
-
-/**
- * Generate a pixel-accurate segmentation mask using Gemini image generation.
- * Instead of polygon coordinates (inaccurate), this asks Gemini to directly
- * generate a B/W mask image where white = surface to replace, black = keep.
- * Runs in parallel with the main generation to minimize total latency.
- */
-async function generateSurfaceMask(
-  roomImageData: { base64: string; mimeType: string },
-  surfaceType: "floor" | "wall" | "both",
-  width: number,
-  height: number,
-): Promise<Buffer> {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: {
-      // @ts-expect-error - responseModalities is supported but not in types yet
-      responseModalities: ["IMAGE"],
-    },
-  });
-
-  const surfaceLabel = surfaceType === "floor"
-    ? "FLOOR"
-    : surfaceType === "wall"
-    ? "WALLS"
-    : "FLOOR and WALLS";
-
-  const keepLabel = surfaceType === "floor"
-    ? "walls, ceiling, furniture, doors, windows, cabinets, appliances, objects"
-    : surfaceType === "wall"
-    ? "floor, ceiling, furniture, doors, door frames, windows, window frames, cabinets, appliances, outlets, switches, shelves, artwork, mirrors, objects"
-    : "ceiling, furniture, doors, door frames, windows, window frames, cabinets, appliances, outlets, switches, shelves, artwork, mirrors, objects";
-
-  const prompt = [
-    `Create a precise segmentation MASK image for this room photograph.`,
-    ``,
-    `OUTPUT: A ${width}×${height} pixel BLACK AND WHITE mask image.`,
-    ``,
-    `- Pure WHITE (#FFFFFF) pixels = the ${surfaceLabel} surface area`,
-    `- Pure BLACK (#000000) pixels = everything else (${keepLabel})`,
-    ``,
-    `CRITICAL RULES:`,
-    `- ONLY pure black and pure white. No gray, no colors, no gradients, no shading.`,
-    `- Follow the EXACT edges of the ${surfaceLabel.toLowerCase()} with pixel precision.`,
-    `- ${surfaceType === "floor"
-        ? "WHITE = all visible floor area. BLACK = walls, ceiling, ALL furniture (tables, chairs, sofas, cabinets), ALL objects, rugs, mats, appliances, doors, windows."
-        : surfaceType === "wall"
-        ? "WHITE = all visible wall surfaces. BLACK = floor, ceiling, ALL furniture, ALL cabinets, doors, door frames, windows, window frames, outlets, switches, shelves, artwork, mirrors, appliances."
-        : "WHITE = all visible floor AND wall surfaces. BLACK = ceiling, ALL furniture, ALL cabinets, doors, door frames, windows, window frames, appliances, objects."}`,
-    `- Where furniture overlaps the ${surfaceLabel.toLowerCase()}, the furniture area must be BLACK (furniture is in front).`,
-    `- The mask must have the SAME perspective and dimensions as the input photo.`,
-    `- Be precise around edges — furniture legs, cabinet edges, door frames should have clean boundaries.`,
-    ``,
-    `Output ONLY the mask image. No text, no labels, no watermarks.`,
-  ].join("\n");
-
-  const result = await model.generateContent([
-    prompt,
-    { inlineData: { mimeType: roomImageData.mimeType, data: roomImageData.base64 } },
-  ]);
-
-  // Extract mask image from response
-  for (const candidate of result.response.candidates || []) {
-    for (const part of candidate.content?.parts || []) {
-      if (part.inlineData) {
-        const maskBuffer = Buffer.from(part.inlineData.data, "base64");
-        // Process: resize to exact dimensions, ensure grayscale, apply slight blur for smooth edges
-        return sharp(maskBuffer)
-          .resize(width, height, { fit: "fill" })
-          .greyscale()
-          .normalize() // stretch to full 0-255 range
-          .blur(3) // slight blur for smooth compositing transitions
-          .toBuffer();
-      }
-    }
-  }
-
-  throw new Error("Gemini did not return a mask image");
-}
-
-/**
- * Composite the generated image onto the original using a mask.
- * Where mask is white → use generated pixel (new floor/wall).
- * Where mask is black → use original pixel (furniture, walls, etc.).
- * The mask's blur creates smooth transitions at edges.
- */
-async function compositeWithMask(
-  originalBuffer: Buffer,
-  generatedBuffer: Buffer,
-  maskBuffer: Buffer,
-  width: number,
-  height: number,
-): Promise<Buffer> {
-  // 1. Resize generated image to target dimensions (RGB, no alpha)
-  const resizedGenerated = await sharp(generatedBuffer)
-    .resize(width, height, { fit: "fill" })
-    .removeAlpha()
-    .toBuffer();
-
-  // 2. Process mask: resize to match, ensure grayscale, normalize range, blur
-  const processedMask = await sharp(maskBuffer)
-    .resize(width, height, { fit: "fill" })
-    .greyscale()
-    .normalize() // stretch values to full 0-255 range
-    .toBuffer();
-
-  // 3. Add processed mask as alpha channel to the generated image
-  //    alpha=255 (white mask) → generated pixel is opaque (floor/wall from Gemini)
-  //    alpha=0 (black mask) → generated pixel is transparent (original shows through)
-  const generatedWithAlpha = await sharp(resizedGenerated)
-    .joinChannel(processedMask)
-    .png()
-    .toBuffer();
-
-  // 4. Composite: generated (with mask as alpha) OVER original
-  const result = await sharp(originalBuffer)
-    .resize(width, height, { fit: "fill" })
-    .composite([{
-      input: generatedWithAlpha,
-      blend: 'over',
-    }])
-    .png()
-    .toBuffer();
-
-  return result;
 }
 
 /**
