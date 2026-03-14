@@ -583,10 +583,10 @@ function buildBothPrompt(
 }
 
 /**
- * Generate a segmentation mask for the floor/wall surfaces using Gemini.
- * Uses the text model to get polygon coordinates, then renders them as an SVG mask.
- * This runs in parallel with the main generation to avoid extra latency.
- * Returns a Buffer containing a B/W PNG mask (white = surface, black = keep).
+ * Generate a pixel-accurate segmentation mask using Gemini image generation.
+ * Instead of polygon coordinates (inaccurate), this asks Gemini to directly
+ * generate a B/W mask image where white = surface to replace, black = keep.
+ * Runs in parallel with the main generation to minimize total latency.
  */
 async function generateSurfaceMask(
   roomImageData: { base64: string; mimeType: string },
@@ -597,37 +597,44 @@ async function generateSurfaceMask(
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
-      temperature: 0.1,
-      responseMimeType: "application/json",
+      // @ts-expect-error - responseModalities is supported but not in types yet
+      responseModalities: ["IMAGE"],
     },
   });
 
-  const surfaceDesc = surfaceType === "floor"
-    ? "FLOOR surface only (the horizontal surface people walk on)"
+  const surfaceLabel = surfaceType === "floor"
+    ? "FLOOR"
     : surfaceType === "wall"
-    ? "all visible WALL surfaces (vertical surfaces)"
-    : "FLOOR surface AND all visible WALL surfaces";
+    ? "WALLS"
+    : "FLOOR and WALLS";
+
+  const keepLabel = surfaceType === "floor"
+    ? "walls, ceiling, furniture, doors, windows, cabinets, appliances, objects"
+    : surfaceType === "wall"
+    ? "floor, ceiling, furniture, doors, door frames, windows, window frames, cabinets, appliances, outlets, switches, shelves, artwork, mirrors, objects"
+    : "ceiling, furniture, doors, door frames, windows, window frames, cabinets, appliances, outlets, switches, shelves, artwork, mirrors, objects";
 
   const prompt = [
-    `Analyze this ${width}×${height} pixel room photograph. Output the POLYGON boundaries of the ${surfaceDesc}.`,
+    `Create a precise segmentation MASK image for this room photograph.`,
     ``,
-    `For each surface area, output a polygon as an array of [x, y] coordinate pairs in PIXELS.`,
-    `x ranges from 0 (left) to ${width - 1} (right). y ranges from 0 (top) to ${height - 1} (bottom).`,
+    `OUTPUT: A ${width}×${height} pixel BLACK AND WHITE mask image.`,
     ``,
-    `RULES:`,
-    `- Trace the VISIBLE boundary of each surface precisely.`,
-    `- Use 12-30 points per polygon to accurately follow edges and curves.`,
-    `- Points go CLOCKWISE around each surface area.`,
-    surfaceType === "floor"
-      ? `- Include ONLY the floor. Exclude: furniture legs, rugs, mats, objects ON the floor, walls, doors.`
-      : surfaceType === "wall"
-      ? `- Include ONLY walls. Exclude: doors, door frames, windows, window frames, outlets, switches, shelves, artwork, mirrors, furniture against walls.`
-      : `- Include floor AND walls as separate polygons. Exclude: doors, windows, furniture, ceiling, objects.`,
-    `- If there are multiple disconnected areas of ${surfaceType === "floor" ? "floor" : "surface"}, output separate polygons for each.`,
-    `- Be generous with the surface area — better to include slightly too much than too little.`,
+    `- Pure WHITE (#FFFFFF) pixels = the ${surfaceLabel} surface area`,
+    `- Pure BLACK (#000000) pixels = everything else (${keepLabel})`,
     ``,
-    `Output ONLY valid JSON:`,
-    `{"polygons": [[[x1,y1],[x2,y2],[x3,y3],...], ...]}`,
+    `CRITICAL RULES:`,
+    `- ONLY pure black and pure white. No gray, no colors, no gradients, no shading.`,
+    `- Follow the EXACT edges of the ${surfaceLabel.toLowerCase()} with pixel precision.`,
+    `- ${surfaceType === "floor"
+        ? "WHITE = all visible floor area. BLACK = walls, ceiling, ALL furniture (tables, chairs, sofas, cabinets), ALL objects, rugs, mats, appliances, doors, windows."
+        : surfaceType === "wall"
+        ? "WHITE = all visible wall surfaces. BLACK = floor, ceiling, ALL furniture, ALL cabinets, doors, door frames, windows, window frames, outlets, switches, shelves, artwork, mirrors, appliances."
+        : "WHITE = all visible floor AND wall surfaces. BLACK = ceiling, ALL furniture, ALL cabinets, doors, door frames, windows, window frames, appliances, objects."}`,
+    `- Where furniture overlaps the ${surfaceLabel.toLowerCase()}, the furniture area must be BLACK (furniture is in front).`,
+    `- The mask must have the SAME perspective and dimensions as the input photo.`,
+    `- Be precise around edges — furniture legs, cabinet edges, door frames should have clean boundaries.`,
+    ``,
+    `Output ONLY the mask image. No text, no labels, no watermarks.`,
   ].join("\n");
 
   const result = await model.generateContent([
@@ -635,38 +642,23 @@ async function generateSurfaceMask(
     { inlineData: { mimeType: roomImageData.mimeType, data: roomImageData.base64 } },
   ]);
 
-  const text = result.response.text().trim();
-  let jsonStr = text;
-  const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) jsonStr = fenceMatch[1].trim();
+  // Extract mask image from response
+  for (const candidate of result.response.candidates || []) {
+    for (const part of candidate.content?.parts || []) {
+      if (part.inlineData) {
+        const maskBuffer = Buffer.from(part.inlineData.data, "base64");
+        // Process: resize to exact dimensions, ensure grayscale, apply slight blur for smooth edges
+        return sharp(maskBuffer)
+          .resize(width, height, { fit: "fill" })
+          .greyscale()
+          .normalize() // stretch to full 0-255 range
+          .blur(3) // slight blur for smooth compositing transitions
+          .toBuffer();
+      }
+    }
+  }
 
-  const data = JSON.parse(jsonStr);
-  const polygons: number[][][] = data.polygons || [];
-
-  if (polygons.length === 0) throw new Error("No surface polygons detected");
-
-  // Create SVG mask from polygons
-  const svgPolygons = polygons.map(poly => {
-    const points = poly.map(([x, y]) => {
-      const px = Math.max(0, Math.min(width, Math.round(x)));
-      const py = Math.max(0, Math.min(height, Math.round(y)));
-      return `${px},${py}`;
-    }).join(" ");
-    return `<polygon points="${points}" fill="white"/>`;
-  }).join("\n    ");
-
-  const svg = Buffer.from(
-    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${width}" height="${height}" fill="black"/>
-    ${svgPolygons}
-  </svg>`
-  );
-
-  // Render SVG to PNG, then blur for smooth compositing edges
-  const rawMask = await sharp(svg).png().toBuffer();
-  return sharp(rawMask)
-    .blur(8) // Gaussian blur for soft transitions at edges
-    .toBuffer();
+  throw new Error("Gemini did not return a mask image");
 }
 
 /**
