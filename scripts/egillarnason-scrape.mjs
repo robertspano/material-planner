@@ -3,8 +3,17 @@
  * Egill Árnason product scraper — scrapes flooring product images from
  * egillarnason.is (WordPress blog posts organized by category).
  *
- * This is a portfolio/showroom site — products are showcase images
- * without prices or dimensions.
+ * The site is a portfolio/showroom with mixed content:
+ *   - Material close-up photos (texture, pattern, color)
+ *   - Room/installation photos (how the flooring looks when laid)
+ *
+ * Multiple entries share the same product name (e.g., 4 "Kol" entries).
+ * This scraper PAIRS them: one image becomes the material swatch (swatchUrl)
+ * and the next becomes the room/installation photo (imageUrl).
+ *
+ * In the planner UI:
+ *   - swatchUrl is shown by default (the material itself)
+ *   - imageUrl is shown on hover (the material installed in a room)
  *
  * Usage: node scripts/egillarnason-scrape.mjs
  */
@@ -35,34 +44,35 @@ async function fetchPage(url) {
   return res.text();
 }
 
-/** Extract products from a listing page */
-function extractProducts(html) {
+/** Extract raw entries from a listing page */
+function extractEntries(html) {
   const $ = cheerio.load(html);
-  const products = [];
+  const entries = [];
 
   $('article').each((_, el) => {
     const article = $(el);
 
     // Get product name from entry-title
-    // Note: nested <a> tags cause cheerio to split them — use .text() on the h2
-    // or .last() to skip the empty first <a>
     let name = article.find('.entry-title').first().text().trim();
     if (!name) name = article.find('h2').first().text().trim();
     if (!name) return;
 
-    // Decode HTML entities
-    name = name.replace(/&#8211;/g, '–').replace(/&#038;/g, '&').replace(/&#8217;/g, "'");
+    // Decode HTML entities and normalize whitespace
+    name = name
+      .replace(/&#8211;/g, '–')
+      .replace(/&#038;/g, '&')
+      .replace(/&#8217;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
 
     // Get image URL from wp-post-image
     let imageUrl = null;
     const img = article.find('img.wp-post-image').first();
     if (img.length) {
-      // Use the src attribute (already sized thumbnail)
       imageUrl = img.attr('src') || null;
       // Try to get a reasonable size from srcset
       const srcset = img.attr('srcset') || '';
       const srcsetParts = srcset.split(',').map(s => s.trim());
-      // Find an ~800w version
       const medium = srcsetParts.find(s => s.includes('800w')) ||
                      srcsetParts.find(s => s.includes('1024w')) ||
                      srcsetParts.find(s => s.includes('768w'));
@@ -76,27 +86,64 @@ function extractProducts(html) {
     const detailUrl = article.find('.entry-title a').attr('href') || article.find('a').first().attr('href') || '';
 
     if (imageUrl) {
-      products.push({ name, imageUrl, detailUrl });
+      entries.push({ name, imageUrl, detailUrl });
     }
   });
 
-  return products;
+  return entries;
 }
 
-/** Make names unique within a category by adding numbering for duplicates */
-function makeNamesUnique(products) {
-  // Count occurrences of each name
-  const nameCounts = {};
-  for (const p of products) {
-    nameCounts[p.name] = (nameCounts[p.name] || 0) + 1;
+/**
+ * Group entries by product name, then pair them into products.
+ *
+ * Within each name group, consecutive entries are paired:
+ *   - 1st entry → swatchUrl (material close-up)
+ *   - 2nd entry → imageUrl (room/installation)
+ *
+ * This works because the site typically interleaves close-ups and room shots:
+ *   - Close-up of the floor texture, then a room showing it installed
+ *   - Or for tiles: close-up of the tile pattern, then a restaurant using it
+ *
+ * Groups with a single entry use the same image for both.
+ * Groups with odd entries: last entry uses the same image for both.
+ */
+function pairIntoProducts(entries) {
+  // Group by name
+  const groups = {};
+  for (const entry of entries) {
+    if (!groups[entry.name]) groups[entry.name] = [];
+    groups[entry.name].push(entry);
   }
 
-  // For names that appear more than once, add numbering
-  const nameCounters = {};
-  for (const p of products) {
-    if (nameCounts[p.name] > 1) {
-      nameCounters[p.name] = (nameCounters[p.name] || 0) + 1;
-      p.name = `${p.name} ${nameCounters[p.name]}`;
+  const products = [];
+
+  for (const [baseName, groupEntries] of Object.entries(groups)) {
+    if (groupEntries.length === 1) {
+      // Single entry — same image for both
+      products.push({
+        name: baseName,
+        swatchUrl: groupEntries[0].imageUrl,
+        imageUrl: groupEntries[0].imageUrl,
+      });
+    } else {
+      // Pair consecutive entries: [swatch, room], [swatch, room], ...
+      let pairNum = 1;
+      const totalPairs = Math.ceil(groupEntries.length / 2);
+      for (let i = 0; i < groupEntries.length; i += 2) {
+        const swatch = groupEntries[i];
+        const room = groupEntries[i + 1] || swatch; // if odd, last uses same for both
+
+        const name = totalPairs > 1
+          ? `${baseName} ${pairNum}`
+          : baseName;
+        pairNum++;
+
+        products.push({
+          name,
+          swatchUrl: swatch.imageUrl,  // Material/close-up image
+          imageUrl: room.imageUrl,     // Room/installation image
+        });
+      }
     }
   }
 
@@ -127,12 +174,13 @@ async function main() {
     console.log(`📂 Scraping ${cat.category} — ${cat.url}`);
     try {
       const html = await fetchPage(cat.url);
-      let products = extractProducts(html);
+      const rawEntries = extractEntries(html);
+      console.log(`   Found ${rawEntries.length} entries on page`);
 
-      // Make names unique within category
-      products = makeNamesUnique(products);
+      // Pair entries into products (swatch + room)
+      const products = pairIntoProducts(rawEntries);
+      console.log(`   → ${products.length} products after pairing`);
 
-      console.log(`   Found ${products.length} products`);
       for (const p of products) {
         allProducts.push({
           ...p,
@@ -197,7 +245,6 @@ async function main() {
 
       const surfaceTypes = p.surfaceType === 'both' ? ['floor', 'wall'] : [p.surfaceType || 'floor'];
 
-      const imgUrl = p.imageUrl || '/placeholder-product.png';
       await prisma.product.create({
         data: {
           companyId: company.id,
@@ -205,15 +252,15 @@ async function main() {
           name: p.name,
           price: null,
           unit: 'm2',
-          imageUrl: imgUrl,
-          swatchUrl: p.imageUrl || null,  // Same as imageUrl (portfolio site — room photos only)
+          imageUrl: p.imageUrl,      // Room/installation photo (shown on hover)
+          swatchUrl: p.swatchUrl,    // Material close-up (shown by default)
           surfaceTypes,
           sortOrder: sortOrder++,
         },
       });
 
       imported++;
-      if (imported % 30 === 0) console.log(`   ${imported}/${allProducts.length} imported...`);
+      if (imported % 20 === 0) console.log(`   ${imported}/${allProducts.length} imported...`);
     } catch (err) {
       console.error(`   ❌ Failed: "${p.name}": ${err.message}`);
       failed++;
